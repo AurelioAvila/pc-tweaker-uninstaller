@@ -9,8 +9,10 @@
 pub mod elevation;
 pub mod license;
 pub mod programs;
+pub mod restore_point;
 pub mod rollback;
 pub mod uninstall_command;
+pub mod uninstall_exec;
 
 use std::path::PathBuf;
 use tauri::Manager;
@@ -37,6 +39,8 @@ pub fn run() {
             license::license_status,
             license::clear_license,
             programs::list_programs,
+            uninstall_exec::plan_uninstall,
+            uninstall_exec::execute_uninstall,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

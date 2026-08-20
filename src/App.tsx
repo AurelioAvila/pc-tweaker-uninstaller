@@ -20,10 +20,46 @@ interface ProgramInfo {
   uninstall: UninstallSummary;
 }
 
+/** Mirror of `UninstallPlan` (src-tauri/src/uninstall_exec.rs). Display only:
+ *  the backend re-derives everything at execution time. */
+interface UninstallPlan {
+  programName: string;
+  kind: "msi" | "executable";
+  command: string[];
+  needsElevation: boolean;
+  willAttemptRestorePoint: boolean;
+  warnings: string[];
+}
+
+type RestorePointOutcome =
+  { kind: "created" } | { kind: "skipped"; reason: string } | { kind: "failed"; reason: string };
+
+interface UninstallReport {
+  programName: string;
+  command: string[];
+  restorePoint: RestorePointOutcome;
+  exitCode: number | null;
+  success: boolean;
+  rebootRequired: boolean;
+  message: string;
+  durationMs: number;
+}
+
 type LoadState =
   | { phase: "loading" }
   | { phase: "error"; message: string }
   | { phase: "ready"; programs: ProgramInfo[] };
+
+/** The uninstall flow, one program at a time (the backend enforces the same
+ *  invariant with a lock). */
+type FlowState =
+  | { step: "idle" }
+  | { step: "planning"; program: ProgramInfo }
+  | { step: "planError"; program: ProgramInfo; message: string }
+  | { step: "confirm"; program: ProgramInfo; plan: UninstallPlan }
+  | { step: "running"; program: ProgramInfo }
+  | { step: "report"; program: ProgramInfo; report: UninstallReport }
+  | { step: "execError"; program: ProgramInfo; message: string };
 
 function formatSize(kb: number | null): string {
   if (kb === null || kb <= 0) return "—";
@@ -46,6 +82,22 @@ function monogram(name: string): string {
   return codePoint === undefined ? "?" : String.fromCodePoint(codePoint).toUpperCase();
 }
 
+/** Renders an argv for humans: tokens with spaces get quotes back. */
+function displayCommand(argv: string[]): string {
+  return argv.map((token) => (token.includes(" ") ? `"${token}"` : token)).join(" ");
+}
+
+function restorePointLine(outcome: RestorePointOutcome): string {
+  switch (outcome.kind) {
+    case "created":
+      return text.uninstall.restorePointCreated;
+    case "skipped":
+      return text.uninstall.restorePointSkipped(outcome.reason);
+    case "failed":
+      return text.uninstall.restorePointFailed(outcome.reason);
+  }
+}
+
 const BADGE_LABEL: Record<UninstallSummary, string> = {
   msi: text.programs.badgeMsi,
   executable: text.programs.badgeExecutable,
@@ -64,6 +116,7 @@ export default function App() {
   const [version, setVersion] = useState<string | null>(null);
   const [state, setState] = useState<LoadState>({ phase: "loading" });
   const [query, setQuery] = useState("");
+  const [flow, setFlow] = useState<FlowState>({ step: "idle" });
 
   const load = useCallback(() => {
     setState({ phase: "loading" });
@@ -103,6 +156,62 @@ export default function App() {
         p.name.toLowerCase().includes(needle) || (p.publisher ?? "").toLowerCase().includes(needle),
     );
   }, [state, query]);
+
+  const beginUninstall = useCallback((program: ProgramInfo) => {
+    setFlow({ step: "planning", program });
+    invoke<UninstallPlan>("plan_uninstall", { source: program.source, id: program.id })
+      .then((plan) => {
+        setFlow({ step: "confirm", program, plan });
+      })
+      .catch((error: unknown) => {
+        setFlow({
+          step: "planError",
+          program,
+          message: typeof error === "string" ? error : text.errors.generic,
+        });
+      });
+  }, []);
+
+  const confirmUninstall = useCallback(
+    (program: ProgramInfo) => {
+      setFlow({ step: "running", program });
+      invoke<UninstallReport>("execute_uninstall", { source: program.source, id: program.id })
+        .then((report) => {
+          setFlow({ step: "report", program, report });
+          load(); // The registry changed (or should have): refresh honestly.
+        })
+        .catch((error: unknown) => {
+          setFlow({
+            step: "execError",
+            program,
+            message: typeof error === "string" ? error : text.errors.generic,
+          });
+          load();
+        });
+    },
+    [load],
+  );
+
+  const closeFlow = useCallback(() => {
+    setFlow({ step: "idle" });
+  }, []);
+
+  // Esc closes the dialog in every step where closing is meaningful. While
+  // an uninstall is actually running there is nothing to cancel from here —
+  // the child process owns the action.
+  const flowStep = flow.step;
+  useEffect(() => {
+    if (flowStep === "idle" || flowStep === "planning" || flowStep === "running") return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeFlow();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [flowStep, closeFlow]);
 
   const totalSizeKb = useMemo(
     () =>
@@ -192,6 +301,7 @@ export default function App() {
                   </span>
                   <span role="columnheader">{text.programs.columnInstalled}</span>
                   <span role="columnheader" className="num" />
+                  <span role="columnheader" className="num" />
                 </div>
                 {filtered.map((p) => (
                   <div className="row" role="row" key={`${p.source}:${p.id}`}>
@@ -230,6 +340,20 @@ export default function App() {
                         {BADGE_LABEL[p.uninstall]}
                       </span>
                     </span>
+                    <span role="cell" className="cell-action num">
+                      {(p.uninstall === "msi" || p.uninstall === "executable") && (
+                        <button
+                          type="button"
+                          className="row-action"
+                          disabled={flow.step !== "idle"}
+                          onClick={() => {
+                            beginUninstall(p);
+                          }}
+                        >
+                          {text.uninstall.action}
+                        </button>
+                      )}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -237,6 +361,121 @@ export default function App() {
           </>
         )}
       </main>
+
+      {flow.step !== "idle" && (
+        <div
+          className="overlay"
+          role="presentation"
+          onClick={flow.step === "planning" || flow.step === "running" ? undefined : closeFlow}
+        >
+          <div
+            className="dialog"
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            {flow.step === "planning" && (
+              <p className="status" role="status">
+                <span className="spinner" aria-hidden="true" />
+                {text.uninstall.planning}
+              </p>
+            )}
+
+            {flow.step === "planError" && (
+              <>
+                <h2>{text.uninstall.planFailedTitle}</h2>
+                <p className="dialog-body">{flow.message}</p>
+                <div className="dialog-actions">
+                  <button type="button" className="button" onClick={closeFlow}>
+                    {text.uninstall.close}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {flow.step === "confirm" && (
+              <>
+                <h2>{text.uninstall.confirmTitle(flow.plan.programName)}</h2>
+                <p className="dialog-body">{text.uninstall.confirmBody}</p>
+                <p className="command-label">{text.uninstall.commandLabel}</p>
+                <code className="command">{displayCommand(flow.plan.command)}</code>
+                <ul className="dialog-notes">
+                  {flow.plan.needsElevation && <li>{text.uninstall.elevationNote}</li>}
+                  {flow.plan.willAttemptRestorePoint && <li>{text.uninstall.restorePointNote}</li>}
+                  {flow.plan.warnings.map((warning) => (
+                    <li key={warning}>{warning}</li>
+                  ))}
+                </ul>
+                <div className="dialog-actions">
+                  <button type="button" className="button-ghost" onClick={closeFlow}>
+                    {text.uninstall.cancel}
+                  </button>
+                  <button
+                    type="button"
+                    className="button button-danger"
+                    onClick={() => {
+                      confirmUninstall(flow.program);
+                    }}
+                  >
+                    {text.uninstall.confirm}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {flow.step === "running" && (
+              <>
+                <p className="status" role="status">
+                  <span className="spinner" aria-hidden="true" />
+                  {text.uninstall.running(flow.program.name)}
+                </p>
+                <p className="dialog-body">{text.uninstall.runningNote}</p>
+              </>
+            )}
+
+            {flow.step === "report" && (
+              <>
+                <h2>
+                  {flow.report.success
+                    ? text.uninstall.reportSuccessTitle
+                    : text.uninstall.reportFailureTitle}
+                </h2>
+                <p className="dialog-body">{flow.report.message}</p>
+                {flow.report.rebootRequired && (
+                  <p className="dialog-body reboot">{text.uninstall.rebootNote}</p>
+                )}
+                <ul className="dialog-notes">
+                  <li>{restorePointLine(flow.report.restorePoint)}</li>
+                  {flow.report.exitCode !== null && (
+                    <li>
+                      {text.uninstall.exitCodeLabel}: {String(flow.report.exitCode)}
+                    </li>
+                  )}
+                </ul>
+                <div className="dialog-actions">
+                  <button type="button" className="button" onClick={closeFlow}>
+                    {text.uninstall.close}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {flow.step === "execError" && (
+              <>
+                <h2>{text.uninstall.reportFailureTitle}</h2>
+                <p className="dialog-body">{flow.message}</p>
+                <div className="dialog-actions">
+                  <button type="button" className="button" onClick={closeFlow}>
+                    {text.uninstall.close}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

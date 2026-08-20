@@ -38,6 +38,28 @@ export type Dictionary = {
     readonly badgeUser: string;
     readonly badgeUserHint: string;
   };
+  readonly uninstall: {
+    readonly action: string;
+    readonly confirmTitle: (name: string) => string;
+    readonly confirmBody: string;
+    readonly commandLabel: string;
+    readonly elevationNote: string;
+    readonly restorePointNote: string;
+    readonly confirm: string;
+    readonly cancel: string;
+    readonly close: string;
+    readonly planning: string;
+    readonly planFailedTitle: string;
+    readonly running: (name: string) => string;
+    readonly runningNote: string;
+    readonly reportSuccessTitle: string;
+    readonly reportFailureTitle: string;
+    readonly rebootNote: string;
+    readonly restorePointCreated: string;
+    readonly restorePointSkipped: (reason: string) => string;
+    readonly restorePointFailed: (reason: string) => string;
+    readonly exitCodeLabel: string;
+  };
   readonly errors: {
     readonly generic: string;
   };
@@ -80,6 +102,30 @@ const en: Dictionary = {
     badgeInvalidHint: "This program's uninstall command could not be understood.",
     badgeUser: "User",
     badgeUserHint: "Installed for this user only, not machine-wide.",
+  },
+  uninstall: {
+    action: "Uninstall",
+    confirmTitle: (name) => `Uninstall ${name}?`,
+    confirmBody:
+      "Exactly the command below will run - nothing else. It was rebuilt from the Windows registry and re-checked; it will be re-checked once more at the moment it runs.",
+    commandLabel: "Command",
+    elevationNote: "Windows will ask for administrator approval (UAC) first.",
+    restorePointNote: "A System Restore point will be attempted before anything runs.",
+    confirm: "Uninstall",
+    cancel: "Cancel",
+    close: "Close",
+    planning: "Checking what would run...",
+    planFailedTitle: "Cannot uninstall automatically",
+    running: (name) => `Uninstalling ${name}...`,
+    runningNote:
+      "The program's uninstaller is running. This window stays responsive; some uninstallers open their own windows.",
+    reportSuccessTitle: "Uninstalled",
+    reportFailureTitle: "Uninstall did not complete",
+    rebootNote: "A restart is required to finish removing files.",
+    restorePointCreated: "System Restore point: created.",
+    restorePointSkipped: (reason) => `System Restore point: skipped - ${reason}`,
+    restorePointFailed: (reason) => `System Restore point: not created - ${reason}`,
+    exitCodeLabel: "Exit code",
   },
   errors: {
     generic: "Something went wrong. Please try again.",
