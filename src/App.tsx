@@ -317,6 +317,19 @@ export default function App() {
     [visible],
   );
 
+  // The strategic cross-link: when the flagship is installed on this PC, the
+  // uninstaller greets its owner as a suite member. Detection is local (the
+  // program list we already read) — no network, no account required.
+  const suiteDetected = useMemo(
+    () =>
+      state.phase === "ready" &&
+      state.programs.some((p) => {
+        const name = p.name.toLowerCase();
+        return name.startsWith("pc tweaker") && !name.includes("uninstaller");
+      }),
+    [state],
+  );
+
   return (
     <div className="shell">
       <header className="topbar">
@@ -329,7 +342,22 @@ export default function App() {
             <p className="tagline">{text.app.tagline}</p>
           </div>
         </div>
-        {version !== null && <span className="version">v{version}</span>}
+        <div className="topbar-right">
+          {suiteDetected && (
+            <button
+              type="button"
+              className="suite-pill"
+              title={text.app.suiteDetectedHint}
+              onClick={() => {
+                openLink("pctweaker");
+              }}
+            >
+              <span className="suite-dot" aria-hidden="true" />
+              {text.app.suiteDetected}
+            </button>
+          )}
+          {version !== null && <span className="version">v{version}</span>}
+        </div>
       </header>
 
       <main className="content">
@@ -637,10 +665,12 @@ export default function App() {
           </button>
         </div>
         <div className="footbar-right">
-          <span className="footbar-info" title={text.footer.restoreInfo}>
-            {text.footer.restoreInfo}
-          </span>
-          <button type="button" className="footbar-link accent" onClick={openRestoreUi}>
+          <button
+            type="button"
+            className="footbar-link accent"
+            title={text.footer.restoreInfo}
+            onClick={openRestoreUi}
+          >
             {text.footer.openRestore}
           </button>
         </div>

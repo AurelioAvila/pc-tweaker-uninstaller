@@ -9,6 +9,8 @@ export type Dictionary = {
   readonly app: {
     readonly title: string;
     readonly tagline: string;
+    readonly suiteDetected: string;
+    readonly suiteDetectedHint: string;
   };
   readonly programs: {
     readonly searchPlaceholder: string;
@@ -95,6 +97,9 @@ const en: Dictionary = {
   app: {
     title: "PC Tweaker Uninstaller",
     tagline: "Uninstall programs cleanly - with a safety net.",
+    suiteDetected: "PC Tweaker detected - suite member",
+    suiteDetectedHint:
+      "PC Tweaker is installed on this PC, so you're part of the suite: Uninstaller Pro will unlock at a loyalty price on your PC Tweaker account when it launches.",
   },
   programs: {
     searchPlaceholder: "Search by name or publisher...",
