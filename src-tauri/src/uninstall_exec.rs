@@ -97,6 +97,10 @@ pub struct UninstallPlan {
     pub needs_elevation: bool,
     pub will_attempt_restore_point: bool,
     pub warnings: Vec<String>,
+    /// Removal Confidence Score for the Removal Brief (display only).
+    pub confidence: crate::confidence::Confidence,
+    /// The registry's own size claim — an estimate, labeled as one.
+    pub estimated_size_kb: Option<u32>,
 }
 
 /// Picks the command execution will use: the quiet string when it parses to
@@ -197,6 +201,10 @@ fn build_plan(source: &str, id: &str) -> Result<UninstallPlan, String> {
     validate_key_name(id)?;
     let entry = programs::read_raw_entry(source, id)?;
     let program_name = entry.display_name.clone().unwrap_or_else(|| id.to_string());
+    let hidden = !programs::is_listable(&entry);
+    let confidence =
+        crate::confidence::assess(&entry, hidden, &programs::summarize_uninstall(&entry));
+    let estimated_size_kb = entry.estimated_size_kb;
     let (kind, command) = derive_argv(&entry)?;
 
     let elevated = needs_elevation(source);
@@ -223,6 +231,8 @@ fn build_plan(source: &str, id: &str) -> Result<UninstallPlan, String> {
         needs_elevation: elevated,
         will_attempt_restore_point: elevated,
         warnings,
+        confidence,
+        estimated_size_kb,
     })
 }
 
@@ -280,13 +290,97 @@ pub fn interpret_exit(kind: &PlanKind, code: Option<i32>) -> (bool, bool, String
     }
 }
 
-/// Fixed report location under the app's own data directory. Derived from a
-/// constant so the elevated headless child (which has no Tauri context) and
-/// the parent resolve the identical path — and so no path ever rides argv.
-fn report_path() -> Result<PathBuf, String> {
+/// The app's fixed data directory, derived from a constant so the elevated
+/// headless child (no Tauri context), the parent, and the ledger all resolve
+/// the identical path — and so no path ever rides argv.
+pub fn fixed_data_dir() -> Result<PathBuf, String> {
     let base = std::env::var_os("APPDATA")
         .ok_or_else(|| "APPDATA is not set; cannot locate the app data directory.".to_string())?;
-    Ok(PathBuf::from(base).join(APP_IDENTIFIER).join(REPORT_FILE))
+    Ok(PathBuf::from(base).join(APP_IDENTIFIER))
+}
+
+fn report_path() -> Result<PathBuf, String> {
+    Ok(fixed_data_dir()?.join(REPORT_FILE))
+}
+
+// ---- Verified space measurement -------------------------------------------
+
+/// Bounded recursive directory size. `None` when the walk hits the entry cap
+/// or the directory is unreadable: an unmeasurable folder yields no number,
+/// never a wrong one.
+pub fn dir_size_capped(path: &std::path::Path, cap: &mut u32) -> Option<u64> {
+    let mut total: u64 = 0;
+    let entries = std::fs::read_dir(path).ok()?;
+    for entry in entries.flatten() {
+        if *cap == 0 {
+            return None;
+        }
+        *cap -= 1;
+        let meta = entry.metadata().ok()?;
+        if meta.is_dir() {
+            total += dir_size_capped(&entry.path(), cap)?;
+        } else {
+            total += meta.len();
+        }
+    }
+    Some(total)
+}
+
+/// Measures the entry's install folder, if it records one that exists.
+fn measure_install_dir(source: &str, id: &str) -> Option<u64> {
+    let entry = programs::read_raw_entry(source, id).ok()?;
+    let location = entry.install_location?;
+    let path = std::path::Path::new(&location);
+    if !path.is_dir() {
+        return None;
+    }
+    // ~20k entries covers normal applications; beyond that, honesty over
+    // minutes of disk churn.
+    dir_size_capped(path, &mut 20_000)
+}
+
+/// Best-effort ledger receipt. A receipt failure never fails the uninstall —
+/// the report the user sees is already complete without it.
+fn record_receipt(source: &str, report: &UninstallReport, pre_bytes: Option<u64>, post_bytes: Option<u64>, estimated_size_kb: Option<u32>) {
+    let verified_freed_kb = match (pre_bytes, post_bytes) {
+        // Folder measured before and now gone: everything it held is freed.
+        (Some(pre), None) => Some(pre / 1024),
+        (Some(pre), Some(post)) if pre > post => Some((pre - post) / 1024),
+        _ => None,
+    };
+    let method = report
+        .command
+        .first()
+        .map(|c| {
+            if c.to_ascii_lowercase().ends_with("msiexec.exe") {
+                "msi"
+            } else {
+                "executable"
+            }
+        })
+        .unwrap_or("unknown");
+    let restore_point = match &report.restore_point {
+        RestorePointOutcome::Created => "created".to_string(),
+        RestorePointOutcome::Skipped { reason } => format!("skipped: {reason}"),
+        RestorePointOutcome::Failed { reason } => format!("failed: {reason}"),
+    };
+    let ts = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    let _ = crate::ledger::append(&crate::ledger::RemovalReceipt {
+        ts,
+        program_name: report.program_name.clone(),
+        source: source.to_string(),
+        method: method.to_string(),
+        success: report.success,
+        exit_code: report.exit_code,
+        reboot_required: report.reboot_required,
+        restore_point,
+        estimated_size_kb,
+        verified_freed_kb,
+        message: report.message.clone(),
+    });
 }
 
 fn write_report(report: &UninstallReport) -> Result<(), String> {
@@ -448,12 +542,25 @@ pub fn plan_uninstall(source: String, id: String) -> Result<UninstallPlan, Strin
 }
 
 /// Executes the uninstall. Blocking work runs off the async runtime's core
-/// threads; the webview stays responsive for the duration.
+/// threads; the webview stays responsive for the duration. The install folder
+/// is measured before and after so the ledger's "space freed" is verified,
+/// not just the registry's claim.
 #[tauri::command]
 pub async fn execute_uninstall(source: String, id: String) -> Result<UninstallReport, String> {
-    tauri::async_runtime::spawn_blocking(move || execute_sync(&source, &id))
-        .await
-        .map_err(|e| format!("The uninstall task failed to run: {e}"))?
+    tauri::async_runtime::spawn_blocking(move || {
+        let estimated_size_kb = programs::read_raw_entry(&source, &id)
+            .ok()
+            .and_then(|e| e.estimated_size_kb);
+        let pre = measure_install_dir(&source, &id);
+        let result = execute_sync(&source, &id);
+        if let Ok(report) = &result {
+            let post = measure_install_dir(&source, &id);
+            record_receipt(&source, report, pre, post, estimated_size_kb);
+        }
+        result
+    })
+    .await
+    .map_err(|e| format!("The uninstall task failed to run: {e}"))?
 }
 
 #[cfg(test)]

@@ -1,9 +1,25 @@
 /**
- * UI strings. English is the launch language; the shape mirrors PC Tweaker's
- * dictionary so the other four languages (IT/FR/ES/DE) can be added without
- * touching component code. Every user-visible string lives here — components
- * never embed literals, which is what keeps a translation pass mechanical.
+ * UI strings for all five suite languages. English is the default; the
+ * selected locale persists in localStorage. Every user-visible string lives
+ * here — components never embed literals.
+ *
+ * `text` is a module-level binding deliberately: the app is a single
+ * component tree that re-renders when the language state changes, so
+ * reassigning before that render is race-free and keeps 800 lines of
+ * call sites untouched.
  */
+
+export type ConfidenceReason =
+  | "hiddenSystem"
+  | "sharedRuntime"
+  | "driverComponent"
+  | "sharedLauncher"
+  | "noPublisher"
+  | "brokenUninstaller"
+  | "manualUninstaller"
+  | "noUninstaller"
+  | "namedPublisher"
+  | "standardUninstaller";
 
 export type Dictionary = {
   readonly app: {
@@ -56,6 +72,13 @@ export type Dictionary = {
     readonly sourceMachine32: string;
     readonly sourceUser: string;
   };
+  readonly confidence: {
+    readonly labelSafe: string;
+    readonly labelReview: string;
+    readonly labelKeep: string;
+    readonly disclaimer: string;
+    readonly reasons: Record<ConfidenceReason, string>;
+  };
   readonly footer: {
     readonly family: string;
     readonly pcTweaker: string;
@@ -69,6 +92,16 @@ export type Dictionary = {
     readonly confirmTitle: (name: string) => string;
     readonly confirmBody: string;
     readonly commandLabel: string;
+    readonly methodLabel: string;
+    readonly methodMsi: string;
+    readonly methodExe: string;
+    readonly privilegesLabel: string;
+    readonly privilegesAdmin: string;
+    readonly privilegesUser: string;
+    readonly sizeLabel: string;
+    readonly sizeUnknown: string;
+    readonly confidenceLabel: string;
+    readonly notRemovedNote: string;
     readonly elevationNote: string;
     readonly restorePointNote: string;
     readonly confirm: string;
@@ -88,6 +121,35 @@ export type Dictionary = {
     readonly familyNote: string;
     readonly hiddenNote: string;
   };
+  readonly ledger: {
+    readonly open: string;
+    readonly title: string;
+    readonly subtitle: string;
+    readonly empty: string;
+    readonly exportButton: string;
+    readonly exportedTo: (path: string) => string;
+    readonly verifiedFreed: (size: string) => string;
+    readonly estimatedOnly: (size: string) => string;
+    readonly rebootFlag: string;
+    readonly failedFlag: string;
+    readonly restorePointLabel: string;
+  };
+  readonly menu: {
+    readonly open: string;
+    readonly account: string;
+    readonly signIn: string;
+    readonly signInHint: string;
+    readonly plans: string;
+    readonly planMonthly: string;
+    readonly planAnnual: string;
+    readonly loyaltyTitle: string;
+    readonly loyaltyPrice: string;
+    readonly loyaltyHint: string;
+    readonly choosePlans: string;
+    readonly language: string;
+    readonly theme: string;
+    readonly openPcTweaker: string;
+  };
   readonly errors: {
     readonly generic: string;
   };
@@ -96,10 +158,10 @@ export type Dictionary = {
 const en: Dictionary = {
   app: {
     title: "PC Tweaker Uninstaller",
-    tagline: "Uninstall programs cleanly - with a safety net.",
+    tagline: "Removal Intelligence for Windows - remove software with clarity, not guesswork.",
     suiteDetected: "PC Tweaker detected - suite member",
     suiteDetectedHint:
-      "PC Tweaker is installed on this PC, so you're part of the suite: Uninstaller Pro will unlock at a loyalty price on your PC Tweaker account when it launches.",
+      "PC Tweaker is installed on this PC, so you're part of the suite: Uninstaller Pro unlocks at the loyalty price on your PC Tweaker account.",
   },
   programs: {
     searchPlaceholder: "Search by name or publisher...",
@@ -151,6 +213,24 @@ const en: Dictionary = {
     sourceMachine32: "This PC (32-bit)",
     sourceUser: "This user only",
   },
+  confidence: {
+    labelSafe: "Safe to remove",
+    labelReview: "Review before removing",
+    labelKeep: "Keep - system-related",
+    disclaimer: "Based on visible evidence - a guide, not a certainty.",
+    reasons: {
+      hiddenSystem: "Windows itself hides this entry (system component or child update).",
+      sharedRuntime: "Shared runtime: other programs likely depend on it.",
+      driverComponent: "Driver or chipset package: removing it can affect hardware.",
+      sharedLauncher: "Launcher/store: software installed through it would stop working.",
+      noPublisher: "No publisher recorded - origin cannot be verified.",
+      brokenUninstaller: "Its uninstall command is broken and cannot run automatically.",
+      manualUninstaller: "Its uninstaller must be run manually (script-based).",
+      noUninstaller: "It declares no uninstall command at all.",
+      namedPublisher: "A named publisher is recorded.",
+      standardUninstaller: "It has a standard MSI/EXE uninstaller.",
+    },
+  },
   footer: {
     family: "Part of the PC Tweaker family",
     pcTweaker: "PC Tweaker",
@@ -164,8 +244,19 @@ const en: Dictionary = {
     action: "Uninstall",
     confirmTitle: (name) => `Uninstall ${name}?`,
     confirmBody:
-      "Exactly the command below will run - nothing else. It was rebuilt from the Windows registry and re-checked; it will be re-checked once more at the moment it runs.",
+      "Exactly the command below will run - nothing else. It was rebuilt from the Windows registry and will be re-checked at the moment it runs.",
     commandLabel: "Command",
+    methodLabel: "Method",
+    methodMsi: "Windows Installer (silent)",
+    methodExe: "The program's own uninstaller",
+    privilegesLabel: "Privileges",
+    privilegesAdmin: "Administrator (one UAC prompt)",
+    privilegesUser: "Current user",
+    sizeLabel: "Estimated space to reclaim",
+    sizeUnknown: "Not recorded",
+    confidenceLabel: "Confidence",
+    notRemovedNote:
+      "Not removed automatically: leftover files, folders and registry entries. Residue scanning arrives in a later update and will always ask first.",
     elevationNote: "Windows will ask for administrator approval (UAC) first.",
     restorePointNote: "A System Restore point will be attempted before anything runs.",
     confirm: "Uninstall",
@@ -188,13 +279,739 @@ const en: Dictionary = {
     hiddenNote:
       "Windows normally hides this entry. Removing system components or child updates can affect other software.",
   },
+  ledger: {
+    open: "History",
+    title: "Removal Ledger",
+    subtitle:
+      "A local receipt for every removal this app ran - successes and failures alike. Stored on this PC, never uploaded.",
+    empty: "No removals recorded yet. Your first uninstall will leave its receipt here.",
+    exportButton: "Export JSON",
+    exportedTo: (path) => `Exported to ${path}`,
+    verifiedFreed: (size) => `${size} freed (verified)`,
+    estimatedOnly: (size) => `~${size} (registry estimate)`,
+    rebootFlag: "restart required",
+    failedFlag: "failed",
+    restorePointLabel: "Restore point",
+  },
+  menu: {
+    open: "Account & settings",
+    account: "Account",
+    signIn: "Sign in / Register on pctweaker.app",
+    signInHint:
+      "One account for the whole PC Tweaker suite. Registration happens on pctweaker.app and is valid here too.",
+    plans: "Uninstaller Pro",
+    planMonthly: "€3.99 / month",
+    planAnnual: "€13.99 / year",
+    loyaltyTitle: "Suite loyalty price",
+    loyaltyPrice: "€4.99 / year",
+    loyaltyHint:
+      "Already subscribed to any PC Tweaker plan? Uninstaller Pro costs €4.99/year on the same account.",
+    choosePlans: "See plans on pctweaker.app",
+    language: "Language",
+    theme: "Theme",
+    openPcTweaker: "Open PC Tweaker",
+  },
   errors: {
     generic: "Something went wrong. Please try again.",
   },
 };
 
-export const dictionaries = { en } as const;
+const it: Dictionary = {
+  app: {
+    title: "PC Tweaker Uninstaller",
+    tagline: "Removal Intelligence per Windows: rimuovi il software con chiarezza, non a intuito.",
+    suiteDetected: "PC Tweaker rilevato - membro della suite",
+    suiteDetectedHint:
+      "PC Tweaker è installato su questo PC, quindi fai parte della suite: Uninstaller Pro si sblocca al prezzo fedeltà sul tuo account PC Tweaker.",
+  },
+  programs: {
+    searchPlaceholder: "Cerca per nome o produttore...",
+    searchLabel: "Cerca tra i programmi installati",
+    loading: "Lettura dei programmi installati...",
+    countSummary: (shown, total) =>
+      shown === total
+        ? `${String(total)} programmi`
+        : `${String(shown)} di ${String(total)} programmi`,
+    statTotalSize: "su disco",
+    emptyTitle: "Nessun programma trovato",
+    emptyBody:
+      "Nessun programma disinstallabile trovato nel registro di Windows. È insolito: se pensi sia un errore, segnalacelo.",
+    noMatchesTitle: "Nessun risultato",
+    noMatchesBody: "Nessun programma installato corrisponde alla ricerca.",
+    errorTitle: "Impossibile leggere i programmi installati",
+    retry: "Riprova",
+    columnProgram: "Programma",
+    columnVersion: "Versione",
+    columnPublisher: "Produttore",
+    columnSize: "Dimensione",
+    columnInstalled: "Installato",
+    badgeMsi: "MSI",
+    badgeExecutable: "EXE",
+    badgeManualOnly: "Manuale",
+    badgeNone: "Senza uninstaller",
+    badgeInvalid: "Voce danneggiata",
+    badgeManualOnlyHint:
+      "Il comando di disinstallazione usa un interprete di script: per sicurezza va eseguito manualmente.",
+    badgeNoneHint: "Questa voce di registro non dichiara alcun comando di disinstallazione.",
+    badgeInvalidHint: "Il comando di disinstallazione di questo programma non è comprensibile.",
+    badgeUser: "Utente",
+    badgeUserHint: "Installato solo per questo utente, non per tutto il PC.",
+    badgeHidden: "Nascosto",
+    badgeHiddenHint:
+      "Windows normalmente nasconde questa voce (componente di sistema o aggiornamento). Rimuoverla può influire su altro software: assicurati di sapere cos'è.",
+    badgeSuite: "Suite",
+    badgeSuiteHint: "Parte della tua suite PC Tweaker.",
+    filterAll: "Tutti",
+    filterLarge: "Grandi",
+    filterRecent: "Recenti",
+    showHidden: "Mostra nascosti",
+    detailSource: "Ambito",
+    detailKey: "Voce di registro",
+    detailLocation: "Cartella di installazione",
+    detailNoLocation: "Non registrata",
+    openFolder: "Apri cartella",
+    sourceMachine64: "Questo PC (64 bit)",
+    sourceMachine32: "Questo PC (32 bit)",
+    sourceUser: "Solo questo utente",
+  },
+  confidence: {
+    labelSafe: "Rimozione sicura",
+    labelReview: "Rivedi prima di rimuovere",
+    labelKeep: "Da tenere - componente di sistema",
+    disclaimer: "Basato su evidenze visibili: una guida, non una certezza.",
+    reasons: {
+      hiddenSystem: "Windows stesso nasconde questa voce (componente di sistema o aggiornamento).",
+      sharedRuntime: "Runtime condiviso: altri programmi probabilmente ne dipendono.",
+      driverComponent: "Pacchetto driver o chipset: rimuoverlo può influire sull'hardware.",
+      sharedLauncher:
+        "Launcher/store: il software installato tramite esso smetterebbe di funzionare.",
+      noPublisher: "Nessun produttore registrato: origine non verificabile.",
+      brokenUninstaller:
+        "Il comando di disinstallazione è danneggiato e non può girare in automatico.",
+      manualUninstaller: "Il suo uninstaller va eseguito manualmente (basato su script).",
+      noUninstaller: "Non dichiara alcun comando di disinstallazione.",
+      namedPublisher: "È registrato un produttore con nome.",
+      standardUninstaller: "Ha un uninstaller standard MSI/EXE.",
+    },
+  },
+  footer: {
+    family: "Parte della famiglia PC Tweaker",
+    pcTweaker: "PC Tweaker",
+    promptShield: "PromptShield",
+    privacy: "Privacy",
+    restoreInfo:
+      "I punti di ripristino sono creati e conservati da Windows sull'unità di sistema (Protezione sistema).",
+    openRestore: "Gestisci punti di ripristino",
+  },
+  uninstall: {
+    action: "Disinstalla",
+    confirmTitle: (name) => `Disinstallare ${name}?`,
+    confirmBody:
+      "Verrà eseguito esattamente il comando qui sotto, nient'altro. È ricostruito dal registro di Windows e verrà ricontrollato al momento dell'esecuzione.",
+    commandLabel: "Comando",
+    methodLabel: "Metodo",
+    methodMsi: "Windows Installer (silenzioso)",
+    methodExe: "L'uninstaller del programma stesso",
+    privilegesLabel: "Privilegi",
+    privilegesAdmin: "Amministratore (una richiesta UAC)",
+    privilegesUser: "Utente corrente",
+    sizeLabel: "Spazio stimato da recuperare",
+    sizeUnknown: "Non registrato",
+    confidenceLabel: "Affidabilità",
+    notRemovedNote:
+      "Non rimosso automaticamente: file, cartelle e voci di registro residue. La scansione dei residui arriverà in un prossimo aggiornamento e chiederà sempre prima.",
+    elevationNote: "Windows chiederà prima l'approvazione da amministratore (UAC).",
+    restorePointNote: "Prima dell'esecuzione verrà tentato un punto di ripristino di sistema.",
+    confirm: "Disinstalla",
+    cancel: "Annulla",
+    close: "Chiudi",
+    planning: "Verifica di cosa verrebbe eseguito...",
+    planFailedTitle: "Disinstallazione automatica non possibile",
+    running: (name) => `Disinstallazione di ${name}...`,
+    runningNote:
+      "L'uninstaller del programma è in esecuzione. Questa finestra resta reattiva; alcuni uninstaller aprono finestre proprie.",
+    reportSuccessTitle: "Disinstallato",
+    reportFailureTitle: "Disinstallazione non completata",
+    rebootNote: "Serve un riavvio per completare la rimozione dei file.",
+    restorePointCreated: "Punto di ripristino: creato.",
+    restorePointSkipped: (reason) => `Punto di ripristino: saltato - ${reason}`,
+    restorePointFailed: (reason) => `Punto di ripristino: non creato - ${reason}`,
+    exitCodeLabel: "Codice di uscita",
+    familyNote:
+      "Questa app fa parte della tua suite PC Tweaker. Puoi rimuoverla, ma le funzioni della suite che ne dipendono smetteranno di funzionare.",
+    hiddenNote:
+      "Windows normalmente nasconde questa voce. Rimuovere componenti di sistema o aggiornamenti può influire su altro software.",
+  },
+  ledger: {
+    open: "Cronologia",
+    title: "Registro rimozioni",
+    subtitle:
+      "Una ricevuta locale per ogni rimozione eseguita da questa app, successi e fallimenti inclusi. Salvata su questo PC, mai caricata online.",
+    empty: "Nessuna rimozione registrata. La prima disinstallazione lascerà qui la sua ricevuta.",
+    exportButton: "Esporta JSON",
+    exportedTo: (path) => `Esportato in ${path}`,
+    verifiedFreed: (size) => `${size} liberati (verificato)`,
+    estimatedOnly: (size) => `~${size} (stima del registro)`,
+    rebootFlag: "riavvio richiesto",
+    failedFlag: "non riuscita",
+    restorePointLabel: "Punto di ripristino",
+  },
+  menu: {
+    open: "Account e impostazioni",
+    account: "Account",
+    signIn: "Accedi / Registrati su pctweaker.app",
+    signInHint:
+      "Un solo account per tutta la suite PC Tweaker. La registrazione avviene su pctweaker.app e vale anche qui.",
+    plans: "Uninstaller Pro",
+    planMonthly: "3,99 € / mese",
+    planAnnual: "13,99 € / anno",
+    loyaltyTitle: "Prezzo fedeltà suite",
+    loyaltyPrice: "4,99 € / anno",
+    loyaltyHint:
+      "Sei già abbonato a un piano PC Tweaker? Uninstaller Pro costa 4,99 €/anno sullo stesso account.",
+    choosePlans: "Vedi i piani su pctweaker.app",
+    language: "Lingua",
+    theme: "Tema",
+    openPcTweaker: "Apri PC Tweaker",
+  },
+  errors: {
+    generic: "Qualcosa è andato storto. Riprova.",
+  },
+};
+
+const fr: Dictionary = {
+  app: {
+    title: "PC Tweaker Uninstaller",
+    tagline:
+      "Removal Intelligence pour Windows : supprimez vos logiciels avec clarté, pas au hasard.",
+    suiteDetected: "PC Tweaker détecté - membre de la suite",
+    suiteDetectedHint:
+      "PC Tweaker est installé sur ce PC : vous faites partie de la suite. Uninstaller Pro se débloque au prix fidélité sur votre compte PC Tweaker.",
+  },
+  programs: {
+    searchPlaceholder: "Rechercher par nom ou éditeur...",
+    searchLabel: "Rechercher parmi les programmes installés",
+    loading: "Lecture des programmes installés...",
+    countSummary: (shown, total) =>
+      shown === total
+        ? `${String(total)} programmes`
+        : `${String(shown)} sur ${String(total)} programmes`,
+    statTotalSize: "sur le disque",
+    emptyTitle: "Aucun programme trouvé",
+    emptyBody:
+      "Aucun programme désinstallable n'a été trouvé dans le registre Windows. C'est inhabituel : si vous pensez que c'est une erreur, signalez-le.",
+    noMatchesTitle: "Aucun résultat",
+    noMatchesBody: "Aucun programme installé ne correspond à votre recherche.",
+    errorTitle: "Impossible de lire les programmes installés",
+    retry: "Réessayer",
+    columnProgram: "Programme",
+    columnVersion: "Version",
+    columnPublisher: "Éditeur",
+    columnSize: "Taille",
+    columnInstalled: "Installé",
+    badgeMsi: "MSI",
+    badgeExecutable: "EXE",
+    badgeManualOnly: "Manuel",
+    badgeNone: "Sans désinstalleur",
+    badgeInvalid: "Entrée endommagée",
+    badgeManualOnlyHint:
+      "La commande de désinstallation passe par un interpréteur de scripts : par sécurité, elle doit être lancée manuellement.",
+    badgeNoneHint: "Cette entrée de registre ne déclare aucune commande de désinstallation.",
+    badgeInvalidHint: "La commande de désinstallation de ce programme est incompréhensible.",
+    badgeUser: "Utilisateur",
+    badgeUserHint: "Installé pour cet utilisateur uniquement, pas pour tout le PC.",
+    badgeHidden: "Masqué",
+    badgeHiddenHint:
+      "Windows masque normalement cette entrée (composant système ou mise à jour). La supprimer peut affecter d'autres logiciels : soyez sûr de savoir ce que c'est.",
+    badgeSuite: "Suite",
+    badgeSuiteHint: "Fait partie de votre suite PC Tweaker.",
+    filterAll: "Tous",
+    filterLarge: "Volumineux",
+    filterRecent: "Récents",
+    showHidden: "Afficher masqués",
+    detailSource: "Portée",
+    detailKey: "Entrée de registre",
+    detailLocation: "Dossier d'installation",
+    detailNoLocation: "Non enregistré",
+    openFolder: "Ouvrir le dossier",
+    sourceMachine64: "Ce PC (64 bits)",
+    sourceMachine32: "Ce PC (32 bits)",
+    sourceUser: "Cet utilisateur uniquement",
+  },
+  confidence: {
+    labelSafe: "Suppression sûre",
+    labelReview: "À vérifier avant suppression",
+    labelKeep: "À conserver - lié au système",
+    disclaimer: "Basé sur des preuves visibles : un guide, pas une certitude.",
+    reasons: {
+      hiddenSystem: "Windows lui-même masque cette entrée (composant système ou mise à jour).",
+      sharedRuntime: "Runtime partagé : d'autres programmes en dépendent probablement.",
+      driverComponent: "Pilote ou chipset : sa suppression peut affecter le matériel.",
+      sharedLauncher:
+        "Launcher/boutique : les logiciels installés via celui-ci cesseraient de fonctionner.",
+      noPublisher: "Aucun éditeur enregistré : origine invérifiable.",
+      brokenUninstaller:
+        "Sa commande de désinstallation est endommagée et ne peut pas s'exécuter automatiquement.",
+      manualUninstaller: "Son désinstalleur doit être lancé manuellement (script).",
+      noUninstaller: "Il ne déclare aucune commande de désinstallation.",
+      namedPublisher: "Un éditeur nommé est enregistré.",
+      standardUninstaller: "Il possède un désinstalleur standard MSI/EXE.",
+    },
+  },
+  footer: {
+    family: "Fait partie de la famille PC Tweaker",
+    pcTweaker: "PC Tweaker",
+    promptShield: "PromptShield",
+    privacy: "Confidentialité",
+    restoreInfo:
+      "Les points de restauration sont créés et conservés par Windows sur le disque système (Protection du système).",
+    openRestore: "Gérer les points de restauration",
+  },
+  uninstall: {
+    action: "Désinstaller",
+    confirmTitle: (name) => `Désinstaller ${name} ?`,
+    confirmBody:
+      "Exactement la commande ci-dessous sera exécutée, rien d'autre. Elle est reconstruite depuis le registre Windows et sera revérifiée au moment de l'exécution.",
+    commandLabel: "Commande",
+    methodLabel: "Méthode",
+    methodMsi: "Windows Installer (silencieux)",
+    methodExe: "Le désinstalleur du programme lui-même",
+    privilegesLabel: "Privilèges",
+    privilegesAdmin: "Administrateur (une demande UAC)",
+    privilegesUser: "Utilisateur actuel",
+    sizeLabel: "Espace estimé à récupérer",
+    sizeUnknown: "Non enregistré",
+    confidenceLabel: "Confiance",
+    notRemovedNote:
+      "Non supprimé automatiquement : fichiers, dossiers et entrées de registre résiduels. L'analyse des résidus arrivera dans une prochaine mise à jour et demandera toujours d'abord.",
+    elevationNote: "Windows demandera d'abord l'approbation administrateur (UAC).",
+    restorePointNote: "Un point de restauration système sera tenté avant toute exécution.",
+    confirm: "Désinstaller",
+    cancel: "Annuler",
+    close: "Fermer",
+    planning: "Vérification de ce qui serait exécuté...",
+    planFailedTitle: "Désinstallation automatique impossible",
+    running: (name) => `Désinstallation de ${name}...`,
+    runningNote:
+      "Le désinstalleur du programme est en cours. Cette fenêtre reste réactive ; certains désinstalleurs ouvrent leurs propres fenêtres.",
+    reportSuccessTitle: "Désinstallé",
+    reportFailureTitle: "Désinstallation non terminée",
+    rebootNote: "Un redémarrage est nécessaire pour finir de supprimer les fichiers.",
+    restorePointCreated: "Point de restauration : créé.",
+    restorePointSkipped: (reason) => `Point de restauration : ignoré - ${reason}`,
+    restorePointFailed: (reason) => `Point de restauration : non créé - ${reason}`,
+    exitCodeLabel: "Code de sortie",
+    familyNote:
+      "Cette application fait partie de votre suite PC Tweaker. Vous pouvez la supprimer, mais les fonctions de la suite qui en dépendent cesseront de fonctionner.",
+    hiddenNote:
+      "Windows masque normalement cette entrée. Supprimer des composants système ou des mises à jour peut affecter d'autres logiciels.",
+  },
+  ledger: {
+    open: "Historique",
+    title: "Registre des suppressions",
+    subtitle:
+      "Un reçu local pour chaque suppression effectuée par cette application, réussites comme échecs. Conservé sur ce PC, jamais envoyé en ligne.",
+    empty: "Aucune suppression enregistrée. Votre première désinstallation laissera son reçu ici.",
+    exportButton: "Exporter en JSON",
+    exportedTo: (path) => `Exporté vers ${path}`,
+    verifiedFreed: (size) => `${size} libérés (vérifié)`,
+    estimatedOnly: (size) => `~${size} (estimation du registre)`,
+    rebootFlag: "redémarrage requis",
+    failedFlag: "échec",
+    restorePointLabel: "Point de restauration",
+  },
+  menu: {
+    open: "Compte et réglages",
+    account: "Compte",
+    signIn: "Se connecter / S'inscrire sur pctweaker.app",
+    signInHint:
+      "Un seul compte pour toute la suite PC Tweaker. L'inscription se fait sur pctweaker.app et vaut aussi ici.",
+    plans: "Uninstaller Pro",
+    planMonthly: "3,99 € / mois",
+    planAnnual: "13,99 € / an",
+    loyaltyTitle: "Prix fidélité de la suite",
+    loyaltyPrice: "4,99 € / an",
+    loyaltyHint:
+      "Déjà abonné à un plan PC Tweaker ? Uninstaller Pro coûte 4,99 €/an sur le même compte.",
+    choosePlans: "Voir les offres sur pctweaker.app",
+    language: "Langue",
+    theme: "Thème",
+    openPcTweaker: "Ouvrir PC Tweaker",
+  },
+  errors: {
+    generic: "Une erreur s'est produite. Veuillez réessayer.",
+  },
+};
+
+const es: Dictionary = {
+  app: {
+    title: "PC Tweaker Uninstaller",
+    tagline: "Removal Intelligence para Windows: elimina software con claridad, no a ciegas.",
+    suiteDetected: "PC Tweaker detectado - miembro de la suite",
+    suiteDetectedHint:
+      "PC Tweaker está instalado en este PC, así que formas parte de la suite: Uninstaller Pro se desbloquea al precio de fidelidad en tu cuenta de PC Tweaker.",
+  },
+  programs: {
+    searchPlaceholder: "Buscar por nombre o fabricante...",
+    searchLabel: "Buscar entre los programas instalados",
+    loading: "Leyendo los programas instalados...",
+    countSummary: (shown, total) =>
+      shown === total
+        ? `${String(total)} programas`
+        : `${String(shown)} de ${String(total)} programas`,
+    statTotalSize: "en disco",
+    emptyTitle: "No se encontraron programas",
+    emptyBody:
+      "No se encontraron programas desinstalables en el registro de Windows. Es inusual: si crees que es un error, infórmanos.",
+    noMatchesTitle: "Sin coincidencias",
+    noMatchesBody: "Ningún programa instalado coincide con tu búsqueda.",
+    errorTitle: "No se pudieron leer los programas instalados",
+    retry: "Reintentar",
+    columnProgram: "Programa",
+    columnVersion: "Versión",
+    columnPublisher: "Fabricante",
+    columnSize: "Tamaño",
+    columnInstalled: "Instalado",
+    badgeMsi: "MSI",
+    badgeExecutable: "EXE",
+    badgeManualOnly: "Manual",
+    badgeNone: "Sin desinstalador",
+    badgeInvalid: "Entrada dañada",
+    badgeManualOnlyHint:
+      "El comando de desinstalación usa un intérprete de scripts: por seguridad debe ejecutarse manualmente.",
+    badgeNoneHint: "Esta entrada del registro no declara ningún comando de desinstalación.",
+    badgeInvalidHint: "El comando de desinstalación de este programa no se pudo entender.",
+    badgeUser: "Usuario",
+    badgeUserHint: "Instalado solo para este usuario, no para todo el equipo.",
+    badgeHidden: "Oculto",
+    badgeHiddenHint:
+      "Windows normalmente oculta esta entrada (componente del sistema o actualización). Quitarla puede afectar a otro software: asegúrate de saber qué es.",
+    badgeSuite: "Suite",
+    badgeSuiteHint: "Parte de tu suite PC Tweaker.",
+    filterAll: "Todos",
+    filterLarge: "Grandes",
+    filterRecent: "Recientes",
+    showHidden: "Mostrar ocultos",
+    detailSource: "Ámbito",
+    detailKey: "Entrada del registro",
+    detailLocation: "Carpeta de instalación",
+    detailNoLocation: "No registrada",
+    openFolder: "Abrir carpeta",
+    sourceMachine64: "Este PC (64 bits)",
+    sourceMachine32: "Este PC (32 bits)",
+    sourceUser: "Solo este usuario",
+  },
+  confidence: {
+    labelSafe: "Eliminación segura",
+    labelReview: "Revisar antes de eliminar",
+    labelKeep: "Conservar - relacionado con el sistema",
+    disclaimer: "Basado en evidencia visible: una guía, no una certeza.",
+    reasons: {
+      hiddenSystem:
+        "El propio Windows oculta esta entrada (componente del sistema o actualización).",
+      sharedRuntime: "Runtime compartido: es probable que otros programas dependan de él.",
+      driverComponent: "Paquete de controlador o chipset: quitarlo puede afectar al hardware.",
+      sharedLauncher: "Launcher/tienda: el software instalado a través de él dejaría de funcionar.",
+      noPublisher: "Sin fabricante registrado: origen no verificable.",
+      brokenUninstaller:
+        "Su comando de desinstalación está dañado y no puede ejecutarse automáticamente.",
+      manualUninstaller: "Su desinstalador debe ejecutarse manualmente (basado en scripts).",
+      noUninstaller: "No declara ningún comando de desinstalación.",
+      namedPublisher: "Hay un fabricante con nombre registrado.",
+      standardUninstaller: "Tiene un desinstalador estándar MSI/EXE.",
+    },
+  },
+  footer: {
+    family: "Parte de la familia PC Tweaker",
+    pcTweaker: "PC Tweaker",
+    promptShield: "PromptShield",
+    privacy: "Privacidad",
+    restoreInfo:
+      "Los puntos de restauración los crea y guarda Windows en la unidad del sistema (Protección del sistema).",
+    openRestore: "Administrar puntos de restauración",
+  },
+  uninstall: {
+    action: "Desinstalar",
+    confirmTitle: (name) => `¿Desinstalar ${name}?`,
+    confirmBody:
+      "Se ejecutará exactamente el comando de abajo, nada más. Se reconstruyó desde el registro de Windows y se volverá a comprobar en el momento de ejecutarse.",
+    commandLabel: "Comando",
+    methodLabel: "Método",
+    methodMsi: "Windows Installer (silencioso)",
+    methodExe: "El desinstalador del propio programa",
+    privilegesLabel: "Privilegios",
+    privilegesAdmin: "Administrador (una solicitud UAC)",
+    privilegesUser: "Usuario actual",
+    sizeLabel: "Espacio estimado a recuperar",
+    sizeUnknown: "No registrado",
+    confidenceLabel: "Confianza",
+    notRemovedNote:
+      "No se elimina automáticamente: archivos, carpetas y entradas de registro residuales. El análisis de residuos llegará en una próxima actualización y siempre preguntará primero.",
+    elevationNote: "Windows pedirá primero la aprobación de administrador (UAC).",
+    restorePointNote: "Se intentará crear un punto de restauración antes de ejecutar nada.",
+    confirm: "Desinstalar",
+    cancel: "Cancelar",
+    close: "Cerrar",
+    planning: "Comprobando qué se ejecutaría...",
+    planFailedTitle: "No se puede desinstalar automáticamente",
+    running: (name) => `Desinstalando ${name}...`,
+    runningNote:
+      "El desinstalador del programa se está ejecutando. Esta ventana sigue respondiendo; algunos desinstaladores abren sus propias ventanas.",
+    reportSuccessTitle: "Desinstalado",
+    reportFailureTitle: "La desinstalación no se completó",
+    rebootNote: "Se requiere un reinicio para terminar de eliminar los archivos.",
+    restorePointCreated: "Punto de restauración: creado.",
+    restorePointSkipped: (reason) => `Punto de restauración: omitido - ${reason}`,
+    restorePointFailed: (reason) => `Punto de restauración: no creado - ${reason}`,
+    exitCodeLabel: "Código de salida",
+    familyNote:
+      "Esta aplicación forma parte de tu suite PC Tweaker. Puedes eliminarla, pero las funciones de la suite que dependen de ella dejarán de funcionar.",
+    hiddenNote:
+      "Windows normalmente oculta esta entrada. Eliminar componentes del sistema o actualizaciones puede afectar a otro software.",
+  },
+  ledger: {
+    open: "Historial",
+    title: "Registro de eliminaciones",
+    subtitle:
+      "Un recibo local por cada eliminación que ejecutó esta aplicación, éxitos y fallos incluidos. Guardado en este PC, nunca se sube.",
+    empty: "Aún no hay eliminaciones registradas. Tu primera desinstalación dejará aquí su recibo.",
+    exportButton: "Exportar JSON",
+    exportedTo: (path) => `Exportado a ${path}`,
+    verifiedFreed: (size) => `${size} liberados (verificado)`,
+    estimatedOnly: (size) => `~${size} (estimación del registro)`,
+    rebootFlag: "reinicio requerido",
+    failedFlag: "falló",
+    restorePointLabel: "Punto de restauración",
+  },
+  menu: {
+    open: "Cuenta y ajustes",
+    account: "Cuenta",
+    signIn: "Inicia sesión / Regístrate en pctweaker.app",
+    signInHint:
+      "Una sola cuenta para toda la suite PC Tweaker. El registro se hace en pctweaker.app y también vale aquí.",
+    plans: "Uninstaller Pro",
+    planMonthly: "3,99 € / mes",
+    planAnnual: "13,99 € / año",
+    loyaltyTitle: "Precio de fidelidad de la suite",
+    loyaltyPrice: "4,99 € / año",
+    loyaltyHint:
+      "¿Ya estás suscrito a algún plan de PC Tweaker? Uninstaller Pro cuesta 4,99 €/año en la misma cuenta.",
+    choosePlans: "Ver planes en pctweaker.app",
+    language: "Idioma",
+    theme: "Tema",
+    openPcTweaker: "Abrir PC Tweaker",
+  },
+  errors: {
+    generic: "Algo salió mal. Inténtalo de nuevo.",
+  },
+};
+
+const de: Dictionary = {
+  app: {
+    title: "PC Tweaker Uninstaller",
+    tagline:
+      "Removal Intelligence für Windows: Software mit Klarheit entfernen, nicht auf gut Glück.",
+    suiteDetected: "PC Tweaker erkannt - Suite-Mitglied",
+    suiteDetectedHint:
+      "PC Tweaker ist auf diesem PC installiert, du gehörst also zur Suite: Uninstaller Pro wird zum Treuepreis auf deinem PC-Tweaker-Konto freigeschaltet.",
+  },
+  programs: {
+    searchPlaceholder: "Nach Name oder Hersteller suchen...",
+    searchLabel: "Installierte Programme durchsuchen",
+    loading: "Installierte Programme werden gelesen...",
+    countSummary: (shown, total) =>
+      shown === total
+        ? `${String(total)} Programme`
+        : `${String(shown)} von ${String(total)} Programmen`,
+    statTotalSize: "auf der Festplatte",
+    emptyTitle: "Keine Programme gefunden",
+    emptyBody:
+      "In der Windows-Registrierung wurden keine deinstallierbaren Programme gefunden. Das ist ungewöhnlich - wenn du glaubst, dass das ein Fehler ist, melde es bitte.",
+    noMatchesTitle: "Keine Treffer",
+    noMatchesBody: "Kein installiertes Programm entspricht deiner Suche.",
+    errorTitle: "Installierte Programme konnten nicht gelesen werden",
+    retry: "Erneut versuchen",
+    columnProgram: "Programm",
+    columnVersion: "Version",
+    columnPublisher: "Hersteller",
+    columnSize: "Größe",
+    columnInstalled: "Installiert",
+    badgeMsi: "MSI",
+    badgeExecutable: "EXE",
+    badgeManualOnly: "Manuell",
+    badgeNone: "Kein Uninstaller",
+    badgeInvalid: "Defekter Eintrag",
+    badgeManualOnlyHint:
+      "Der Deinstallationsbefehl nutzt einen Skript-Interpreter und muss aus Sicherheitsgründen manuell ausgeführt werden.",
+    badgeNoneHint: "Dieser Registrierungseintrag deklariert keinen Deinstallationsbefehl.",
+    badgeInvalidHint: "Der Deinstallationsbefehl dieses Programms war unverständlich.",
+    badgeUser: "Benutzer",
+    badgeUserHint: "Nur für diesen Benutzer installiert, nicht PC-weit.",
+    badgeHidden: "Verborgen",
+    badgeHiddenHint:
+      "Windows verbirgt diesen Eintrag normalerweise (Systemkomponente oder Unter-Update). Das Entfernen kann andere Software beeinträchtigen - sei sicher, dass du weißt, was es ist.",
+    badgeSuite: "Suite",
+    badgeSuiteHint: "Teil deiner PC-Tweaker-Suite.",
+    filterAll: "Alle",
+    filterLarge: "Groß",
+    filterRecent: "Neu",
+    showHidden: "Verborgene zeigen",
+    detailSource: "Bereich",
+    detailKey: "Registrierungseintrag",
+    detailLocation: "Installationsordner",
+    detailNoLocation: "Nicht erfasst",
+    openFolder: "Ordner öffnen",
+    sourceMachine64: "Dieser PC (64-Bit)",
+    sourceMachine32: "Dieser PC (32-Bit)",
+    sourceUser: "Nur dieser Benutzer",
+  },
+  confidence: {
+    labelSafe: "Sicher entfernbar",
+    labelReview: "Vor dem Entfernen prüfen",
+    labelKeep: "Behalten - systemnah",
+    disclaimer: "Basierend auf sichtbaren Belegen: ein Leitfaden, keine Gewissheit.",
+    reasons: {
+      hiddenSystem: "Windows selbst verbirgt diesen Eintrag (Systemkomponente oder Unter-Update).",
+      sharedRuntime:
+        "Gemeinsame Laufzeitumgebung: andere Programme hängen wahrscheinlich davon ab.",
+      driverComponent:
+        "Treiber- oder Chipsatzpaket: das Entfernen kann die Hardware beeinträchtigen.",
+      sharedLauncher:
+        "Launcher/Store: darüber installierte Software würde nicht mehr funktionieren.",
+      noPublisher: "Kein Hersteller erfasst - Herkunft nicht überprüfbar.",
+      brokenUninstaller:
+        "Der Deinstallationsbefehl ist defekt und kann nicht automatisch ausgeführt werden.",
+      manualUninstaller: "Der Uninstaller muss manuell ausgeführt werden (skriptbasiert).",
+      noUninstaller: "Es ist überhaupt kein Deinstallationsbefehl deklariert.",
+      namedPublisher: "Ein benannter Hersteller ist erfasst.",
+      standardUninstaller: "Es gibt einen Standard-Uninstaller (MSI/EXE).",
+    },
+  },
+  footer: {
+    family: "Teil der PC-Tweaker-Familie",
+    pcTweaker: "PC Tweaker",
+    promptShield: "PromptShield",
+    privacy: "Datenschutz",
+    restoreInfo:
+      "Wiederherstellungspunkte werden von Windows auf dem Systemlaufwerk erstellt und gespeichert (Computerschutz).",
+    openRestore: "Wiederherstellungspunkte verwalten",
+  },
+  uninstall: {
+    action: "Deinstallieren",
+    confirmTitle: (name) => `${name} deinstallieren?`,
+    confirmBody:
+      "Es wird genau der folgende Befehl ausgeführt - nichts anderes. Er wurde aus der Windows-Registrierung neu aufgebaut und wird im Moment der Ausführung erneut geprüft.",
+    commandLabel: "Befehl",
+    methodLabel: "Methode",
+    methodMsi: "Windows Installer (still)",
+    methodExe: "Der Uninstaller des Programms selbst",
+    privilegesLabel: "Berechtigungen",
+    privilegesAdmin: "Administrator (eine UAC-Abfrage)",
+    privilegesUser: "Aktueller Benutzer",
+    sizeLabel: "Geschätzter freiwerdender Speicher",
+    sizeUnknown: "Nicht erfasst",
+    confidenceLabel: "Einschätzung",
+    notRemovedNote:
+      "Nicht automatisch entfernt: übrig gebliebene Dateien, Ordner und Registrierungseinträge. Die Rückstands-Analyse kommt in einem späteren Update und fragt immer zuerst.",
+    elevationNote: "Windows fragt zuerst nach Administrator-Bestätigung (UAC).",
+    restorePointNote: "Vor der Ausführung wird ein Systemwiederherstellungspunkt versucht.",
+    confirm: "Deinstallieren",
+    cancel: "Abbrechen",
+    close: "Schließen",
+    planning: "Es wird geprüft, was ausgeführt würde...",
+    planFailedTitle: "Automatische Deinstallation nicht möglich",
+    running: (name) => `${name} wird deinstalliert...`,
+    runningNote:
+      "Der Uninstaller des Programms läuft. Dieses Fenster bleibt bedienbar; manche Uninstaller öffnen eigene Fenster.",
+    reportSuccessTitle: "Deinstalliert",
+    reportFailureTitle: "Deinstallation nicht abgeschlossen",
+    rebootNote: "Ein Neustart ist nötig, um die Dateien vollständig zu entfernen.",
+    restorePointCreated: "Wiederherstellungspunkt: erstellt.",
+    restorePointSkipped: (reason) => `Wiederherstellungspunkt: übersprungen - ${reason}`,
+    restorePointFailed: (reason) => `Wiederherstellungspunkt: nicht erstellt - ${reason}`,
+    exitCodeLabel: "Exit-Code",
+    familyNote:
+      "Diese App gehört zu deiner PC-Tweaker-Suite. Du kannst sie entfernen, aber davon abhängige Suite-Funktionen hören auf zu funktionieren.",
+    hiddenNote:
+      "Windows verbirgt diesen Eintrag normalerweise. Das Entfernen von Systemkomponenten oder Unter-Updates kann andere Software beeinträchtigen.",
+  },
+  ledger: {
+    open: "Verlauf",
+    title: "Entfernungsprotokoll",
+    subtitle:
+      "Eine lokale Quittung für jede Entfernung, die diese App ausgeführt hat - Erfolge wie Fehlschläge. Auf diesem PC gespeichert, nie hochgeladen.",
+    empty:
+      "Noch keine Entfernungen aufgezeichnet. Deine erste Deinstallation hinterlässt hier ihre Quittung.",
+    exportButton: "Als JSON exportieren",
+    exportedTo: (path) => `Exportiert nach ${path}`,
+    verifiedFreed: (size) => `${size} freigegeben (verifiziert)`,
+    estimatedOnly: (size) => `~${size} (Registrierungs-Schätzung)`,
+    rebootFlag: "Neustart erforderlich",
+    failedFlag: "fehlgeschlagen",
+    restorePointLabel: "Wiederherstellungspunkt",
+  },
+  menu: {
+    open: "Konto & Einstellungen",
+    account: "Konto",
+    signIn: "Anmelden / Registrieren auf pctweaker.app",
+    signInHint:
+      "Ein Konto für die ganze PC-Tweaker-Suite. Die Registrierung erfolgt auf pctweaker.app und gilt auch hier.",
+    plans: "Uninstaller Pro",
+    planMonthly: "3,99 € / Monat",
+    planAnnual: "13,99 € / Jahr",
+    loyaltyTitle: "Suite-Treuepreis",
+    loyaltyPrice: "4,99 € / Jahr",
+    loyaltyHint:
+      "Bereits ein PC-Tweaker-Abo? Uninstaller Pro kostet 4,99 €/Jahr auf demselben Konto.",
+    choosePlans: "Tarife auf pctweaker.app ansehen",
+    language: "Sprache",
+    theme: "Design",
+    openPcTweaker: "PC Tweaker öffnen",
+  },
+  errors: {
+    generic: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+  },
+};
+
+export const dictionaries = { en, it, fr, es, de } as const;
 export type Locale = keyof typeof dictionaries;
 
-/** Active dictionary. Lifted into state when more locales land. */
-export const text: Dictionary = dictionaries.en;
+export const LOCALES: { code: Locale; native: string }[] = [
+  { code: "en", native: "English" },
+  { code: "it", native: "Italiano" },
+  { code: "fr", native: "Français" },
+  { code: "es", native: "Español" },
+  { code: "de", native: "Deutsch" },
+];
+
+const LANG_KEY = "pcu-lang";
+
+function initialLocale(): Locale {
+  try {
+    const stored = localStorage.getItem(LANG_KEY);
+    if (stored !== null && stored in dictionaries) return stored as Locale;
+  } catch {
+    // localStorage unavailable: default stands.
+  }
+  return "en";
+}
+
+let activeLocale: Locale = initialLocale();
+
+/** Active dictionary. Reassigned by `setLocale` BEFORE the app re-renders, so
+ *  every render reads a consistent language. */
+export let text: Dictionary = dictionaries[activeLocale];
+
+export function currentLocale(): Locale {
+  return activeLocale;
+}
+
+export function setLocale(locale: Locale): void {
+  activeLocale = locale;
+  text = dictionaries[locale];
+  try {
+    localStorage.setItem(LANG_KEY, locale);
+  } catch {
+    // Non-fatal: the choice just won't persist.
+  }
+}
