@@ -79,6 +79,49 @@ body {
   font-size: 12.5px;
 }
 
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.suite-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #e6d9ff;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.16), rgba(217, 70, 239, 0.16));
+  border: 1px solid rgba(217, 70, 239, 0.4);
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    border-color 0.12s,
+    box-shadow 0.12s;
+}
+
+.suite-pill:hover {
+  border-color: rgba(217, 70, 239, 0.7);
+  box-shadow: 0 0 14px rgba(139, 92, 246, 0.25);
+}
+
+.suite-pill:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.suite-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 0 6px rgba(217, 70, 239, 0.8);
+}
+
 .version {
   font-size: 11px;
   font-weight: 600;
@@ -490,9 +533,10 @@ body {
 
 .footbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 6px 16px;
   padding: 10px 28px;
   border-top: 1px solid var(--line);
   background: rgba(10, 9, 18, 0.6);
@@ -503,8 +547,9 @@ body {
 .footbar-left,
 .footbar-right {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 4px 8px;
   min-width: 0;
 }
 
@@ -543,13 +588,6 @@ body {
 .footbar-link:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-}
-
-.footbar-info {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 420px;
 }
 
 .note-suite {
