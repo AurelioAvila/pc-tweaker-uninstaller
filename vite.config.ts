@@ -9,5 +9,11 @@ export default defineConfig({
   server: {
     port: 1421,
     strictPort: true,
+    watch: {
+      // Never watch the Rust build output: cargo rewrites the .exe while
+      // vite tries to watch it, which crashes the dev server with EBUSY.
+      // Same ignore the official Tauri template ships.
+      ignored: ["**/src-tauri/**"],
+    },
   },
 });
