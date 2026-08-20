@@ -15,6 +15,7 @@ export type Dictionary = {
     readonly searchLabel: string;
     readonly loading: string;
     readonly countSummary: (shown: number, total: number) => string;
+    readonly statTotalSize: string;
     readonly emptyTitle: string;
     readonly emptyBody: string;
     readonly noMatchesTitle: string;
@@ -55,6 +56,7 @@ const en: Dictionary = {
       shown === total
         ? `${String(total)} programs`
         : `${String(shown)} of ${String(total)} programs`,
+    statTotalSize: "on disk",
     emptyTitle: "No programs found",
     emptyBody:
       "No uninstallable programs were found in the Windows registry. This is unusual - if you believe it's wrong, please report it.",
