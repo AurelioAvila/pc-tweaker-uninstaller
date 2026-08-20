@@ -12,7 +12,7 @@
 //!
 //! Execution rules, in order:
 //! - MSI: the command line is rebuilt from scratch as
-//!   `%SystemRoot%\System32\msiexec.exe /x {GUID} /qb /norestart` — the GUID
+//!   `%SystemRoot%\System32\msiexec.exe /x {GUID} /qn /norestart` — the GUID
 //!   is the only registry-derived byte in it, and it already passed a strict
 //!   shape check.
 //! - Executable: the parsed `.exe` path must be absolute and must exist as a
@@ -127,8 +127,9 @@ pub fn classify_for_execution(entry: &RawEntry) -> Result<Classification, String
 }
 
 /// Rebuilds the canonical msiexec argv from the validated GUID alone.
-/// `/qb` shows progress without questions; `/norestart` keeps the reboot
-/// decision with the user (exit code 3010 reports it instead).
+/// `/qn` runs fully silent — our own dialog is the progress UI, so no stray
+/// Windows Installer window ever pops over the app; `/norestart` keeps the
+/// reboot decision with the user (exit code 3010 reports it instead).
 pub fn msi_argv(product_code: &str, system_root: &str) -> Vec<String> {
     vec![
         format!(
@@ -137,7 +138,7 @@ pub fn msi_argv(product_code: &str, system_root: &str) -> Vec<String> {
         ),
         "/x".to_string(),
         product_code.to_string(),
-        "/qb".to_string(),
+        "/qn".to_string(),
         "/norestart".to_string(),
     ]
 }
@@ -537,7 +538,7 @@ mod tests {
                 r"C:\Windows\System32\msiexec.exe",
                 "/x",
                 "{6F340107-F9AA-47C6-B54C-C3A19F11553C}",
-                "/qb",
+                "/qn",
                 "/norestart",
             ]
         );

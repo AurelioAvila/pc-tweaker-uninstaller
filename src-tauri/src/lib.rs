@@ -6,6 +6,7 @@
 //! the baseline (type checks, lints, tests, CI) must be green before any
 //! feature lands.
 
+pub mod actions;
 pub mod elevation;
 pub mod license;
 pub mod programs;
@@ -41,6 +42,9 @@ pub fn run() {
             programs::list_programs,
             uninstall_exec::plan_uninstall,
             uninstall_exec::execute_uninstall,
+            actions::open_install_folder,
+            actions::open_system_restore,
+            actions::open_ecosystem_link,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
