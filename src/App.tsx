@@ -10,6 +10,7 @@ import {
 } from "./i18n";
 import { THEMES, applyTheme, initialTheme, type ThemeCode } from "./themes";
 import { fetchAccount, login, logout, type AccountState } from "./account";
+import { UpdateBanner } from "./updater";
 import appLogo from "../src-tauri/icons/128x128.png";
 import "./App.css";
 
@@ -1059,6 +1060,8 @@ export default function App() {
           </button>
         </div>
       </footer>
+
+      <UpdateBanner />
 
       {ledgerOpen && (
         <div

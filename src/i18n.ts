@@ -160,6 +160,15 @@ export type Dictionary = {
     readonly checkFailed: string;
     readonly registerHint: string;
   };
+  readonly updater: {
+    readonly title: (version: string) => string;
+    readonly body: string;
+    readonly install: string;
+    readonly later: string;
+    readonly downloading: (percent: number) => string;
+    readonly installing: string;
+    readonly error: (message: string) => string;
+  };
   readonly errors: {
     readonly generic: string;
   };
@@ -330,6 +339,15 @@ const en: Dictionary = {
     loyaltyLocked: "Sign in with your PC Tweaker Pro account to unlock the loyalty price.",
     checkFailed: "Could not verify your account right now. Try again shortly.",
     registerHint: "No account yet? Create one on pctweaker.app.",
+  },
+  updater: {
+    title: (version) => `Update ${version} is ready`,
+    body: "A new signed build is available. It installs in seconds and the app restarts by itself.",
+    install: "Install now",
+    later: "Later",
+    downloading: (percent) => `Downloading… ${String(percent)}%`,
+    installing: "Installing…",
+    error: (message) => `The update could not be installed: ${message}`,
   },
   errors: {
     generic: "Something went wrong. Please try again.",
@@ -503,6 +521,15 @@ const it: Dictionary = {
     loyaltyLocked: "Accedi con il tuo account PC Tweaker Pro per sbloccare il prezzo fedeltà.",
     checkFailed: "Impossibile verificare l'account in questo momento. Riprova tra poco.",
     registerHint: "Non hai un account? Creane uno su pctweaker.app.",
+  },
+  updater: {
+    title: (version) => `Aggiornamento ${version} pronto`,
+    body: "È disponibile una nuova build firmata. Si installa in pochi secondi e l'app si riavvia da sola.",
+    install: "Installa ora",
+    later: "Più tardi",
+    downloading: (percent) => `Download… ${String(percent)}%`,
+    installing: "Installazione…",
+    error: (message) => `Impossibile installare l'aggiornamento: ${message}`,
   },
   errors: {
     generic: "Qualcosa è andato storto. Riprova.",
@@ -679,6 +706,15 @@ const fr: Dictionary = {
     checkFailed: "Impossible de vérifier le compte pour le moment. Réessayez bientôt.",
     registerHint: "Pas encore de compte ? Créez-en un sur pctweaker.app.",
   },
+  updater: {
+    title: (version) => `Mise à jour ${version} prête`,
+    body: "Une nouvelle version signée est disponible. Elle s'installe en quelques secondes et l'application redémarre seule.",
+    install: "Installer maintenant",
+    later: "Plus tard",
+    downloading: (percent) => `Téléchargement… ${String(percent)}%`,
+    installing: "Installation…",
+    error: (message) => `La mise à jour n'a pas pu être installée : ${message}`,
+  },
   errors: {
     generic: "Une erreur s'est produite. Veuillez réessayer.",
   },
@@ -852,6 +888,15 @@ const es: Dictionary = {
       "Inicia sesión con tu cuenta PC Tweaker Pro para desbloquear el precio de fidelidad.",
     checkFailed: "No se pudo verificar la cuenta en este momento. Inténtalo de nuevo en breve.",
     registerHint: "¿Aún no tienes cuenta? Créala en pctweaker.app.",
+  },
+  updater: {
+    title: (version) => `Actualización ${version} lista`,
+    body: "Hay una nueva versión firmada disponible. Se instala en segundos y la aplicación se reinicia sola.",
+    install: "Instalar ahora",
+    later: "Más tarde",
+    downloading: (percent) => `Descargando… ${String(percent)}%`,
+    installing: "Instalando…",
+    error: (message) => `No se pudo instalar la actualización: ${message}`,
   },
   errors: {
     generic: "Algo salió mal. Inténtalo de nuevo.",
@@ -1030,6 +1075,15 @@ const de: Dictionary = {
       "Melde dich mit deinem PC-Tweaker-Pro-Konto an, um den Treuepreis freizuschalten.",
     checkFailed: "Konto konnte gerade nicht überprüft werden. Versuche es gleich noch einmal.",
     registerHint: "Noch kein Konto? Erstelle eines auf pctweaker.app.",
+  },
+  updater: {
+    title: (version) => `Update ${version} ist bereit`,
+    body: "Ein neuer signierter Build ist verfügbar. Er installiert sich in Sekunden und die App startet von selbst neu.",
+    install: "Jetzt installieren",
+    later: "Später",
+    downloading: (percent) => `Wird heruntergeladen… ${String(percent)}%`,
+    installing: "Wird installiert…",
+    error: (message) => `Das Update konnte nicht installiert werden: ${message}`,
   },
   errors: {
     generic: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
