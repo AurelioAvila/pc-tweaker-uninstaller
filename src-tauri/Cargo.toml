@@ -31,6 +31,7 @@ base64 = "0.22"
 [target.'cfg(windows)'.dependencies]
 is_elevated = "0.1"
 runas = "1"
+winreg = "0.52"
 
 [features]
 devtools = ["tauri/devtools"]
