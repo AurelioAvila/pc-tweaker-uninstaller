@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Minimum capability for the main window: core IPC plus opening the checkout URL in the system browser. Grows only when a feature needs it.",
+  "windows": ["main"],
+  "permissions": ["core:default", "opener:default"]
+}

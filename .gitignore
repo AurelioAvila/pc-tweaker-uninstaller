@@ -1,0 +1,33 @@
+# Dependencies and build output
+node_modules/
+dist/
+src-tauri/target/
+src-tauri/gen/schemas/
+
+# Logs
+*.log
+
+# Environment/secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Safety net: credential files anywhere in the repo, including renamed
+# copies and backups (same rationale as pc-tweaker-app's .gitignore).
+**/token.json*
+**/token*.json*
+**/client_secret*
+**/credentials.json*
+**/*.pem
+**/*.p12
+**/*.pfx
+**/service-account*.json
+
+# Per-release updater manifest, generated at release time — not source
+latest.json
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store

@@ -1,0 +1,36 @@
+# PC Tweaker Uninstaller — Tauri core.
+#
+# Dependency policy: nothing lands here without a consumer in src/. The
+# "devtools" feature mirrors PC Tweaker's reasoning verbatim: DevTools in a
+# release build would let anyone with local access invoke IPC commands with
+# arbitrary arguments, bypassing every UI-side guard — so release builds
+# never get it, and `tauri dev` enables it automatically for dev builds.
+
+[package]
+name = "pc-tweaker-uninstaller"
+version = "0.1.0"
+description = "Uninstall Windows programs cleanly, with a safety net"
+authors = ["Aurelio Avila"]
+edition = "2021"
+
+[lib]
+name = "pc_tweaker_uninstaller_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+ed25519-dalek = "2"
+base64 = "0.22"
+
+[target.'cfg(windows)'.dependencies]
+is_elevated = "0.1"
+runas = "1"
+
+[features]
+devtools = ["tauri/devtools"]
