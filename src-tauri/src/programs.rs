@@ -221,6 +221,29 @@ mod imp {
         }
     }
 
+    /// Re-reads ONE entry fresh from the registry, by the same (source, key)
+    /// pair `list()` reported. Phase 3's executor calls this instead of
+    /// trusting anything cached or webview-supplied: the registry at execution
+    /// time is the only source of truth.
+    pub fn read_one(source: &str, key_name: &str) -> Result<RawEntry, String> {
+        let (hive, flags) = match source {
+            "machine64" => (HKEY_LOCAL_MACHINE, KEY_WOW64_64KEY),
+            "machine32" => (HKEY_LOCAL_MACHINE, KEY_WOW64_32KEY),
+            "user" => (HKEY_CURRENT_USER, 0),
+            _ => return Err("Unknown program source.".to_string()),
+        };
+        let root = RegKey::predef(hive);
+        let uninstall = root
+            .open_subkey_with_flags(UNINSTALL_PATH, KEY_READ | flags)
+            .map_err(|_| "The uninstall registry view could not be opened.".to_string())?;
+        let sub = uninstall
+            .open_subkey_with_flags(key_name, KEY_READ | flags)
+            .map_err(|_| {
+                "This program is no longer registered — it may already be uninstalled.".to_string()
+            })?;
+        Ok(read_entry(&sub, key_name))
+    }
+
     pub fn list() -> Vec<ProgramInfo> {
         let mut programs = Vec::new();
         read_view(
@@ -240,6 +263,17 @@ mod imp {
         programs.sort_by_key(|p| p.name.to_lowercase());
         programs
     }
+}
+
+/// Re-reads one entry fresh from the registry. See `imp::read_one`.
+#[cfg(windows)]
+pub fn read_raw_entry(source: &str, key_name: &str) -> Result<RawEntry, String> {
+    imp::read_one(source, key_name)
+}
+
+#[cfg(not(windows))]
+pub fn read_raw_entry(_source: &str, _key_name: &str) -> Result<RawEntry, String> {
+    Err("Reading installed programs is only supported on Windows.".to_string())
 }
 
 /// Lists installed programs. Takes no input from the webview at all — the

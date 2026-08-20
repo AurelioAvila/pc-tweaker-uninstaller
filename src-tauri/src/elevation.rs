@@ -14,13 +14,22 @@ pub fn is_elevated() -> bool {
 /// elevated: only this one action does, and only after the user approves the
 /// prompt.
 pub fn run_elevated_action(action_flag: &str, tweak_id: &str) -> Result<(), String> {
+    run_elevated_args(&[action_flag, tweak_id])
+}
+
+/// Same contract as [`run_elevated_action`] for actions that need more than
+/// one argument. The relaunched process re-validates and re-derives
+/// everything from these arguments — nothing else crosses the trust boundary.
+pub fn run_elevated_args(args: &[&str]) -> Result<(), String> {
     let exe = std::env::current_exe().map_err(|e| e.to_string())?;
 
     #[cfg(windows)]
     {
-        let status = runas::Command::new(exe)
-            .arg(action_flag)
-            .arg(tweak_id)
+        let mut command = runas::Command::new(exe);
+        for arg in args {
+            command.arg(arg);
+        }
+        let status = command
             .gui(true)
             .status()
             .map_err(|e| format!("elevation was cancelled or failed: {}", e))?;
@@ -37,7 +46,7 @@ pub fn run_elevated_action(action_flag: &str, tweak_id: &str) -> Result<(), Stri
 
     #[cfg(not(windows))]
     {
-        let _ = exe;
+        let _ = (exe, args);
         Err("elevation is not implemented on this platform yet".to_string())
     }
 }
