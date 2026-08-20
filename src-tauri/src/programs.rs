@@ -39,6 +39,9 @@ pub struct ProgramInfo {
     /// users get the full picture, nobody trips over an OS component by
     /// accident.
     pub hidden: bool,
+    /// Removal Confidence Score: Safe / Review / Keep plus reason codes.
+    /// Evidence-based, never presented as certainty (see confidence.rs).
+    pub confidence: crate::confidence::Confidence,
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq)]
@@ -67,6 +70,9 @@ pub struct RawEntry {
     pub system_component: Option<u32>,
     pub parent_key_name: Option<String>,
     pub release_type: Option<String>,
+    /// Conventionally the app's main executable (possibly with ",iconIndex").
+    /// Used only for the "Open PC Tweaker" suite launch, behind full gating.
+    pub display_icon: Option<String>,
 }
 
 /// Add/Remove Programs' own rules, distilled: an entry is a listable program
@@ -159,7 +165,9 @@ pub fn has_display_name(entry: &RawEntry) -> bool {
 /// Converts a raw entry into UI shape.
 pub fn to_program_info(entry: RawEntry, source: &'static str, hidden: bool) -> ProgramInfo {
     let uninstall = summarize_uninstall(&entry);
+    let confidence = crate::confidence::assess(&entry, hidden, &uninstall);
     ProgramInfo {
+        confidence,
         id: entry.key_name,
         source,
         name: entry.display_name.unwrap_or_default(),
@@ -207,6 +215,7 @@ mod imp {
             system_component: d("SystemComponent"),
             parent_key_name: s("ParentKeyName"),
             release_type: s("ReleaseType"),
+            display_icon: s("DisplayIcon"),
         }
     }
 
@@ -287,6 +296,34 @@ mod imp {
 #[cfg(windows)]
 pub fn read_raw_entry(source: &str, key_name: &str) -> Result<RawEntry, String> {
     imp::read_one(source, key_name)
+}
+
+/// Finds a suite member's executable: scans the three uninstall views for an
+/// entry whose display name satisfies `matches`, then extracts an .exe path
+/// from its DisplayIcon via `extract`. Read-only; the caller gates the path.
+#[cfg(windows)]
+pub fn find_suite_exe(
+    matches: fn(&str) -> bool,
+    extract: fn(&str) -> Option<String>,
+) -> Option<String> {
+    for info in imp::list() {
+        if !matches(&info.name) {
+            continue;
+        }
+        let entry = read_raw_entry(info.source, &info.id).ok()?;
+        if let Some(exe) = entry.display_icon.as_deref().and_then(extract) {
+            return Some(exe);
+        }
+    }
+    None
+}
+
+#[cfg(not(windows))]
+pub fn find_suite_exe(
+    _matches: fn(&str) -> bool,
+    _extract: fn(&str) -> Option<String>,
+) -> Option<String> {
+    None
 }
 
 #[cfg(not(windows))]

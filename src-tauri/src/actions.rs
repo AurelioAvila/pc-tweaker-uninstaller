@@ -61,6 +61,11 @@ fn ecosystem_url(target: &str) -> Option<&'static str> {
     match target {
         "pctweaker" => Some("https://pctweaker.app"),
         "privacy" => Some("https://pctweaker.app/privacy"),
+        "support" => Some("https://pctweaker.app/support"),
+        // Account and plans both live on the site: registration made on
+        // pctweaker.app is the suite account, valid in this app too.
+        "account" => Some("https://pctweaker.app"),
+        "pricing" => Some("https://pctweaker.app"),
         "promptshield" => Some("https://promptshield-beta.vercel.app"),
         _ => None,
     }
@@ -74,6 +79,51 @@ pub fn open_ecosystem_link(app: tauri::AppHandle, target: String) -> Result<(), 
         .map_err(|e| format!("The link could not be opened: {e}"))
 }
 
+/// Normalizes a display name for suite matching: "pc-tweaker-app" and
+/// "PC Tweaker" must both count as the flagship.
+pub fn is_pc_tweaker_name(name: &str) -> bool {
+    let n = name.to_ascii_lowercase().replace(['-', '_'], " ");
+    n.starts_with("pc tweaker") && !n.contains("uninstaller")
+}
+
+/// Extracts the executable path from a registry `DisplayIcon` value, which
+/// conventionally looks like `"C:\path\app.exe"` or `C:\path\app.exe,0`.
+pub fn exe_from_display_icon(display_icon: &str) -> Option<String> {
+    let trimmed = display_icon.trim().trim_matches('"');
+    // Strip a trailing ",<icon index>" if present.
+    let path = match trimmed.rsplit_once(',') {
+        Some((p, idx)) if idx.trim().chars().all(|c| c.is_ascii_digit()) => p,
+        _ => trimmed,
+    };
+    let path = path.trim().trim_matches('"');
+    if path.to_ascii_lowercase().ends_with(".exe") {
+        Some(path.to_string())
+    } else {
+        None
+    }
+}
+
+/// Launches the installed PC Tweaker app, if present. The path comes from
+/// PC Tweaker's own uninstall entry (DisplayIcon), gated exactly like every
+/// other launch: absolute, exists, is a file, ends in .exe. No arguments,
+/// no shell.
+#[tauri::command]
+pub fn open_pc_tweaker() -> Result<(), String> {
+    let exe = programs::find_suite_exe(is_pc_tweaker_name, exe_from_display_icon)
+        .ok_or_else(|| "PC Tweaker was not found on this PC.".to_string())?;
+    validate_exe_path_shape(&exe)
+        .map_err(|_| "PC Tweaker's recorded path is not usable.".to_string())?;
+    let meta = std::fs::metadata(&exe)
+        .map_err(|_| "PC Tweaker's executable no longer exists on disk.".to_string())?;
+    if !meta.is_file() {
+        return Err("PC Tweaker's recorded path is not a file.".to_string());
+    }
+    std::process::Command::new(&exe)
+        .spawn()
+        .map_err(|e| format!("PC Tweaker could not be started: {e}"))?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -83,8 +133,39 @@ mod tests {
         assert_eq!(ecosystem_url("pctweaker"), Some("https://pctweaker.app"));
         assert!(ecosystem_url("promptshield").is_some());
         assert!(ecosystem_url("privacy").is_some());
+        assert!(ecosystem_url("support").is_some());
+        assert!(ecosystem_url("account").is_some());
+        assert!(ecosystem_url("pricing").is_some());
         assert_eq!(ecosystem_url(""), None);
         assert_eq!(ecosystem_url("https://evil.example"), None);
         assert_eq!(ecosystem_url("PCTWEAKER"), None);
+    }
+
+    #[test]
+    fn pc_tweaker_matching_survives_hyphenated_product_names() {
+        assert!(is_pc_tweaker_name("pc-tweaker-app"));
+        assert!(is_pc_tweaker_name("PC Tweaker"));
+        assert!(!is_pc_tweaker_name("PC Tweaker Uninstaller"));
+        assert!(!is_pc_tweaker_name("pc-tweaker-uninstaller"));
+        assert!(!is_pc_tweaker_name("Some Other App"));
+    }
+
+    #[test]
+    fn display_icon_paths_are_extracted_and_gated_by_extension() {
+        assert_eq!(
+            exe_from_display_icon(r#""C:\Apps\pc-tweaker\tauri-app.exe""#).as_deref(),
+            Some(r"C:\Apps\pc-tweaker\tauri-app.exe")
+        );
+        assert_eq!(
+            exe_from_display_icon(r"C:\Apps\app.exe,0").as_deref(),
+            Some(r"C:\Apps\app.exe")
+        );
+        // A comma inside the path (rare but legal) is not an icon index.
+        assert_eq!(
+            exe_from_display_icon(r"C:\Ap,ps\app.exe").as_deref(),
+            Some(r"C:\Ap,ps\app.exe")
+        );
+        assert_eq!(exe_from_display_icon(r"C:\Apps\app.ico"), None);
+        assert_eq!(exe_from_display_icon(""), None);
     }
 }

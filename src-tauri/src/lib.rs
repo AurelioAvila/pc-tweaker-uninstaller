@@ -7,7 +7,9 @@
 //! feature lands.
 
 pub mod actions;
+pub mod confidence;
 pub mod elevation;
+pub mod ledger;
 pub mod license;
 pub mod programs;
 pub mod restore_point;
@@ -42,9 +44,12 @@ pub fn run() {
             programs::list_programs,
             uninstall_exec::plan_uninstall,
             uninstall_exec::execute_uninstall,
+            ledger::list_removal_ledger,
+            ledger::export_removal_ledger,
             actions::open_install_folder,
             actions::open_system_restore,
             actions::open_ecosystem_link,
+            actions::open_pc_tweaker,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

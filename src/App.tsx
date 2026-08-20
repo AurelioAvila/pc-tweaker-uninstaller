@@ -1,12 +1,28 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { text } from "./i18n";
+import {
+  LOCALES,
+  currentLocale,
+  setLocale,
+  text,
+  type ConfidenceReason,
+  type Locale,
+} from "./i18n";
+import { THEMES, applyTheme, initialTheme, type ThemeCode } from "./themes";
+import appLogo from "../src-tauri/icons/128x128.png";
 import "./App.css";
 
 /** Mirror of the Rust `ProgramInfo` shape (src-tauri/src/programs.rs). Every
  *  string here originates in the registry and is untrusted display data —
  *  rendered exclusively as text, never as markup. */
 type UninstallSummary = "msi" | "executable" | "manualOnly" | "none" | "invalid";
+
+type ConfidenceLevel = "safe" | "review" | "keep";
+
+interface Confidence {
+  level: ConfidenceLevel;
+  reasons: ConfidenceReason[];
+}
 
 interface ProgramInfo {
   id: string;
@@ -19,6 +35,7 @@ interface ProgramInfo {
   installLocation: string | null;
   uninstall: UninstallSummary;
   hidden: boolean;
+  confidence: Confidence;
 }
 
 type SortKey = "name" | "size" | "date";
@@ -38,6 +55,23 @@ interface UninstallPlan {
   needsElevation: boolean;
   willAttemptRestorePoint: boolean;
   warnings: string[];
+  confidence: Confidence;
+  estimatedSizeKb: number | null;
+}
+
+/** Mirror of `RemovalReceipt` (src-tauri/src/ledger.rs). */
+interface RemovalReceipt {
+  ts: number;
+  programName: string;
+  source: string;
+  method: string;
+  success: boolean;
+  exitCode: number | null;
+  rebootRequired: boolean;
+  restorePoint: string;
+  estimatedSizeKb: number | null;
+  verifiedFreedKb: number | null;
+  message: string;
 }
 
 type RestorePointOutcome =
@@ -99,7 +133,9 @@ function displayCommand(argv: string[]): string {
 /** Sibling products get a "Suite" mark: the uninstaller recognizes its own
  *  family so a user never removes a suite piece by accident. */
 function isFamilyApp(p: ProgramInfo): boolean {
-  const name = p.name.toLowerCase();
+  // Hyphens normalize to spaces: installers register "pc-tweaker-app", not
+  // "PC Tweaker" — without this, the suite never recognized its own flagship.
+  const name = p.name.toLowerCase().replace(/[-_]/g, " ");
   return name.startsWith("pc tweaker") || name.startsWith("promptshield");
 }
 
@@ -121,11 +157,34 @@ function compareBy(a: ProgramInfo, b: ProgramInfo, key: SortKey): number {
   }
 }
 
-const SOURCE_LABEL: Record<ProgramInfo["source"], string> = {
-  machine64: text.programs.sourceMachine64,
-  machine32: text.programs.sourceMachine32,
-  user: text.programs.sourceUser,
-};
+/** Functions rather than module constants: `text` is swapped on language
+ *  change, so labels must be read at render time, not at module init. */
+function sourceLabel(source: ProgramInfo["source"]): string {
+  switch (source) {
+    case "machine64":
+      return text.programs.sourceMachine64;
+    case "machine32":
+      return text.programs.sourceMachine32;
+    case "user":
+      return text.programs.sourceUser;
+  }
+}
+
+function confidenceLabel(level: ConfidenceLevel): string {
+  switch (level) {
+    case "safe":
+      return text.confidence.labelSafe;
+    case "review":
+      return text.confidence.labelReview;
+    case "keep":
+      return text.confidence.labelKeep;
+  }
+}
+
+function confidenceTitle(c: Confidence): string {
+  const lines = c.reasons.map((r) => text.confidence.reasons[r]);
+  return [...lines, text.confidence.disclaimer].join("\n");
+}
 
 function restorePointLine(outcome: RestorePointOutcome): string {
   switch (outcome.kind) {
@@ -138,19 +197,33 @@ function restorePointLine(outcome: RestorePointOutcome): string {
   }
 }
 
-const BADGE_LABEL: Record<UninstallSummary, string> = {
-  msi: text.programs.badgeMsi,
-  executable: text.programs.badgeExecutable,
-  manualOnly: text.programs.badgeManualOnly,
-  none: text.programs.badgeNone,
-  invalid: text.programs.badgeInvalid,
-};
+function badgeLabel(summary: UninstallSummary): string {
+  switch (summary) {
+    case "msi":
+      return text.programs.badgeMsi;
+    case "executable":
+      return text.programs.badgeExecutable;
+    case "manualOnly":
+      return text.programs.badgeManualOnly;
+    case "none":
+      return text.programs.badgeNone;
+    case "invalid":
+      return text.programs.badgeInvalid;
+  }
+}
 
-const BADGE_HINT: Partial<Record<UninstallSummary, string>> = {
-  manualOnly: text.programs.badgeManualOnlyHint,
-  none: text.programs.badgeNoneHint,
-  invalid: text.programs.badgeInvalidHint,
-};
+function badgeHint(summary: UninstallSummary): string | undefined {
+  switch (summary) {
+    case "manualOnly":
+      return text.programs.badgeManualOnlyHint;
+    case "none":
+      return text.programs.badgeNoneHint;
+    case "invalid":
+      return text.programs.badgeInvalidHint;
+    default:
+      return undefined;
+  }
+}
 
 export default function App() {
   const [version, setVersion] = useState<string | null>(null);
@@ -163,6 +236,42 @@ export default function App() {
   const [sortAsc, setSortAsc] = useState(true);
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const [detailNotice, setDetailNotice] = useState<string | null>(null);
+
+  // Language and theme: persisted locally, English + Violet by default.
+  const [lang, setLang] = useState<Locale>(() => currentLocale());
+  const [theme, setTheme] = useState<ThemeCode>(() => initialTheme());
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
+  const chooseLang = useCallback((l: Locale) => {
+    setLocale(l); // swaps the module `text` binding before the re-render
+    setLang(l);
+  }, []);
+
+  // Removal Ledger overlay.
+  const [ledgerOpen, setLedgerOpen] = useState(false);
+  const [receipts, setReceipts] = useState<RemovalReceipt[] | null>(null);
+  const [exportNote, setExportNote] = useState<string | null>(null);
+  const openLedger = useCallback(() => {
+    setExportNote(null);
+    setLedgerOpen(true);
+    setReceipts(null);
+    invoke<RemovalReceipt[]>("list_removal_ledger")
+      .then(setReceipts)
+      .catch(() => {
+        setReceipts([]);
+      });
+  }, []);
+  const exportLedger = useCallback(() => {
+    invoke<string>("export_removal_ledger")
+      .then((path) => {
+        setExportNote(text.ledger.exportedTo(path));
+      })
+      .catch((error: unknown) => {
+        setExportNote(typeof error === "string" ? error : text.errors.generic);
+      });
+  }, []);
 
   const load = useCallback(() => {
     setState({ phase: "loading" });
@@ -324,19 +433,30 @@ export default function App() {
     () =>
       state.phase === "ready" &&
       state.programs.some((p) => {
-        const name = p.name.toLowerCase();
+        // Same hyphen normalization as isFamilyApp: the flagship registers
+        // itself as "pc-tweaker-app".
+        const name = p.name.toLowerCase().replace(/[-_]/g, " ");
         return name.startsWith("pc tweaker") && !name.includes("uninstaller");
       }),
     [state],
   );
 
+  const openPcTweaker = useCallback(() => {
+    invoke("open_pc_tweaker").catch(() => {
+      // Non-fatal: the button only appears when detection succeeded, and a
+      // race (just uninstalled) simply does nothing visible.
+    });
+  }, []);
+
+  // `lang` is otherwise only read through the module `text` binding; keeping
+  // it referenced here documents that renders depend on it.
+  void lang;
+
   return (
     <div className="shell">
       <header className="topbar">
         <div className="brand">
-          <span className="brand-mark" aria-hidden="true">
-            PU
-          </span>
+          <img className="brand-logo" src={appLogo} alt="" aria-hidden="true" />
           <div>
             <h1>{text.app.title}</h1>
             <p className="tagline">{text.app.tagline}</p>
@@ -348,17 +468,136 @@ export default function App() {
               type="button"
               className="suite-pill"
               title={text.app.suiteDetectedHint}
-              onClick={() => {
-                openLink("pctweaker");
-              }}
+              onClick={openPcTweaker}
             >
               <span className="suite-dot" aria-hidden="true" />
               {text.app.suiteDetected}
             </button>
           )}
+          <button type="button" className="button-ghost small" onClick={openLedger}>
+            {text.ledger.open}
+          </button>
+          <button
+            type="button"
+            className="menu-trigger"
+            aria-label={text.menu.open}
+            aria-expanded={menuOpen}
+            onClick={() => {
+              setMenuOpen((v) => !v);
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="8.4" r="3.2" stroke="currentColor" strokeWidth="1.7" />
+              <path
+                d="M4.8 19.5c1.4-3.4 4.2-5.2 7.2-5.2s5.8 1.8 7.2 5.2"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
           {version !== null && <span className="version">v{version}</span>}
         </div>
       </header>
+
+      {menuOpen && (
+        <>
+          <div
+            className="menu-scrim"
+            role="presentation"
+            onClick={() => {
+              setMenuOpen(false);
+            }}
+          />
+          <div className="menu-panel" role="dialog" aria-label={text.menu.open}>
+            <section className="menu-section">
+              <h3>{text.menu.account}</h3>
+              <button
+                type="button"
+                className="button small full"
+                onClick={() => {
+                  openLink("account");
+                }}
+              >
+                {text.menu.signIn}
+              </button>
+              <p className="menu-hint">{text.menu.signInHint}</p>
+              {suiteDetected && (
+                <button type="button" className="button-ghost small full" onClick={openPcTweaker}>
+                  {text.menu.openPcTweaker}
+                </button>
+              )}
+            </section>
+
+            <section className="menu-section">
+              <h3>{text.menu.plans}</h3>
+              {suiteDetected && (
+                <div className="plan-row plan-loyalty">
+                  <span>
+                    <strong>{text.menu.loyaltyTitle}</strong>
+                    <em>{text.menu.loyaltyPrice}</em>
+                  </span>
+                </div>
+              )}
+              <div className="plan-row">
+                <span>{text.menu.planMonthly}</span>
+              </div>
+              <div className="plan-row">
+                <span>{text.menu.planAnnual}</span>
+              </div>
+              <p className="menu-hint">{text.menu.loyaltyHint}</p>
+              <button
+                type="button"
+                className="button-ghost small full"
+                onClick={() => {
+                  openLink("pricing");
+                }}
+              >
+                {text.menu.choosePlans}
+              </button>
+            </section>
+
+            <section className="menu-section">
+              <h3>{text.menu.language}</h3>
+              <div className="menu-chips">
+                {LOCALES.map((l) => (
+                  <button
+                    key={l.code}
+                    type="button"
+                    className={`chip chip-button${lang === l.code ? " chip-active" : ""}`}
+                    aria-pressed={lang === l.code}
+                    onClick={() => {
+                      chooseLang(l.code);
+                    }}
+                  >
+                    {l.native}
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section className="menu-section">
+              <h3>{text.menu.theme}</h3>
+              <div className="menu-swatches">
+                {THEMES.map((t) => (
+                  <button
+                    key={t.code}
+                    type="button"
+                    className={`swatch${theme === t.code ? " swatch-active" : ""}`}
+                    title={t.label}
+                    aria-label={t.label}
+                    aria-pressed={theme === t.code}
+                    style={{ background: t.vars.accent }}
+                    onClick={() => {
+                      setTheme(t.code);
+                    }}
+                  />
+                ))}
+              </div>
+            </section>
+          </div>
+        </>
+      )}
 
       <main className="content">
         {state.phase === "loading" && (
@@ -536,6 +775,13 @@ export default function App() {
                           {p.installDate ?? "—"}
                         </span>
                         <span role="cell" className="cell-badges num">
+                          <span
+                            className={`conf-chip conf-${p.confidence.level}`}
+                            title={confidenceTitle(p.confidence)}
+                          >
+                            <span className="conf-dot" aria-hidden="true" />
+                            {confidenceLabel(p.confidence.level)}
+                          </span>
                           {isFamilyApp(p) && (
                             <span
                               className="badge badge-suite"
@@ -559,9 +805,9 @@ export default function App() {
                           )}
                           <span
                             className={`badge badge-${p.uninstall}`}
-                            title={BADGE_HINT[p.uninstall]}
+                            title={badgeHint(p.uninstall)}
                           >
-                            {BADGE_LABEL[p.uninstall]}
+                            {badgeLabel(p.uninstall)}
                           </span>
                         </span>
                         <span role="cell" className="cell-action num">
@@ -585,7 +831,7 @@ export default function App() {
                           <div role="cell" className="details-grid">
                             <div>
                               <span className="detail-label">{text.programs.detailSource}</span>
-                              <span className="detail-value">{SOURCE_LABEL[p.source]}</span>
+                              <span className="detail-value">{sourceLabel(p.source)}</span>
                             </div>
                             <div>
                               <span className="detail-label">{text.programs.detailKey}</span>
@@ -596,6 +842,20 @@ export default function App() {
                               <span className="detail-value mono">
                                 {p.installLocation ?? text.programs.detailNoLocation}
                               </span>
+                            </div>
+                            {/* Why this confidence band: the evidence itself,
+                                one line per reason, plus the honesty note. */}
+                            <div className="detail-wide">
+                              <span className="detail-label">{text.uninstall.confidenceLabel}</span>
+                              <span className={`detail-value conf-text-${p.confidence.level}`}>
+                                {confidenceLabel(p.confidence.level)}
+                              </span>
+                              <ul className="conf-reasons">
+                                {p.confidence.reasons.map((r) => (
+                                  <li key={r}>{text.confidence.reasons[r]}</li>
+                                ))}
+                                <li className="conf-disclaimer">{text.confidence.disclaimer}</li>
+                              </ul>
                             </div>
                             <div className="detail-actions">
                               {p.installLocation !== null && (
@@ -676,6 +936,90 @@ export default function App() {
         </div>
       </footer>
 
+      {ledgerOpen && (
+        <div
+          className="overlay"
+          role="presentation"
+          onClick={() => {
+            setLedgerOpen(false);
+          }}
+        >
+          <div
+            className="dialog dialog-wide"
+            role="dialog"
+            aria-modal="true"
+            aria-label={text.ledger.title}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            <h2>{text.ledger.title}</h2>
+            <p className="dialog-body">{text.ledger.subtitle}</p>
+
+            {receipts === null && (
+              <p className="status" role="status">
+                <span className="spinner" aria-hidden="true" />
+              </p>
+            )}
+            {receipts !== null && receipts.length === 0 && (
+              <p className="dialog-body">{text.ledger.empty}</p>
+            )}
+            {receipts !== null && receipts.length > 0 && (
+              <ul className="ledger-list">
+                {receipts.map((r, i) => (
+                  <li key={`${String(r.ts)}-${String(i)}`} className="ledger-row">
+                    <span
+                      className={`conf-dot ${r.success ? "dot-ok" : "dot-bad"}`}
+                      aria-hidden="true"
+                    />
+                    <span className="ledger-main">
+                      <span className="ledger-name">
+                        {r.programName}
+                        <span className="badge badge-user">{r.method.toUpperCase()}</span>
+                        {r.rebootRequired && (
+                          <span className="badge badge-hidden">{text.ledger.rebootFlag}</span>
+                        )}
+                        {!r.success && (
+                          <span className="badge badge-invalid">{text.ledger.failedFlag}</span>
+                        )}
+                      </span>
+                      <span className="ledger-meta">
+                        {new Date(r.ts * 1000).toLocaleString()} ·{" "}
+                        {r.verifiedFreedKb !== null && r.verifiedFreedKb > 0
+                          ? text.ledger.verifiedFreed(formatSize(r.verifiedFreedKb))
+                          : r.estimatedSizeKb !== null && r.estimatedSizeKb > 0
+                            ? text.ledger.estimatedOnly(formatSize(r.estimatedSizeKb))
+                            : "—"}{" "}
+                        · {text.ledger.restorePointLabel}: {r.restorePoint}
+                      </span>
+                      <span className="ledger-message">{r.message}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {exportNote !== null && <p className="detail-notice">{exportNote}</p>}
+            <div className="dialog-actions">
+              {receipts !== null && receipts.length > 0 && (
+                <button type="button" className="button-ghost" onClick={exportLedger}>
+                  {text.ledger.exportButton}
+                </button>
+              )}
+              <button
+                type="button"
+                className="button"
+                onClick={() => {
+                  setLedgerOpen(false);
+                }}
+              >
+                {text.uninstall.close}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {flow.step !== "idle" && (
         <div
           className="overlay"
@@ -713,6 +1057,37 @@ export default function App() {
               <>
                 <h2>{text.uninstall.confirmTitle(flow.plan.programName)}</h2>
                 <p className="dialog-body">{text.uninstall.confirmBody}</p>
+
+                {/* The Removal Brief: what will happen, in scannable rows,
+                    before any button is pressed. */}
+                <div className="brief-grid">
+                  <span className="brief-label">{text.uninstall.methodLabel}</span>
+                  <span className="brief-value">
+                    {flow.plan.kind === "msi" ? text.uninstall.methodMsi : text.uninstall.methodExe}
+                  </span>
+                  <span className="brief-label">{text.uninstall.privilegesLabel}</span>
+                  <span className="brief-value">
+                    {flow.plan.needsElevation
+                      ? text.uninstall.privilegesAdmin
+                      : text.uninstall.privilegesUser}
+                  </span>
+                  <span className="brief-label">{text.uninstall.sizeLabel}</span>
+                  <span className="brief-value">
+                    {flow.plan.estimatedSizeKb !== null && flow.plan.estimatedSizeKb > 0
+                      ? formatSize(flow.plan.estimatedSizeKb)
+                      : text.uninstall.sizeUnknown}
+                  </span>
+                  <span className="brief-label">{text.uninstall.confidenceLabel}</span>
+                  <span className={`brief-value conf-text-${flow.plan.confidence.level}`}>
+                    {confidenceLabel(flow.plan.confidence.level)}
+                    <span className="brief-sub">
+                      {flow.plan.confidence.reasons
+                        .map((r) => text.confidence.reasons[r])
+                        .join(" ")}
+                    </span>
+                  </span>
+                </div>
+
                 <p className="command-label">{text.uninstall.commandLabel}</p>
                 <code className="command">{displayCommand(flow.plan.command)}</code>
                 <ul className="dialog-notes">
@@ -727,6 +1102,7 @@ export default function App() {
                   {flow.program.hidden && (
                     <li className="note-warn">{text.uninstall.hiddenNote}</li>
                   )}
+                  <li>{text.uninstall.notRemovedNote}</li>
                 </ul>
                 <div className="dialog-actions">
                   <button type="button" className="button-ghost" onClick={closeFlow}>

@@ -1,12 +1,31 @@
-# PC Tweaker Uninstaller
+<p align="center">
+  <img src="src-tauri/icons/128x128.png" width="112" alt="PC Tweaker Uninstaller logo">
+</p>
+
+<h1 align="center">PC Tweaker Uninstaller</h1>
+
+<p align="center">
+  <strong>Removal Intelligence for Windows.</strong><br>
+  Remove software with clarity, not guesswork — part of the PC Tweaker suite.
+</p>
+
+<p align="center">
+  <a href="https://github.com/AurelioAvila/pc-tweaker-uninstaller/blob/master/LICENSE"><img src="https://img.shields.io/badge/License-Proprietary-6B7280?style=for-the-badge" alt="Proprietary License"></a>
+  <a href="https://github.com/AurelioAvila"><img src="https://img.shields.io/badge/%C2%A9%20Aurelio%20Avila-PC%20Tweaker%20suite-7C3AED?style=for-the-badge" alt="Copyright Aurelio Avila - PC Tweaker suite"></a>
+  <a href="https://pctweaker.app"><img src="https://img.shields.io/badge/pctweaker.app-Official%20site-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Official site"></a>
+</p>
+
 
 Uninstall Windows programs cleanly — with a safety net. Part of the
 PC Tweaker ecosystem: one account, shared entitlements, loyalty pricing for
 existing subscribers.
 
-**Status: pre-release scaffold.** The baseline (strict type checking,
-linting, tests, CI gates) is in place; uninstall features land phase by
-phase on top of it.
+**Removal Intelligence**: every program carries an evidence-based Removal
+Confidence Score (Safe / Review / Keep) with its reasons spelled out; every
+uninstall shows a Removal Brief (method, privileges, size, confidence)
+before anything runs; every removal leaves a local, exportable receipt in
+the Removal Ledger with verified space reclaimed. 5 languages, 8 themes,
+one suite account shared with PC Tweaker.
 
 ## Architecture
 
