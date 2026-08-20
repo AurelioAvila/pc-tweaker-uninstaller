@@ -1,0 +1,63 @@
+name: Checks
+
+# Runs on every push and PR. Every job below is a merge/release gate: a red
+# check means the change does not ship. (2026-08: baseline established in
+# Phase 1, before any feature code.)
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch: {}
+
+# Least privilege: this workflow only runs checks, it never writes.
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Dependency audit (production)
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: TypeScript
+        run: npx tsc --noEmit
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Prettier
+        run: npm run format:check
+
+      - name: Frontend build
+        run: npm run build
+
+      - name: Rust formatting
+        working-directory: src-tauri
+        run: cargo fmt --check
+
+      - name: Clippy (warnings are errors)
+        working-directory: src-tauri
+        run: cargo clippy -- -D warnings
+
+      - name: Rust tests
+        working-directory: src-tauri
+        run: cargo test
