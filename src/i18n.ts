@@ -149,6 +149,16 @@ export type Dictionary = {
     readonly language: string;
     readonly theme: string;
     readonly openPcTweaker: string;
+    readonly emailLabel: string;
+    readonly passwordLabel: string;
+    readonly signInButton: string;
+    readonly signingIn: string;
+    readonly signOut: string;
+    readonly proActive: string;
+    readonly proInactive: string;
+    readonly loyaltyLocked: string;
+    readonly checkFailed: string;
+    readonly registerHint: string;
   };
   readonly errors: {
     readonly generic: string;
@@ -161,7 +171,7 @@ const en: Dictionary = {
     tagline: "Removal Intelligence for Windows - remove software with clarity, not guesswork.",
     suiteDetected: "PC Tweaker detected - suite member",
     suiteDetectedHint:
-      "PC Tweaker is installed on this PC, so you're part of the suite: Uninstaller Pro unlocks at the loyalty price on your PC Tweaker account.",
+      "PC Tweaker is installed on this PC. Sign in with your PC Tweaker Pro account to unlock the loyalty price.",
   },
   programs: {
     searchPlaceholder: "Search by name or publisher...",
@@ -310,6 +320,16 @@ const en: Dictionary = {
     language: "Language",
     theme: "Theme",
     openPcTweaker: "Open PC Tweaker",
+    emailLabel: "Email",
+    passwordLabel: "Password",
+    signInButton: "Sign in",
+    signingIn: "Signing in...",
+    signOut: "Sign out",
+    proActive: "PC Tweaker Pro - active on this account",
+    proInactive: "This account is not on PC Tweaker Pro yet.",
+    loyaltyLocked: "Sign in with your PC Tweaker Pro account to unlock the loyalty price.",
+    checkFailed: "Could not verify your account right now. Try again shortly.",
+    registerHint: "No account yet? Create one on pctweaker.app.",
   },
   errors: {
     generic: "Something went wrong. Please try again.",
@@ -322,7 +342,7 @@ const it: Dictionary = {
     tagline: "Removal Intelligence per Windows: rimuovi il software con chiarezza, non a intuito.",
     suiteDetected: "PC Tweaker rilevato - membro della suite",
     suiteDetectedHint:
-      "PC Tweaker è installato su questo PC, quindi fai parte della suite: Uninstaller Pro si sblocca al prezzo fedeltà sul tuo account PC Tweaker.",
+      "PC Tweaker è installato su questo PC. Accedi con il tuo account PC Tweaker Pro per sbloccare il prezzo fedeltà.",
   },
   programs: {
     searchPlaceholder: "Cerca per nome o produttore...",
@@ -473,6 +493,16 @@ const it: Dictionary = {
     language: "Lingua",
     theme: "Tema",
     openPcTweaker: "Apri PC Tweaker",
+    emailLabel: "Email",
+    passwordLabel: "Password",
+    signInButton: "Accedi",
+    signingIn: "Accesso in corso...",
+    signOut: "Esci",
+    proActive: "PC Tweaker Pro - attivo su questo account",
+    proInactive: "Questo account non ha ancora PC Tweaker Pro.",
+    loyaltyLocked: "Accedi con il tuo account PC Tweaker Pro per sbloccare il prezzo fedeltà.",
+    checkFailed: "Impossibile verificare l'account in questo momento. Riprova tra poco.",
+    registerHint: "Non hai un account? Creane uno su pctweaker.app.",
   },
   errors: {
     generic: "Qualcosa è andato storto. Riprova.",
@@ -486,7 +516,7 @@ const fr: Dictionary = {
       "Removal Intelligence pour Windows : supprimez vos logiciels avec clarté, pas au hasard.",
     suiteDetected: "PC Tweaker détecté - membre de la suite",
     suiteDetectedHint:
-      "PC Tweaker est installé sur ce PC : vous faites partie de la suite. Uninstaller Pro se débloque au prix fidélité sur votre compte PC Tweaker.",
+      "PC Tweaker est installé sur ce PC. Connectez-vous avec votre compte PC Tweaker Pro pour débloquer le prix fidélité.",
   },
   programs: {
     searchPlaceholder: "Rechercher par nom ou éditeur...",
@@ -637,6 +667,17 @@ const fr: Dictionary = {
     language: "Langue",
     theme: "Thème",
     openPcTweaker: "Ouvrir PC Tweaker",
+    emailLabel: "E-mail",
+    passwordLabel: "Mot de passe",
+    signInButton: "Se connecter",
+    signingIn: "Connexion...",
+    signOut: "Se déconnecter",
+    proActive: "PC Tweaker Pro - actif sur ce compte",
+    proInactive: "Ce compte n'a pas encore PC Tweaker Pro.",
+    loyaltyLocked:
+      "Connectez-vous avec votre compte PC Tweaker Pro pour débloquer le prix fidélité.",
+    checkFailed: "Impossible de vérifier le compte pour le moment. Réessayez bientôt.",
+    registerHint: "Pas encore de compte ? Créez-en un sur pctweaker.app.",
   },
   errors: {
     generic: "Une erreur s'est produite. Veuillez réessayer.",
@@ -649,7 +690,7 @@ const es: Dictionary = {
     tagline: "Removal Intelligence para Windows: elimina software con claridad, no a ciegas.",
     suiteDetected: "PC Tweaker detectado - miembro de la suite",
     suiteDetectedHint:
-      "PC Tweaker está instalado en este PC, así que formas parte de la suite: Uninstaller Pro se desbloquea al precio de fidelidad en tu cuenta de PC Tweaker.",
+      "PC Tweaker está instalado en este PC. Inicia sesión con tu cuenta PC Tweaker Pro para desbloquear el precio de fidelidad.",
   },
   programs: {
     searchPlaceholder: "Buscar por nombre o fabricante...",
@@ -800,6 +841,17 @@ const es: Dictionary = {
     language: "Idioma",
     theme: "Tema",
     openPcTweaker: "Abrir PC Tweaker",
+    emailLabel: "Correo",
+    passwordLabel: "Contraseña",
+    signInButton: "Iniciar sesión",
+    signingIn: "Iniciando sesión...",
+    signOut: "Cerrar sesión",
+    proActive: "PC Tweaker Pro - activo en esta cuenta",
+    proInactive: "Esta cuenta aún no tiene PC Tweaker Pro.",
+    loyaltyLocked:
+      "Inicia sesión con tu cuenta PC Tweaker Pro para desbloquear el precio de fidelidad.",
+    checkFailed: "No se pudo verificar la cuenta en este momento. Inténtalo de nuevo en breve.",
+    registerHint: "¿Aún no tienes cuenta? Créala en pctweaker.app.",
   },
   errors: {
     generic: "Algo salió mal. Inténtalo de nuevo.",
@@ -813,7 +865,7 @@ const de: Dictionary = {
       "Removal Intelligence für Windows: Software mit Klarheit entfernen, nicht auf gut Glück.",
     suiteDetected: "PC Tweaker erkannt - Suite-Mitglied",
     suiteDetectedHint:
-      "PC Tweaker ist auf diesem PC installiert, du gehörst also zur Suite: Uninstaller Pro wird zum Treuepreis auf deinem PC-Tweaker-Konto freigeschaltet.",
+      "PC Tweaker ist auf diesem PC installiert. Melde dich mit deinem PC-Tweaker-Pro-Konto an, um den Treuepreis freizuschalten.",
   },
   programs: {
     searchPlaceholder: "Nach Name oder Hersteller suchen...",
@@ -967,6 +1019,17 @@ const de: Dictionary = {
     language: "Sprache",
     theme: "Design",
     openPcTweaker: "PC Tweaker öffnen",
+    emailLabel: "E-Mail",
+    passwordLabel: "Passwort",
+    signInButton: "Anmelden",
+    signingIn: "Anmeldung läuft...",
+    signOut: "Abmelden",
+    proActive: "PC Tweaker Pro - auf diesem Konto aktiv",
+    proInactive: "Dieses Konto hat noch kein PC Tweaker Pro.",
+    loyaltyLocked:
+      "Melde dich mit deinem PC-Tweaker-Pro-Konto an, um den Treuepreis freizuschalten.",
+    checkFailed: "Konto konnte gerade nicht überprüft werden. Versuche es gleich noch einmal.",
+    registerHint: "Noch kein Konto? Erstelle eines auf pctweaker.app.",
   },
   errors: {
     generic: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",

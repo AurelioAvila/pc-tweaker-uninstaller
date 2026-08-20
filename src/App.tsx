@@ -9,6 +9,7 @@ import {
   type Locale,
 } from "./i18n";
 import { THEMES, applyTheme, initialTheme, type ThemeCode } from "./themes";
+import { fetchAccount, login, logout, type AccountState } from "./account";
 import appLogo from "../src-tauri/icons/128x128.png";
 import "./App.css";
 
@@ -273,6 +274,52 @@ export default function App() {
       });
   }, []);
 
+  // Suite account: the sole source of truth for Pro status and loyalty
+  // eligibility. Checked on mount and on window focus (catches a purchase
+  // made on pctweaker.app in the system browser), mirroring PC Tweaker's own
+  // refreshAccount pattern.
+  const [account, setAccount] = useState<AccountState>({ status: "anonymous" });
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const isProConfirmed = account.status === "signed-in" && account.isPro;
+
+  const refreshAccount = useCallback(() => {
+    fetchAccount()
+      .then(setAccount)
+      .catch(() => {
+        // fetchAccount never rejects in practice; this is defense in depth.
+      });
+  }, []);
+
+  useEffect(() => {
+    refreshAccount();
+    window.addEventListener("focus", refreshAccount);
+    return () => {
+      window.removeEventListener("focus", refreshAccount);
+    };
+  }, [refreshAccount]);
+
+  const submitLogin = useCallback(() => {
+    setLoginError(null);
+    setAccount({ status: "checking", email: loginEmail });
+    login(loginEmail, loginPassword)
+      .then((next) => {
+        setAccount(next);
+        setLoginPassword("");
+      })
+      .catch((error: unknown) => {
+        setAccount({ status: "anonymous" });
+        setLoginError(typeof error === "string" ? error : (error as Error).message);
+      });
+  }, [loginEmail, loginPassword]);
+
+  const signOut = useCallback(() => {
+    logout();
+    setAccount({ status: "anonymous" });
+    setLoginEmail("");
+  }, []);
+
   const load = useCallback(() => {
     setState({ phase: "loading" });
     invoke<ProgramInfo[]>("list_programs")
@@ -512,18 +559,88 @@ export default function App() {
           <div className="menu-panel" role="dialog" aria-label={text.menu.open}>
             <section className="menu-section">
               <h3>{text.menu.account}</h3>
-              <button
-                type="button"
-                className="button small full"
-                onClick={() => {
-                  openLink("account");
-                }}
-              >
-                {text.menu.signIn}
-              </button>
-              <p className="menu-hint">{text.menu.signInHint}</p>
+
+              {account.status === "signed-in" && (
+                <>
+                  <div className="plan-row">
+                    <span>{account.email}</span>
+                  </div>
+                  {/* The ONLY place Pro status is asserted: read straight from
+                      the account just verified against the backend, never
+                      from local PC Tweaker detection. */}
+                  <p className={account.isPro ? "menu-hint menu-hint-ok" : "menu-hint"}>
+                    {account.isPro ? text.menu.proActive : text.menu.proInactive}
+                  </p>
+                  <button
+                    type="button"
+                    className="button-ghost small full"
+                    onClick={() => {
+                      signOut();
+                    }}
+                  >
+                    {text.menu.signOut}
+                  </button>
+                </>
+              )}
+
+              {account.status !== "signed-in" && (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    submitLogin();
+                  }}
+                >
+                  <input
+                    type="email"
+                    className="search"
+                    placeholder={text.menu.emailLabel}
+                    value={loginEmail}
+                    autoComplete="email"
+                    onChange={(e) => {
+                      setLoginEmail(e.target.value);
+                    }}
+                  />
+                  <input
+                    type="password"
+                    className="search"
+                    style={{ marginTop: 6 }}
+                    placeholder={text.menu.passwordLabel}
+                    value={loginPassword}
+                    autoComplete="current-password"
+                    onChange={(e) => {
+                      setLoginPassword(e.target.value);
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    className="button small full"
+                    style={{ marginTop: 8 }}
+                    disabled={account.status === "checking"}
+                  >
+                    {account.status === "checking" ? text.menu.signingIn : text.menu.signInButton}
+                  </button>
+                  {account.status === "error" && <p className="detail-notice">{account.message}</p>}
+                  {loginError !== null && <p className="detail-notice">{loginError}</p>}
+                  <p className="menu-hint">{text.menu.registerHint}</p>
+                  <button
+                    type="button"
+                    className="button-ghost small full"
+                    onClick={() => {
+                      openLink("account");
+                    }}
+                  >
+                    {text.menu.signIn}
+                  </button>
+                </form>
+              )}
+
               {suiteDetected && (
-                <button type="button" className="button-ghost small full" onClick={openPcTweaker}>
+                <button
+                  type="button"
+                  className="button-ghost small full"
+                  style={{ marginTop: 8 }}
+                  onClick={openPcTweaker}
+                >
                   {text.menu.openPcTweaker}
                 </button>
               )}
@@ -531,13 +648,20 @@ export default function App() {
 
             <section className="menu-section">
               <h3>{text.menu.plans}</h3>
-              {suiteDetected && (
+              {/* Loyalty pricing requires a VERIFIED Pro account, not merely
+                  PC Tweaker being present on this PC. isProConfirmed is the
+                  one gate every price/perk in this section reads. */}
+              {isProConfirmed ? (
                 <div className="plan-row plan-loyalty">
                   <span>
                     <strong>{text.menu.loyaltyTitle}</strong>
                     <em>{text.menu.loyaltyPrice}</em>
                   </span>
                 </div>
+              ) : (
+                account.status !== "signed-in" && (
+                  <p className="menu-hint">{text.menu.loyaltyLocked}</p>
+                )
               )}
               <div className="plan-row">
                 <span>{text.menu.planMonthly}</span>
