@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "PC Tweaker Uninstaller",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "identifier": "com.aurel.pc-tweaker-uninstaller",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -35,6 +35,15 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/AurelioAvila/pc-tweaker-uninstaller/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDFBNDA3NzYyMzQ4NjMyRDIKUldUU01vWTBZbmRBR3Z1bEN3N2xYK0VIeUwzaEo4UU1lS2ZMR25xMlFHZ2FuUEZvZENzcXdldDYK"
+    }
   }
 }

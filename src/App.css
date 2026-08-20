@@ -1039,3 +1039,77 @@ body {
 .menu-hint-ok {
   color: var(--ok);
 }
+
+/* ---- Update banner ---------------------------------------------------- */
+
+.update-card {
+  position: fixed;
+  bottom: 22px;
+  left: 22px;
+  z-index: 60;
+  width: 320px;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  background: var(--bg-raised);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+  padding: 14px 16px;
+}
+.update-head {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.update-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: color-mix(in oklab, var(--ok) 15%, transparent);
+  color: var(--ok);
+  flex-shrink: 0;
+}
+.update-icon svg {
+  width: 16px;
+  height: 16px;
+}
+.update-title {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--fg);
+}
+.update-body {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--fg-dim);
+}
+.update-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.update-actions .primary.small-pad {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 12.5px;
+}
+.update-progress p {
+  margin: 12px 0 6px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--ok);
+}
+.update-track {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.update-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--ok);
+  transition: width 200ms ease;
+}
