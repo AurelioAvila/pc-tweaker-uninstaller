@@ -1,17 +1,17 @@
-PC Tweaker Uninstaller - Proprietary License
-
 Copyright (c) 2026 Aurelio Avila. All rights reserved.
 
-This software and its source code are proprietary. No permission is granted
-to use, copy, modify, merge, publish, distribute, sublicense, or sell copies
-of the software or its source code, in whole or in part, except as expressly
-authorized in writing by the copyright holder.
+This repository is source-available for review and transparency purposes
+only. No license, express or implied, is granted to any person to use,
+copy, modify, merge, publish, distribute, sublicense, or sell copies of
+this software, or any portion of it, in source or compiled form.
 
-Use of the compiled application is governed by the Terms of Service at
-https://pctweaker.app/terms.
+Viewing the source code does not constitute permission to redistribute it,
+to build and distribute derivative versions of the application, or to
+circumvent, disable, or remove any licensing, entitlement, or paywall
+mechanism contained within it.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING
-FROM THE USE OF THE SOFTWARE.
+The compiled application is distributed under separate End User License
+Terms; see TERMS.md for the terms governing use of the PC Tweaker
+Uninstaller application itself.
+
+For licensing inquiries, contact the copyright holder.

@@ -39,6 +39,14 @@ npm run format:check  # prettier
 cd src-tauri && cargo fmt --check && cargo clippy -- -D warnings && cargo test
 ```
 
+## Legal
+
+The source is published for review and transparency only — see
+[LICENSE](LICENSE): no rights are granted to use, copy, modify, or
+redistribute it. Use of the compiled application is governed by
+[TERMS.md](TERMS.md); how data is handled is documented in
+[PRIVACY.md](PRIVACY.md).
+
 ## Security notes
 
 - No secrets in this repo; the signing private key exists only on the
