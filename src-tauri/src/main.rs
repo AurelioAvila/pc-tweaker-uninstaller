@@ -1,5 +1,8 @@
-// Prevents an additional console window on Windows in release. DO NOT REMOVE.
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+// GUI subsystem unconditionally (not just in release): the elevated headless
+// child (`--elevated-uninstall`) is this same executable, and a console
+// subsystem would flash a black console window at the user on every elevated
+// uninstall — including during `tauri dev`. DO NOT REMOVE.
+#![windows_subsystem = "windows"]
 
 fn main() {
     // Headless elevated branch: `app.exe --elevated-uninstall <source> <id>`

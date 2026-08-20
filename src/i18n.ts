@@ -37,6 +37,30 @@ export type Dictionary = {
     readonly badgeInvalidHint: string;
     readonly badgeUser: string;
     readonly badgeUserHint: string;
+    readonly badgeHidden: string;
+    readonly badgeHiddenHint: string;
+    readonly badgeSuite: string;
+    readonly badgeSuiteHint: string;
+    readonly filterAll: string;
+    readonly filterLarge: string;
+    readonly filterRecent: string;
+    readonly showHidden: string;
+    readonly detailSource: string;
+    readonly detailKey: string;
+    readonly detailLocation: string;
+    readonly detailNoLocation: string;
+    readonly openFolder: string;
+    readonly sourceMachine64: string;
+    readonly sourceMachine32: string;
+    readonly sourceUser: string;
+  };
+  readonly footer: {
+    readonly family: string;
+    readonly pcTweaker: string;
+    readonly promptShield: string;
+    readonly privacy: string;
+    readonly restoreInfo: string;
+    readonly openRestore: string;
   };
   readonly uninstall: {
     readonly action: string;
@@ -59,6 +83,8 @@ export type Dictionary = {
     readonly restorePointSkipped: (reason: string) => string;
     readonly restorePointFailed: (reason: string) => string;
     readonly exitCodeLabel: string;
+    readonly familyNote: string;
+    readonly hiddenNote: string;
   };
   readonly errors: {
     readonly generic: string;
@@ -102,6 +128,32 @@ const en: Dictionary = {
     badgeInvalidHint: "This program's uninstall command could not be understood.",
     badgeUser: "User",
     badgeUserHint: "Installed for this user only, not machine-wide.",
+    badgeHidden: "Hidden",
+    badgeHiddenHint:
+      "Windows normally hides this entry (system component or child update). Removing it can affect other software - be sure you know what it is.",
+    badgeSuite: "Suite",
+    badgeSuiteHint: "Part of your PC Tweaker suite.",
+    filterAll: "All",
+    filterLarge: "Large",
+    filterRecent: "Recent",
+    showHidden: "Show hidden",
+    detailSource: "Scope",
+    detailKey: "Registry entry",
+    detailLocation: "Install folder",
+    detailNoLocation: "Not recorded",
+    openFolder: "Open folder",
+    sourceMachine64: "This PC (64-bit)",
+    sourceMachine32: "This PC (32-bit)",
+    sourceUser: "This user only",
+  },
+  footer: {
+    family: "Part of the PC Tweaker family",
+    pcTweaker: "PC Tweaker",
+    promptShield: "PromptShield",
+    privacy: "Privacy",
+    restoreInfo:
+      "Restore points are created and stored by Windows on your system drive (System Protection).",
+    openRestore: "Manage restore points",
   },
   uninstall: {
     action: "Uninstall",
@@ -126,6 +178,10 @@ const en: Dictionary = {
     restorePointSkipped: (reason) => `System Restore point: skipped - ${reason}`,
     restorePointFailed: (reason) => `System Restore point: not created - ${reason}`,
     exitCodeLabel: "Exit code",
+    familyNote:
+      "This app is part of your PC Tweaker suite. You can remove it, but suite features that depend on it will stop working.",
+    hiddenNote:
+      "Windows normally hides this entry. Removing system components or child updates can affect other software.",
   },
   errors: {
     generic: "Something went wrong. Please try again.",

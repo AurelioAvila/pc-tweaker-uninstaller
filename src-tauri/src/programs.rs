@@ -34,6 +34,11 @@ pub struct ProgramInfo {
     /// How the uninstall command classified; drives the UI badge and, in
     /// Phase 3, what the executor is allowed to do.
     pub uninstall: UninstallSummary,
+    /// True for entries Add/Remove Programs hides (system components, child
+    /// updates). Listed behind an explicit UI toggle, clearly marked — power
+    /// users get the full picture, nobody trips over an OS component by
+    /// accident.
+    pub hidden: bool,
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq)]
@@ -143,8 +148,16 @@ pub fn summarize_uninstall(entry: &RawEntry) -> UninstallSummary {
     }
 }
 
-/// Converts a raw entry into UI shape (assumes `is_listable` already passed).
-pub fn to_program_info(entry: RawEntry, source: &'static str) -> ProgramInfo {
+/// An entry can be shown at all only if it has something to call itself.
+pub fn has_display_name(entry: &RawEntry) -> bool {
+    entry
+        .display_name
+        .as_deref()
+        .is_some_and(|n| !n.trim().is_empty())
+}
+
+/// Converts a raw entry into UI shape.
+pub fn to_program_info(entry: RawEntry, source: &'static str, hidden: bool) -> ProgramInfo {
     let uninstall = summarize_uninstall(&entry);
     ProgramInfo {
         id: entry.key_name,
@@ -159,6 +172,7 @@ pub fn to_program_info(entry: RawEntry, source: &'static str) -> ProgramInfo {
         estimated_size_kb: entry.estimated_size_kb,
         install_location: entry.install_location,
         uninstall,
+        hidden,
     }
 }
 
@@ -215,8 +229,12 @@ mod imp {
                 continue;
             };
             let entry = read_entry(&sub, &key_name);
-            if is_listable(&entry) {
-                out.push(to_program_info(entry, source));
+            // Everything with a name is returned; entries ARP would hide are
+            // flagged instead of dropped, so the UI's "show hidden" toggle
+            // can reveal the complete picture.
+            if has_display_name(&entry) {
+                let hidden = !is_listable(&entry);
+                out.push(to_program_info(entry, source, hidden));
             }
         }
     }
@@ -375,10 +393,21 @@ mod tests {
         entry.estimated_size_kb = Some(5312);
         entry.uninstall_string = Some(r#""C:\Program Files\7-Zip\Uninstall.exe""#.into());
 
-        let info = to_program_info(entry, "machine64");
+        let info = to_program_info(entry, "machine64", false);
         assert_eq!(info.name, "7-Zip");
         assert_eq!(info.source, "machine64");
         assert_eq!(info.install_date.as_deref(), Some("2026-01-01"));
         assert_eq!(info.uninstall, UninstallSummary::Executable);
+        assert!(!info.hidden);
+    }
+
+    #[test]
+    fn hidden_entries_keep_their_name_and_carry_the_flag() {
+        let mut sys = named("Microsoft Update Health Tools");
+        sys.system_component = Some(1);
+        assert!(has_display_name(&sys));
+        assert!(!is_listable(&sys));
+        let info = to_program_info(sys, "machine64", true);
+        assert!(info.hidden);
     }
 }
