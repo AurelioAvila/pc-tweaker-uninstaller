@@ -1,0 +1,9 @@
+# Normalize line endings: source files are always LF in the repo AND in
+# every checkout, regardless of the machine's core.autocrlf. Without this,
+# GitHub's Windows runners (autocrlf=true) check out CRLF files and
+# Prettier's default endOfLine=lf fails on every file — while local checks
+# pass. One source of truth ends that class of "works on my machine".
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.icns binary
