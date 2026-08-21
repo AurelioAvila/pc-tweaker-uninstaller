@@ -1122,3 +1122,8 @@ body {
 .residue-path { color: var(--muted, #9aa1ad); overflow-wrap: anywhere; }
 .residue-size { white-space: nowrap; color: var(--muted, #9aa1ad); }
 .dialog-body.subtle { font-size: 12px; opacity: 0.75; }
+
+/* Safe Batch */
+.batch-bar { display: flex; gap: 10px; align-items: center; margin: 0 0 10px; padding: 10px 12px; border: 1px solid var(--line, #2a2f3a); border-radius: 10px; background: color-mix(in srgb, var(--accent, #7dd3fc) 8%, transparent); }
+.batch-check { width: 15px; height: 15px; margin-right: 10px; flex: 0 0 auto; accent-color: var(--accent, #7dd3fc); cursor: pointer; }
+.batch-check[disabled] { opacity: 0.25; cursor: not-allowed; }
