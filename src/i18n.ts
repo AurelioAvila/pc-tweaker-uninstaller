@@ -184,6 +184,9 @@ export type Dictionary = {
     readonly upsCheckoutHint: string;
     readonly upsRefresh: string;
     readonly upsError: string;
+    readonly proGateResidue: string;
+    readonly proGateBatch: string;
+    readonly proGateSignIn: string;
     readonly loyaltyLocked: string;
     readonly checkFailed: string;
     readonly registerHint: string;
@@ -392,6 +395,9 @@ const en: Dictionary = {
     upsCheckoutHint: "Checkout opens in your browser. Come back here afterwards and refresh.",
     upsRefresh: "I've completed checkout — refresh",
     upsError: "Checkout could not be started. Please try again.",
+    proGateResidue: "Cleaning leftovers is an Uninstaller Pro feature. The scan above is free — removing what it found takes Pro.",
+    proGateBatch: "Batch removal is an Uninstaller Pro feature. Single uninstalls stay free, always.",
+    proGateSignIn: "Sign in from the account menu first, then unlock Pro.",
     loyaltyLocked: "Sign in with your PC Tweaker Pro account to unlock the loyalty price.",
     checkFailed: "Could not verify your account right now. Try again shortly.",
     registerHint: "No account yet? Create one on pctweaker.app.",
@@ -602,6 +608,9 @@ const it: Dictionary = {
     upsCheckoutHint: "Il pagamento si apre nel browser. Al termine torna qui e aggiorna.",
     upsRefresh: "Ho completato il pagamento — aggiorna",
     upsError: "Impossibile avviare il pagamento. Riprova.",
+    proGateResidue: "La pulizia dei residui è una funzione di Uninstaller Pro. La scansione qui sopra è gratuita — rimuovere ciò che trova richiede Pro.",
+    proGateBatch: "La rimozione in batch è una funzione di Uninstaller Pro. Le disinstallazioni singole restano gratuite, sempre.",
+    proGateSignIn: "Accedi prima dal menu account, poi sblocca Pro.",
     loyaltyLocked: "Accedi con il tuo account PC Tweaker Pro per sbloccare il prezzo fedeltà.",
     checkFailed: "Impossibile verificare l'account in questo momento. Riprova tra poco.",
     registerHint: "Non hai un account? Creane uno su pctweaker.app.",
@@ -813,6 +822,9 @@ const fr: Dictionary = {
     upsCheckoutHint: "Le paiement s'ouvre dans votre navigateur. Revenez ici ensuite et actualisez.",
     upsRefresh: "Paiement terminé — actualiser",
     upsError: "Impossible de démarrer le paiement. Réessayez.",
+    proGateResidue: "Le nettoyage des restes est une fonction d'Uninstaller Pro. L'analyse ci-dessus est gratuite — supprimer ce qu'elle trouve requiert Pro.",
+    proGateBatch: "La suppression par lot est une fonction d'Uninstaller Pro. Les désinstallations individuelles restent gratuites, toujours.",
+    proGateSignIn: "Connectez-vous d'abord depuis le menu compte, puis débloquez Pro.",
     loyaltyLocked:
       "Connectez-vous avec votre compte PC Tweaker Pro pour débloquer le prix fidélité.",
     checkFailed: "Impossible de vérifier le compte pour le moment. Réessayez bientôt.",
@@ -1024,6 +1036,9 @@ const es: Dictionary = {
     upsCheckoutHint: "El pago se abre en tu navegador. Vuelve aquí después y actualiza.",
     upsRefresh: "He completado el pago — actualizar",
     upsError: "No se pudo iniciar el pago. Inténtalo de nuevo.",
+    proGateResidue: "Limpiar los restos es una función de Uninstaller Pro. El análisis de arriba es gratuito; eliminar lo encontrado requiere Pro.",
+    proGateBatch: "La eliminación por lotes es una función de Uninstaller Pro. Las desinstalaciones individuales siguen siendo gratuitas, siempre.",
+    proGateSignIn: "Inicia sesión primero desde el menú de cuenta y luego desbloquea Pro.",
     loyaltyLocked:
       "Inicia sesión con tu cuenta PC Tweaker Pro para desbloquear el precio de fidelidad.",
     checkFailed: "No se pudo verificar la cuenta en este momento. Inténtalo de nuevo en breve.",
@@ -1239,6 +1254,9 @@ const de: Dictionary = {
     upsCheckoutHint: "Die Zahlung öffnet sich im Browser. Danach hierher zurückkehren und aktualisieren.",
     upsRefresh: "Zahlung abgeschlossen — aktualisieren",
     upsError: "Die Zahlung konnte nicht gestartet werden. Bitte erneut versuchen.",
+    proGateResidue: "Das Bereinigen von Resten ist eine Uninstaller-Pro-Funktion. Der Scan oben ist kostenlos — das Entfernen der Funde erfordert Pro.",
+    proGateBatch: "Die Stapelentfernung ist eine Uninstaller-Pro-Funktion. Einzelne Deinstallationen bleiben immer kostenlos.",
+    proGateSignIn: "Zuerst über das Kontomenü anmelden, dann Pro freischalten.",
     loyaltyLocked:
       "Melde dich mit deinem PC-Tweaker-Pro-Konto an, um den Treuepreis freizuschalten.",
     checkFailed: "Konto konnte gerade nicht überprüft werden. Versuche es gleich noch einmal.",
