@@ -38,6 +38,14 @@ interface ProgramInfo {
   uninstall: UninstallSummary;
   hidden: boolean;
   confidence: Confidence;
+  relations: ProgramRelations;
+}
+
+/** Mirror of `Relations` (src-tauri/src/relations.rs). */
+interface ProgramRelations {
+  dependents: string[];
+  installedVia: string | null;
+  publisherSiblings: number;
 }
 
 type SortKey = "name" | "size" | "date";
@@ -1245,6 +1253,28 @@ export default function App() {
               <>
                 <h2>{text.uninstall.confirmTitle(flow.plan.programName)}</h2>
                 <p className="dialog-body">{text.uninstall.confirmBody}</p>
+
+                {/* Relationship Map: evidence-based warnings before anything
+                    runs. Dependents = programs installed inside this one's
+                    folder; removing it takes their files too. */}
+                {flow.program.relations.dependents.length > 0 && (
+                  <p className="dialog-body reboot">
+                    {text.uninstall.relDependentsWarning(
+                      flow.program.relations.dependents.slice(0, 6).join(", ") +
+                        (flow.program.relations.dependents.length > 6 ? "…" : ""),
+                    )}
+                  </p>
+                )}
+                {flow.program.relations.installedVia !== null && (
+                  <p className="dialog-body subtle">
+                    {text.uninstall.relInstalledVia(flow.program.relations.installedVia)}
+                  </p>
+                )}
+                {flow.program.relations.publisherSiblings > 0 && (
+                  <p className="dialog-body subtle">
+                    {text.uninstall.relSiblings(flow.program.relations.publisherSiblings)}
+                  </p>
+                )}
 
                 {/* The Removal Brief: what will happen, in scannable rows,
                     before any button is pressed. */}
