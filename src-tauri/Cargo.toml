@@ -8,7 +8,7 @@
 
 [package]
 name = "pc-tweaker-uninstaller"
-version = "0.4.0"
+version = "0.5.0"
 description = "Uninstall Windows programs cleanly, with a safety net"
 authors = ["Aurelio Avila"]
 edition = "2021"

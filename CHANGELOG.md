@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.0 — 2026-08-21
+
+Safe Batch: multi-select removal with protected entries unselectable,
+contained-before-container ordering, per-item ledger receipts.
+Removal Intelligence complete.
+
 ## v0.4.0 — 2026-08-21
 
 Relationship Map: containment-based dependents ('removing this also
