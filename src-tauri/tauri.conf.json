@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "PC Tweaker Uninstaller",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "identifier": "com.aurel.pc-tweaker-uninstaller",
   "build": {
     "beforeDevCommand": "npm run dev",
