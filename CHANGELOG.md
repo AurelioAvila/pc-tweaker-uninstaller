@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.3.0 — 2026-08-21
+
+Residue Intelligence: post-uninstall leftover scan (install folder,
+AppData/ProgramData, shortcuts, registry) with Recycle Bin cleanup,
+exact-match conservative detection, and double path validation.
+Localized in five languages. 6 new unit tests.
+
 All notable changes to PC Tweaker Uninstaller are logged here, newest
 first.
 
