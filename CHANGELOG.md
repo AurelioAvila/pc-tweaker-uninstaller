@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.0 — 2026-08-21
+
+Relationship Map: containment-based dependents ('removing this also
+takes down...'), installed-via attribution, publisher siblings — all
+derived from install paths and publishers, never guessed.
+
 ## v0.3.0 — 2026-08-21
 
 Residue Intelligence: post-uninstall leftover scan (install folder,
