@@ -9,7 +9,15 @@ import {
   type Locale,
 } from "./i18n";
 import { THEMES, applyTheme, initialTheme, type ThemeCode } from "./themes";
-import { fetchAccount, login, logout, type AccountState } from "./account";
+import {
+  fetchAccount,
+  fetchUninstallerEntitlement,
+  login,
+  logout,
+  startUninstallerCheckout,
+  type AccountState,
+  type UninstallerEntitlement,
+} from "./account";
 import { UpdateBanner } from "./updater";
 import appLogo from "../src-tauri/icons/128x128.png";
 import "./App.css";
@@ -336,6 +344,34 @@ export default function App() {
   // made on pctweaker.app in the system browser), mirroring PC Tweaker's own
   // refreshAccount pattern.
   const [account, setAccount] = useState<AccountState>({ status: "anonymous" });
+  const [uninstallerPro, setUninstallerPro] = useState<UninstallerEntitlement | null>(null);
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
+  const [checkoutStarted, setCheckoutStarted] = useState(false);
+  const [checkoutError, setCheckoutError] = useState(false);
+
+  const refreshEntitlement = useCallback(() => {
+    fetchUninstallerEntitlement()
+      .then(setUninstallerPro)
+      .catch(() => {
+        setUninstallerPro(null);
+      });
+  }, []);
+
+  const beginProCheckout = useCallback(() => {
+    setCheckoutBusy(true);
+    startUninstallerCheckout()
+      .then((url) => invoke("open_checkout_url", { url }))
+      .then(() => {
+        setCheckoutStarted(true);
+      })
+      .catch(() => {
+        setCheckoutStarted(false);
+        setCheckoutError(true);
+      })
+      .finally(() => {
+        setCheckoutBusy(false);
+      });
+  }, []);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -343,11 +379,14 @@ export default function App() {
 
   const refreshAccount = useCallback(() => {
     fetchAccount()
-      .then(setAccount)
+      .then((next) => {
+        setAccount(next);
+        if (next.status === "signed-in") refreshEntitlement();
+      })
       .catch(() => {
         // fetchAccount never rejects in practice; this is defense in depth.
       });
-  }, []);
+  }, [refreshEntitlement]);
 
   useEffect(() => {
     refreshAccount();
@@ -364,12 +403,13 @@ export default function App() {
       .then((next) => {
         setAccount(next);
         setLoginPassword("");
+        if (next.status === "signed-in") refreshEntitlement();
       })
       .catch((error: unknown) => {
         setAccount({ status: "anonymous" });
         setLoginError(typeof error === "string" ? error : (error as Error).message);
       });
-  }, [loginEmail, loginPassword]);
+  }, [loginEmail, loginPassword, refreshEntitlement]);
 
   const signOut = useCallback(() => {
     logout();
@@ -698,6 +738,42 @@ export default function App() {
                   <p className={account.isPro ? "menu-hint menu-hint-ok" : "menu-hint"}>
                     {account.isPro ? text.menu.proActive : text.menu.proInactive}
                   </p>
+                  {/* Uninstaller Pro: read from /api/entitlements, purchased
+                      via Stripe Checkout in the system browser. The backend
+                      picks the loyalty price server-side; the label here only
+                      mirrors what it will charge. */}
+                  <p
+                    className={
+                      uninstallerPro?.active ? "menu-hint menu-hint-ok" : "menu-hint"
+                    }
+                  >
+                    {uninstallerPro?.active ? text.menu.upsActive : text.menu.upsInactive}
+                  </p>
+                  {!uninstallerPro?.active && (
+                    <>
+                      <button
+                        type="button"
+                        className="button-ghost small full"
+                        disabled={checkoutBusy}
+                        onClick={beginProCheckout}
+                      >
+                        {account.isPro ? text.menu.upsGoProLoyalty : text.menu.upsGoPro}
+                      </button>
+                      {checkoutStarted && (
+                        <>
+                          <p className="menu-hint">{text.menu.upsCheckoutHint}</p>
+                          <button
+                            type="button"
+                            className="button-ghost small full"
+                            onClick={refreshEntitlement}
+                          >
+                            {text.menu.upsRefresh}
+                          </button>
+                        </>
+                      )}
+                      {checkoutError && <p className="menu-hint">{text.menu.upsError}</p>}
+                    </>
+                  )}
                   <button
                     type="button"
                     className="button-ghost small full"
