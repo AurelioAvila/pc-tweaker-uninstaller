@@ -115,7 +115,34 @@ type FlowState =
   | { step: "execError"; program: ProgramInfo; message: string }
   | { step: "residueScanning"; program: ProgramInfo }
   | { step: "residue"; program: ProgramInfo; residue: ResidueReport; selected: readonly string[] }
-  | { step: "residueDone"; program: ProgramInfo; result: CleanResult };
+  | { step: "residueDone"; program: ProgramInfo; result: CleanResult }
+  | { step: "batchConfirm"; programs: ProgramInfo[] }
+  | { step: "batchRunning"; programs: ProgramInfo[]; index: number; results: BatchItemResult[] }
+  | { step: "batchDone"; results: BatchItemResult[] };
+
+interface BatchItemResult {
+  name: string;
+  success: boolean;
+  message: string;
+}
+
+/** Safe Batch eligibility: standard uninstaller, never the Keep band
+ *  (system components, shared runtimes, drivers), never the suite. */
+function isBatchable(p: ProgramInfo): boolean {
+  return (
+    (p.uninstall === "msi" || p.uninstall === "executable") &&
+    p.confidence.level !== "keep" &&
+    !isFamilyApp(p)
+  );
+}
+
+/** Deepest install paths first: a contained program must be uninstalled
+ *  before the container that holds its files. */
+function batchOrder(programs: ProgramInfo[]): ProgramInfo[] {
+  return [...programs].sort(
+    (a, b) => (b.installLocation ?? "").length - (a.installLocation ?? "").length,
+  );
+}
 
 /** Mirror of `ResidueReport` / `CleanResult` (src-tauri/src/residue.rs). */
 interface ResidueItem {
@@ -265,6 +292,7 @@ export default function App() {
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortAsc, setSortAsc] = useState(true);
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
+  const [batchSelected, setBatchSelected] = useState<readonly string[]>([]);
   const [detailNotice, setDetailNotice] = useState<string | null>(null);
 
   // Language and theme: persisted locally, English + Violet by default.
@@ -517,6 +545,35 @@ export default function App() {
     [],
   );
 
+  // Safe Batch: sequential removals with the same per-item machinery as a
+  // single uninstall — the backend's one-at-a-time lock stays authoritative,
+  // this loop just feeds it in a safe order (contained before container).
+  const runBatch = useCallback(
+    async (programs: ProgramInfo[]) => {
+      const results: BatchItemResult[] = [];
+      for (const [index, program] of programs.entries()) {
+        setFlow({ step: "batchRunning", programs, index, results: [...results] });
+        try {
+          const report = await invoke<UninstallReport>("execute_uninstall", {
+            source: program.source,
+            id: program.id,
+          });
+          results.push({ name: program.name, success: report.success, message: report.message });
+        } catch (error: unknown) {
+          results.push({
+            name: program.name,
+            success: false,
+            message: typeof error === "string" ? error : text.errors.generic,
+          });
+        }
+      }
+      setBatchSelected([]);
+      setFlow({ step: "batchDone", results });
+      load();
+    },
+    [load],
+  );
+
   const closeFlow = useCallback(() => {
     setFlow({ step: "idle" });
   }, []);
@@ -526,7 +583,7 @@ export default function App() {
   // the child process owns the action.
   const flowStep = flow.step;
   useEffect(() => {
-    if (flowStep === "idle" || flowStep === "planning" || flowStep === "running" || flowStep === "residueScanning") return;
+    if (flowStep === "idle" || flowStep === "planning" || flowStep === "running" || flowStep === "residueScanning" || flowStep === "batchRunning") return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         closeFlow();
@@ -881,6 +938,40 @@ export default function App() {
             )}
 
             {filtered.length > 0 && (
+              <>
+              {batchSelected.length > 0 && (
+                <div className="batch-bar">
+                  <button
+                    type="button"
+                    className="button primary"
+                    disabled={flow.step !== "idle"}
+                    onClick={() => {
+                      const chosen = batchOrder(
+                        state.programs.filter((p) => batchSelected.includes(`${p.source}:${p.id}`)),
+                      );
+                      if (chosen.length > 0) setFlow({ step: "batchConfirm", programs: chosen });
+                    }}
+                  >
+                    {text.uninstall.batchBar(
+                      batchSelected.length,
+                      formatSize(
+                        state.programs
+                          .filter((p) => batchSelected.includes(`${p.source}:${p.id}`))
+                          .reduce((sum, p) => sum + (p.estimatedSizeKb ?? 0), 0),
+                      ),
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    className="button"
+                    onClick={() => {
+                      setBatchSelected([]);
+                    }}
+                  >
+                    {text.uninstall.batchClear}
+                  </button>
+                </div>
+              )}
               <div className="list" role="table" aria-label={text.programs.columnProgram}>
                 <div className="list-head" role="row">
                   <span
@@ -947,6 +1038,23 @@ export default function App() {
                         }}
                       >
                         <span role="cell" className="cell-main">
+                          <input
+                            type="checkbox"
+                            className="batch-check"
+                            disabled={!isBatchable(p)}
+                            title={isBatchable(p) ? undefined : text.uninstall.batchNotBatchable}
+                            checked={batchSelected.includes(rowKey)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                            onChange={() => {
+                              setBatchSelected((current) =>
+                                current.includes(rowKey)
+                                  ? current.filter((k) => k !== rowKey)
+                                  : [...current, rowKey],
+                              );
+                            }}
+                          />
                           <span
                             className="avatar"
                             aria-hidden="true"
@@ -1076,6 +1184,7 @@ export default function App() {
                   );
                 })}
               </div>
+              </>
             )}
           </>
         )}
@@ -1474,6 +1583,83 @@ export default function App() {
                 {flow.result.failed.length > 0 && (
                   <p className="dialog-body subtle">
                     {text.uninstall.residueFailed(flow.result.failed.length)}
+                  </p>
+                )}
+                <div className="dialog-actions">
+                  <button type="button" className="button" onClick={closeFlow}>
+                    {text.uninstall.close}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {flow.step === "batchConfirm" && (
+              <>
+                <h2>{text.uninstall.batchConfirmTitle(flow.programs.length)}</h2>
+                <p className="dialog-body">{text.uninstall.batchConfirmBody}</p>
+                <ul className="residue-list">
+                  {flow.programs.map((p) => (
+                    <li key={`${p.source}:${p.id}`} className="residue-item">
+                      <label>
+                        <span className="residue-kind">{p.name}</span>
+                        <span className="residue-path">{p.publisher ?? ""}</span>
+                        <span className="residue-size">{formatSize(p.estimatedSizeKb)}</span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+                <div className="dialog-actions">
+                  <button
+                    type="button"
+                    className="button primary"
+                    onClick={() => {
+                      void runBatch(flow.programs);
+                    }}
+                  >
+                    {text.uninstall.confirm}
+                  </button>
+                  <button type="button" className="button" onClick={closeFlow}>
+                    {text.uninstall.cancel}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {flow.step === "batchRunning" && (
+              <>
+                <h2>
+                  {text.uninstall.batchRunningStep(
+                    flow.programs[flow.index]?.name ?? "",
+                    flow.index + 1,
+                    flow.programs.length,
+                  )}
+                </h2>
+                <p className="dialog-body">{text.uninstall.runningNote}</p>
+                <ul className="dialog-notes">
+                  {flow.results.map((r) => (
+                    <li key={r.name}>
+                      {r.success ? "✓" : "✗"} {r.name}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            {flow.step === "batchDone" && (
+              <>
+                <h2>{text.uninstall.batchDoneTitle}</h2>
+                <ul className="dialog-notes">
+                  {flow.results.map((r) => (
+                    <li key={r.name}>
+                      {r.success ? "✓" : "✗"} {r.name} — {r.message}
+                    </li>
+                  ))}
+                </ul>
+                {flow.results.some((r) => !r.success) && (
+                  <p className="dialog-body subtle">
+                    {text.uninstall.batchFailedNote(
+                      flow.results.filter((r) => !r.success).length,
+                    )}
                   </p>
                 )}
                 <div className="dialog-actions">

@@ -131,6 +131,14 @@ export type Dictionary = {
     readonly relDependentsWarning: (names: string) => string;
     readonly relInstalledVia: (name: string) => string;
     readonly relSiblings: (count: number) => string;
+    readonly batchBar: (count: number, size: string) => string;
+    readonly batchClear: string;
+    readonly batchConfirmTitle: (count: number) => string;
+    readonly batchConfirmBody: string;
+    readonly batchNotBatchable: string;
+    readonly batchRunningStep: (name: string, index: number, total: number) => string;
+    readonly batchDoneTitle: string;
+    readonly batchFailedNote: (count: number) => string;
     readonly familyNote: string;
     readonly hiddenNote: string;
   };
@@ -319,6 +327,14 @@ const en: Dictionary = {
     relDependentsWarning: (names) => `Removing this also takes down programs installed inside its folder: ${names}.`,
     relInstalledVia: (name) => `Installed via ${name} — consider removing it from there instead.`,
     relSiblings: (count) => `${String(count)} other program(s) from this publisher are installed.`,
+    batchBar: (count, size) => `Uninstall ${String(count)} selected · ${size}`,
+    batchClear: "Clear selection",
+    batchConfirmTitle: (count) => `Remove ${String(count)} programs?`,
+    batchConfirmBody: "They run one at a time, contained programs before their containers, with the same checks as a single uninstall. Protected entries (system components, shared runtimes, your PC Tweaker suite) cannot be selected at all.",
+    batchNotBatchable: "Protected — not available for batch removal.",
+    batchRunningStep: (name, index, total) => `Uninstalling ${name} (${String(index)} of ${String(total)})...`,
+    batchDoneTitle: "Batch complete",
+    batchFailedNote: (count) => `${String(count)} program(s) did not complete — see the ledger for details.`,
     familyNote:
       "This app is part of your PC Tweaker suite. You can remove it, but suite features that depend on it will stop working.",
     hiddenNote:
@@ -514,6 +530,14 @@ const it: Dictionary = {
     relDependentsWarning: (names) => `Rimuovendolo elimini anche i programmi installati nella sua cartella: ${names}.`,
     relInstalledVia: (name) => `Installato tramite ${name} — valuta di rimuoverlo da lì.`,
     relSiblings: (count) => `${String(count)} altro/i programma/i di questo publisher sono installati.`,
+    batchBar: (count, size) => `Disinstalla ${String(count)} selezionati · ${size}`,
+    batchClear: "Svuota selezione",
+    batchConfirmTitle: (count) => `Rimuovere ${String(count)} programmi?`,
+    batchConfirmBody: "Vengono eseguiti uno alla volta, i programmi contenuti prima dei loro contenitori, con gli stessi controlli di una disinstallazione singola. Le voci protette (componenti di sistema, runtime condivisi, la tua suite PC Tweaker) non sono selezionabili.",
+    batchNotBatchable: "Protetto — non disponibile per la rimozione in batch.",
+    batchRunningStep: (name, index, total) => `Disinstallazione di ${name} (${String(index)} di ${String(total)})...`,
+    batchDoneTitle: "Batch completato",
+    batchFailedNote: (count) => `${String(count)} programma/i non completati — vedi il registro per i dettagli.`,
     familyNote:
       "Questa app fa parte della tua suite PC Tweaker. Puoi rimuoverla, ma le funzioni della suite che ne dipendono smetteranno di funzionare.",
     hiddenNote:
@@ -710,6 +734,14 @@ const fr: Dictionary = {
     relDependentsWarning: (names) => `Sa suppression emporte aussi les programmes installés dans son dossier : ${names}.`,
     relInstalledVia: (name) => `Installé via ${name} — envisagez de le supprimer depuis là.`,
     relSiblings: (count) => `${String(count)} autre(s) programme(s) de cet éditeur sont installés.`,
+    batchBar: (count, size) => `Désinstaller ${String(count)} sélectionnés · ${size}`,
+    batchClear: "Vider la sélection",
+    batchConfirmTitle: (count) => `Supprimer ${String(count)} programmes ?`,
+    batchConfirmBody: "Ils s'exécutent un par un, les programmes contenus avant leurs conteneurs, avec les mêmes contrôles qu'une désinstallation simple. Les entrées protégées (composants système, runtimes partagés, votre suite PC Tweaker) ne sont pas sélectionnables.",
+    batchNotBatchable: "Protégé — indisponible pour la suppression par lot.",
+    batchRunningStep: (name, index, total) => `Désinstallation de ${name} (${String(index)} sur ${String(total)})...`,
+    batchDoneTitle: "Lot terminé",
+    batchFailedNote: (count) => `${String(count)} programme(s) inachevé(s) — voir le registre pour les détails.`,
     familyNote:
       "Cette application fait partie de votre suite PC Tweaker. Vous pouvez la supprimer, mais les fonctions de la suite qui en dépendent cesseront de fonctionner.",
     hiddenNote:
@@ -906,6 +938,14 @@ const es: Dictionary = {
     relDependentsWarning: (names) => `Al eliminarlo también se eliminan los programas instalados en su carpeta: ${names}.`,
     relInstalledVia: (name) => `Instalado a través de ${name}; considera eliminarlo desde allí.`,
     relSiblings: (count) => `Hay ${String(count)} programa(s) más de este editor instalados.`,
+    batchBar: (count, size) => `Desinstalar ${String(count)} seleccionados · ${size}`,
+    batchClear: "Vaciar selección",
+    batchConfirmTitle: (count) => `¿Eliminar ${String(count)} programas?`,
+    batchConfirmBody: "Se ejecutan de uno en uno, los programas contenidos antes que sus contenedores, con los mismos controles que una desinstalación individual. Las entradas protegidas (componentes del sistema, runtimes compartidos, tu suite PC Tweaker) no se pueden seleccionar.",
+    batchNotBatchable: "Protegido — no disponible para eliminación por lotes.",
+    batchRunningStep: (name, index, total) => `Desinstalando ${name} (${String(index)} de ${String(total)})...`,
+    batchDoneTitle: "Lote completado",
+    batchFailedNote: (count) => `${String(count)} programa(s) no completados — consulta el registro para más detalles.`,
     familyNote:
       "Esta aplicación forma parte de tu suite PC Tweaker. Puedes eliminarla, pero las funciones de la suite que dependen de ella dejarán de funcionar.",
     hiddenNote:
@@ -1105,6 +1145,14 @@ const de: Dictionary = {
     relDependentsWarning: (names) => `Beim Entfernen werden auch Programme in seinem Ordner entfernt: ${names}.`,
     relInstalledVia: (name) => `Installiert über ${name} — besser dort entfernen.`,
     relSiblings: (count) => `${String(count)} weitere(s) Programm(e) dieses Herausgebers sind installiert.`,
+    batchBar: (count, size) => `${String(count)} ausgewählte deinstallieren · ${size}`,
+    batchClear: "Auswahl leeren",
+    batchConfirmTitle: (count) => `${String(count)} Programme entfernen?`,
+    batchConfirmBody: "Sie laufen nacheinander, enthaltene Programme vor ihren Containern, mit denselben Prüfungen wie eine einzelne Deinstallation. Geschützte Einträge (Systemkomponenten, gemeinsame Runtimes, Ihre PC-Tweaker-Suite) sind nicht auswählbar.",
+    batchNotBatchable: "Geschützt — nicht für Stapelentfernung verfügbar.",
+    batchRunningStep: (name, index, total) => `Deinstalliere ${name} (${String(index)} von ${String(total)})...`,
+    batchDoneTitle: "Stapel abgeschlossen",
+    batchFailedNote: (count) => `${String(count)} Programm(e) nicht abgeschlossen — Details im Protokoll.`,
     familyNote:
       "Diese App gehört zu deiner PC-Tweaker-Suite. Du kannst sie entfernen, aber davon abhängige Suite-Funktionen hören auf zu funktionieren.",
     hiddenNote:
