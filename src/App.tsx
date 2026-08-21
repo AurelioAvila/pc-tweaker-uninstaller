@@ -1627,8 +1627,14 @@ export default function App() {
                     <p className="dialog-body subtle">{text.uninstall.residueRegistryNote}</p>
                   </>
                 )}
+                {flow.residue.items.length > 0 && !uninstallerPro?.active && (
+                  <p className="dialog-body reboot">
+                    {text.menu.proGateResidue}
+                    {account.status !== "signed-in" && ` ${text.menu.proGateSignIn}`}
+                  </p>
+                )}
                 <div className="dialog-actions">
-                  {flow.residue.items.length > 0 && (
+                  {flow.residue.items.length > 0 && uninstallerPro?.active && (
                     <button
                       type="button"
                       className="button primary"
@@ -1640,6 +1646,20 @@ export default function App() {
                       {text.uninstall.residueClean}
                     </button>
                   )}
+                  {flow.residue.items.length > 0 &&
+                    !uninstallerPro?.active &&
+                    account.status === "signed-in" && (
+                      <button
+                        type="button"
+                        className="button primary"
+                        disabled={checkoutBusy}
+                        onClick={beginProCheckout}
+                      >
+                        {account.status === "signed-in" && account.isPro
+                          ? text.menu.upsGoProLoyalty
+                          : text.menu.upsGoPro}
+                      </button>
+                    )}
                   <button type="button" className="button" onClick={closeFlow}>
                     {text.uninstall.close}
                   </button>
@@ -1684,16 +1704,34 @@ export default function App() {
                     </li>
                   ))}
                 </ul>
+                {!uninstallerPro?.active && (
+                  <p className="dialog-body reboot">
+                    {text.menu.proGateBatch}
+                    {account.status !== "signed-in" && ` ${text.menu.proGateSignIn}`}
+                  </p>
+                )}
                 <div className="dialog-actions">
-                  <button
-                    type="button"
-                    className="button primary"
-                    onClick={() => {
-                      void runBatch(flow.programs);
-                    }}
-                  >
-                    {text.uninstall.confirm}
-                  </button>
+                  {uninstallerPro?.active && (
+                    <button
+                      type="button"
+                      className="button primary"
+                      onClick={() => {
+                        void runBatch(flow.programs);
+                      }}
+                    >
+                      {text.uninstall.confirm}
+                    </button>
+                  )}
+                  {!uninstallerPro?.active && account.status === "signed-in" && (
+                    <button
+                      type="button"
+                      className="button primary"
+                      disabled={checkoutBusy}
+                      onClick={beginProCheckout}
+                    >
+                      {account.isPro ? text.menu.upsGoProLoyalty : text.menu.upsGoPro}
+                    </button>
+                  )}
                   <button type="button" className="button" onClick={closeFlow}>
                     {text.uninstall.cancel}
                   </button>
