@@ -112,3 +112,41 @@ export async function fetchAccount(): Promise<AccountState> {
 export function logout(): void {
   clearSession();
 }
+
+export type UninstallerEntitlement = { active: boolean; plan: string | null };
+
+/** The per-product entitlement map; only the uninstaller's row matters here.
+ *  Informational for the UI — enforcement lives server-side. */
+export async function fetchUninstallerEntitlement(): Promise<UninstallerEntitlement | null> {
+  const token = readToken();
+  if (!token || !API_BASE_URL) return null;
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/entitlements`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      products?: { product: string; active: boolean; plan: string | null }[];
+    };
+    const row = data.products?.find((p) => p.product === "uninstaller");
+    return row ? { active: row.active, plan: row.plan } : { active: false, plan: null };
+  } catch {
+    return null;
+  }
+}
+
+/** Starts a Stripe Checkout for Uninstaller Pro (annual; the backend picks
+ *  the loyalty price server-side when the account has PC Tweaker Pro) and
+ *  returns the URL to open in the system browser. */
+export async function startUninstallerCheckout(): Promise<string> {
+  const token = readToken();
+  if (!token || !API_BASE_URL) throw new Error("Sign in first.");
+  const res = await fetch(`${API_BASE_URL}/api/checkout`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ product: "uninstaller", plan: "annual" }),
+  });
+  const body = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+  if (!res.ok || !body.url) throw new Error(body.error || `HTTP ${String(res.status)}`);
+  return body.url;
+}

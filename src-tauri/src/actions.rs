@@ -169,3 +169,17 @@ mod tests {
         assert_eq!(exe_from_display_icon(""), None);
     }
 }
+
+/// Opens a Stripe Checkout URL in the system browser. The webview supplies
+/// the URL (it came from OUR backend's /api/checkout response), but trust
+/// still isn't extended to arbitrary destinations: only Stripe's checkout
+/// origin passes. Anything else fails loudly.
+#[tauri::command]
+pub fn open_checkout_url(app: tauri::AppHandle, url: String) -> Result<(), String> {
+    if !url.starts_with("https://checkout.stripe.com/") {
+        return Err("Refusing to open a non-Stripe checkout URL.".to_string());
+    }
+    app.opener()
+        .open_url(&url, None::<String>)
+        .map_err(|e| format!("The browser could not be opened: {e}"))
+}

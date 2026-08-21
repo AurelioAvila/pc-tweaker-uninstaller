@@ -56,6 +56,7 @@ pub fn run() {
             actions::open_system_restore,
             actions::open_ecosystem_link,
             actions::open_pc_tweaker,
+            actions::open_checkout_url,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

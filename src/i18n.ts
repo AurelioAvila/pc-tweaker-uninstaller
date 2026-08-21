@@ -177,6 +177,13 @@ export type Dictionary = {
     readonly signOut: string;
     readonly proActive: string;
     readonly proInactive: string;
+    readonly upsActive: string;
+    readonly upsInactive: string;
+    readonly upsGoPro: string;
+    readonly upsGoProLoyalty: string;
+    readonly upsCheckoutHint: string;
+    readonly upsRefresh: string;
+    readonly upsError: string;
     readonly loyaltyLocked: string;
     readonly checkFailed: string;
     readonly registerHint: string;
@@ -378,6 +385,13 @@ const en: Dictionary = {
     signOut: "Sign out",
     proActive: "PC Tweaker Pro - active on this account",
     proInactive: "This account is not on PC Tweaker Pro yet.",
+    upsActive: "Uninstaller Pro — active",
+    upsInactive: "Uninstaller Pro — not active",
+    upsGoPro: "Go Pro — €13.99 / year",
+    upsGoProLoyalty: "Go Pro — €4.99 / year (PC Tweaker Pro loyalty price)",
+    upsCheckoutHint: "Checkout opens in your browser. Come back here afterwards and refresh.",
+    upsRefresh: "I've completed checkout — refresh",
+    upsError: "Checkout could not be started. Please try again.",
     loyaltyLocked: "Sign in with your PC Tweaker Pro account to unlock the loyalty price.",
     checkFailed: "Could not verify your account right now. Try again shortly.",
     registerHint: "No account yet? Create one on pctweaker.app.",
@@ -581,6 +595,13 @@ const it: Dictionary = {
     signOut: "Esci",
     proActive: "PC Tweaker Pro - attivo su questo account",
     proInactive: "Questo account non ha ancora PC Tweaker Pro.",
+    upsActive: "Uninstaller Pro — attivo",
+    upsInactive: "Uninstaller Pro — non attivo",
+    upsGoPro: "Passa a Pro — 13,99 € / anno",
+    upsGoProLoyalty: "Passa a Pro — 4,99 € / anno (prezzo fedeltà PC Tweaker Pro)",
+    upsCheckoutHint: "Il pagamento si apre nel browser. Al termine torna qui e aggiorna.",
+    upsRefresh: "Ho completato il pagamento — aggiorna",
+    upsError: "Impossibile avviare il pagamento. Riprova.",
     loyaltyLocked: "Accedi con il tuo account PC Tweaker Pro per sbloccare il prezzo fedeltà.",
     checkFailed: "Impossibile verificare l'account in questo momento. Riprova tra poco.",
     registerHint: "Non hai un account? Creane uno su pctweaker.app.",
@@ -785,6 +806,13 @@ const fr: Dictionary = {
     signOut: "Se déconnecter",
     proActive: "PC Tweaker Pro - actif sur ce compte",
     proInactive: "Ce compte n'a pas encore PC Tweaker Pro.",
+    upsActive: "Uninstaller Pro — actif",
+    upsInactive: "Uninstaller Pro — non actif",
+    upsGoPro: "Passer Pro — 13,99 € / an",
+    upsGoProLoyalty: "Passer Pro — 4,99 € / an (tarif fidélité PC Tweaker Pro)",
+    upsCheckoutHint: "Le paiement s'ouvre dans votre navigateur. Revenez ici ensuite et actualisez.",
+    upsRefresh: "Paiement terminé — actualiser",
+    upsError: "Impossible de démarrer le paiement. Réessayez.",
     loyaltyLocked:
       "Connectez-vous avec votre compte PC Tweaker Pro pour débloquer le prix fidélité.",
     checkFailed: "Impossible de vérifier le compte pour le moment. Réessayez bientôt.",
@@ -989,6 +1017,13 @@ const es: Dictionary = {
     signOut: "Cerrar sesión",
     proActive: "PC Tweaker Pro - activo en esta cuenta",
     proInactive: "Esta cuenta aún no tiene PC Tweaker Pro.",
+    upsActive: "Uninstaller Pro — activo",
+    upsInactive: "Uninstaller Pro — no activo",
+    upsGoPro: "Hazte Pro — 13,99 € / año",
+    upsGoProLoyalty: "Hazte Pro — 4,99 € / año (precio fidelidad PC Tweaker Pro)",
+    upsCheckoutHint: "El pago se abre en tu navegador. Vuelve aquí después y actualiza.",
+    upsRefresh: "He completado el pago — actualizar",
+    upsError: "No se pudo iniciar el pago. Inténtalo de nuevo.",
     loyaltyLocked:
       "Inicia sesión con tu cuenta PC Tweaker Pro para desbloquear el precio de fidelidad.",
     checkFailed: "No se pudo verificar la cuenta en este momento. Inténtalo de nuevo en breve.",
@@ -1197,6 +1232,13 @@ const de: Dictionary = {
     signOut: "Abmelden",
     proActive: "PC Tweaker Pro - auf diesem Konto aktiv",
     proInactive: "Dieses Konto hat noch kein PC Tweaker Pro.",
+    upsActive: "Uninstaller Pro — aktiv",
+    upsInactive: "Uninstaller Pro — nicht aktiv",
+    upsGoPro: "Pro werden — 13,99 € / Jahr",
+    upsGoProLoyalty: "Pro werden — 4,99 € / Jahr (PC-Tweaker-Pro-Treuepreis)",
+    upsCheckoutHint: "Die Zahlung öffnet sich im Browser. Danach hierher zurückkehren und aktualisieren.",
+    upsRefresh: "Zahlung abgeschlossen — aktualisieren",
+    upsError: "Die Zahlung konnte nicht gestartet werden. Bitte erneut versuchen.",
     loyaltyLocked:
       "Melde dich mit deinem PC-Tweaker-Pro-Konto an, um den Treuepreis freizuschalten.",
     checkFailed: "Konto konnte gerade nicht überprüft werden. Versuche es gleich noch einmal.",
