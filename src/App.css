@@ -1113,3 +1113,12 @@ body {
   background: var(--ok);
   transition: width 200ms ease;
 }
+
+/* Residue Intelligence */
+.residue-list { list-style: none; margin: 10px 0; padding: 0; max-height: 260px; overflow-y: auto; display: grid; gap: 6px; }
+.residue-item label { display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line, #2a2f3a); border-radius: 8px; font-size: 12px; cursor: pointer; }
+.residue-item input[disabled] { opacity: 0.4; }
+.residue-kind { font-weight: 700; white-space: nowrap; }
+.residue-path { color: var(--muted, #9aa1ad); overflow-wrap: anywhere; }
+.residue-size { white-space: nowrap; color: var(--muted, #9aa1ad); }
+.dialog-body.subtle { font-size: 12px; opacity: 0.75; }

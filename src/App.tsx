@@ -104,7 +104,27 @@ type FlowState =
   | { step: "confirm"; program: ProgramInfo; plan: UninstallPlan }
   | { step: "running"; program: ProgramInfo }
   | { step: "report"; program: ProgramInfo; report: UninstallReport }
-  | { step: "execError"; program: ProgramInfo; message: string };
+  | { step: "execError"; program: ProgramInfo; message: string }
+  | { step: "residueScanning"; program: ProgramInfo }
+  | { step: "residue"; program: ProgramInfo; residue: ResidueReport; selected: readonly string[] }
+  | { step: "residueDone"; program: ProgramInfo; result: CleanResult };
+
+/** Mirror of `ResidueReport` / `CleanResult` (src-tauri/src/residue.rs). */
+interface ResidueItem {
+  kind: string;
+  path: string;
+  sizeKb: number | null;
+  deletable: boolean;
+}
+interface ResidueReport {
+  items: ResidueItem[];
+  totalKb: number;
+}
+interface CleanResult {
+  removed: string[];
+  failed: string[];
+  freedKb: number;
+}
 
 function formatSize(kb: number | null): string {
   if (kb === null || kb <= 0) return "—";
@@ -448,6 +468,47 @@ export default function App() {
     [load],
   );
 
+  const beginResidueScan = useCallback((program: ProgramInfo) => {
+    setFlow({ step: "residueScanning", program });
+    invoke<ResidueReport>("scan_residue", {
+      name: program.name,
+      publisher: program.publisher,
+      installLocation: program.installLocation,
+    })
+      .then((residue) => {
+        setFlow({
+          step: "residue",
+          program,
+          residue,
+          // Everything cleanable starts selected; the user deselects, which
+          // is the right default for a cleanup the user explicitly asked for.
+          selected: residue.items.filter((item) => item.deletable).map((item) => item.path),
+        });
+      })
+      .catch(() => {
+        setFlow({ step: "idle" });
+      });
+  }, []);
+
+  const runResidueClean = useCallback(
+    (program: ProgramInfo, selected: readonly string[]) => {
+      setFlow({ step: "residueScanning", program });
+      invoke<CleanResult>("clean_residue", {
+        name: program.name,
+        publisher: program.publisher,
+        installLocation: program.installLocation,
+        paths: [...selected],
+      })
+        .then((result) => {
+          setFlow({ step: "residueDone", program, result });
+        })
+        .catch(() => {
+          setFlow({ step: "idle" });
+        });
+    },
+    [],
+  );
+
   const closeFlow = useCallback(() => {
     setFlow({ step: "idle" });
   }, []);
@@ -457,7 +518,7 @@ export default function App() {
   // the child process owns the action.
   const flowStep = flow.step;
   useEffect(() => {
-    if (flowStep === "idle" || flowStep === "planning" || flowStep === "running") return;
+    if (flowStep === "idle" || flowStep === "planning" || flowStep === "running" || flowStep === "residueScanning") return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         closeFlow();
@@ -1277,6 +1338,114 @@ export default function App() {
                     </li>
                   )}
                 </ul>
+                <div className="dialog-actions">
+                  {flow.report.success && (
+                    <button
+                      type="button"
+                      className="button primary"
+                      onClick={() => {
+                        beginResidueScan(flow.program);
+                      }}
+                    >
+                      {text.uninstall.residueScan}
+                    </button>
+                  )}
+                  <button type="button" className="button" onClick={closeFlow}>
+                    {text.uninstall.close}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {flow.step === "residueScanning" && (
+              <>
+                <h2>{text.uninstall.residueScanning}</h2>
+                <p className="dialog-body">{flow.program.name}</p>
+              </>
+            )}
+
+            {flow.step === "residue" && (
+              <>
+                <h2>
+                  {flow.residue.items.length === 0
+                    ? text.uninstall.reportSuccessTitle
+                    : text.uninstall.residueTitle}
+                </h2>
+                {flow.residue.items.length === 0 ? (
+                  <p className="dialog-body">{text.uninstall.residueNone}</p>
+                ) : (
+                  <>
+                    <p className="dialog-body">
+                      {text.uninstall.residueIntro(
+                        flow.residue.items.length,
+                        (flow.residue.totalKb / 1024).toFixed(1),
+                      )}
+                    </p>
+                    <ul className="residue-list">
+                      {flow.residue.items.map((item) => (
+                        <li key={item.path} className="residue-item">
+                          <label>
+                            <input
+                              type="checkbox"
+                              disabled={!item.deletable}
+                              checked={flow.selected.includes(item.path)}
+                              onChange={() => {
+                                setFlow({
+                                  ...flow,
+                                  selected: flow.selected.includes(item.path)
+                                    ? flow.selected.filter((p) => p !== item.path)
+                                    : [...flow.selected, item.path],
+                                });
+                              }}
+                            />
+                            <span className="residue-kind">
+                              {text.uninstall.residueKinds[item.kind] ?? item.kind}
+                            </span>
+                            <span className="residue-path">{item.path}</span>
+                            {item.sizeKb !== null && (
+                              <span className="residue-size">{formatSize(item.sizeKb)}</span>
+                            )}
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="dialog-body subtle">{text.uninstall.residueRegistryNote}</p>
+                  </>
+                )}
+                <div className="dialog-actions">
+                  {flow.residue.items.length > 0 && (
+                    <button
+                      type="button"
+                      className="button primary"
+                      disabled={flow.selected.length === 0}
+                      onClick={() => {
+                        runResidueClean(flow.program, flow.selected);
+                      }}
+                    >
+                      {text.uninstall.residueClean}
+                    </button>
+                  )}
+                  <button type="button" className="button" onClick={closeFlow}>
+                    {text.uninstall.close}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {flow.step === "residueDone" && (
+              <>
+                <h2>{text.uninstall.residueTitle}</h2>
+                <p className="dialog-body">
+                  {text.uninstall.residueDone(
+                    flow.result.removed.length,
+                    (flow.result.freedKb / 1024).toFixed(1),
+                  )}
+                </p>
+                {flow.result.failed.length > 0 && (
+                  <p className="dialog-body subtle">
+                    {text.uninstall.residueFailed(flow.result.failed.length)}
+                  </p>
+                )}
                 <div className="dialog-actions">
                   <button type="button" className="button" onClick={closeFlow}>
                     {text.uninstall.close}

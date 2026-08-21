@@ -34,6 +34,7 @@ base64 = "0.22"
 is_elevated = "0.1"
 runas = "1"
 winreg = "0.52"
+trash = "5"
 # LoadLibrary/GetProcAddress only, to call SRSetRestorePointW dynamically:
 # a link-time dependency on srclient.dll would crash the app at startup on
 # editions without System Restore (Windows Server).

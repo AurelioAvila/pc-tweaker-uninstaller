@@ -114,7 +114,7 @@ pub fn assess(entry: &RawEntry, hidden: bool, summary: &UninstallSummary) -> Con
     if is_shared_launcher(&name) {
         review_reasons.push("sharedLauncher");
     }
-    if entry.publisher.as_deref().map_or(true, |p| p.trim().is_empty()) {
+    if entry.publisher.as_deref().is_none_or(|p| p.trim().is_empty()) {
         review_reasons.push("noPublisher");
     }
     match summary {
