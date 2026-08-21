@@ -1655,9 +1655,7 @@ export default function App() {
                         disabled={checkoutBusy}
                         onClick={beginProCheckout}
                       >
-                        {account.status === "signed-in" && account.isPro
-                          ? text.menu.upsGoProLoyalty
-                          : text.menu.upsGoPro}
+                        {account.isPro ? text.menu.upsGoProLoyalty : text.menu.upsGoPro}
                       </button>
                     )}
                   <button type="button" className="button" onClick={closeFlow}>
