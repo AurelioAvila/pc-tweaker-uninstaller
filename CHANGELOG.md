@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.6.0 — 2026-08-21
+
+Uninstaller Pro purchasable in-app: Stripe checkout in the system
+browser, server-side loyalty pricing (4.99/yr with PC Tweaker Pro,
+13.99/yr otherwise), entitlement shown in the account menu.
+
 ## v0.5.0 — 2026-08-21
 
 Safe Batch: multi-select removal with protected entries unselectable,
