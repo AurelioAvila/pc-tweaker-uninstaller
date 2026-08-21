@@ -34,6 +34,11 @@ pub struct ProgramInfo {
     /// How the uninstall command classified; drives the UI badge and, in
     /// Phase 3, what the executor is allowed to do.
     pub uninstall: UninstallSummary,
+    /// Derived relationships (dependents inside this install tree,
+    /// containing tree, publisher siblings). Filled after the full list is
+    /// built — a relation needs the whole picture.
+    #[serde(default)]
+    pub relations: crate::relations::Relations,
     /// True for entries Add/Remove Programs hides (system components, child
     /// updates). Listed behind an explicit UI toggle, clearly marked — power
     /// users get the full picture, nobody trips over an OS component by
@@ -181,6 +186,7 @@ pub fn to_program_info(entry: RawEntry, source: &'static str, hidden: bool) -> P
         install_location: entry.install_location,
         uninstall,
         hidden,
+        relations: crate::relations::Relations::default(),
     }
 }
 
@@ -288,6 +294,20 @@ mod imp {
         // HKCU has a single view; extra WOW flags are unnecessary there.
         read_view(HKEY_CURRENT_USER, 0, "user", &mut programs);
         programs.sort_by_key(|p| p.name.to_lowercase());
+        let rel_entries: Vec<crate::relations::RelEntry> = programs
+            .iter()
+            .map(|p| crate::relations::RelEntry {
+                name: p.name.clone(),
+                publisher: p.publisher.clone(),
+                install_location: p.install_location.clone(),
+            })
+            .collect();
+        for (program, relations) in programs
+            .iter_mut()
+            .zip(crate::relations::compute_relations(&rel_entries))
+        {
+            program.relations = relations;
+        }
         programs
     }
 }

@@ -128,6 +128,9 @@ export type Dictionary = {
     readonly residueDone: (count: number, mb: string) => string;
     readonly residueFailed: (count: number) => string;
     readonly residueKinds: Readonly<Record<string, string>>;
+    readonly relDependentsWarning: (names: string) => string;
+    readonly relInstalledVia: (name: string) => string;
+    readonly relSiblings: (count: number) => string;
     readonly familyNote: string;
     readonly hiddenNote: string;
   };
@@ -313,6 +316,9 @@ const en: Dictionary = {
     residueDone: (count, mb) => `Cleaned ${String(count)} item(s), freed about ${mb} MB.`,
     residueFailed: (count) => `${String(count)} item(s) could not be removed.`,
     residueKinds: { "install-dir": "Install folder", "app-data": "App data", shortcut: "Shortcut", "registry-user": "Registry (user)", "registry-machine": "Registry (machine)" },
+    relDependentsWarning: (names) => `Removing this also takes down programs installed inside its folder: ${names}.`,
+    relInstalledVia: (name) => `Installed via ${name} — consider removing it from there instead.`,
+    relSiblings: (count) => `${String(count)} other program(s) from this publisher are installed.`,
     familyNote:
       "This app is part of your PC Tweaker suite. You can remove it, but suite features that depend on it will stop working.",
     hiddenNote:
@@ -505,6 +511,9 @@ const it: Dictionary = {
     residueDone: (count, mb) => `Puliti ${String(count)} elemento/i, liberati circa ${mb} MB.`,
     residueFailed: (count) => `${String(count)} elemento/i non rimossi.`,
     residueKinds: { "install-dir": "Cartella di installazione", "app-data": "Dati applicazione", shortcut: "Collegamento", "registry-user": "Registro (utente)", "registry-machine": "Registro (sistema)" },
+    relDependentsWarning: (names) => `Rimuovendolo elimini anche i programmi installati nella sua cartella: ${names}.`,
+    relInstalledVia: (name) => `Installato tramite ${name} — valuta di rimuoverlo da lì.`,
+    relSiblings: (count) => `${String(count)} altro/i programma/i di questo publisher sono installati.`,
     familyNote:
       "Questa app fa parte della tua suite PC Tweaker. Puoi rimuoverla, ma le funzioni della suite che ne dipendono smetteranno di funzionare.",
     hiddenNote:
@@ -698,6 +707,9 @@ const fr: Dictionary = {
     residueDone: (count, mb) => `${String(count)} élément(s) nettoyés, environ ${mb} Mo libérés.`,
     residueFailed: (count) => `${String(count)} élément(s) n'ont pas pu être supprimés.`,
     residueKinds: { "install-dir": "Dossier d'installation", "app-data": "Données d'application", shortcut: "Raccourci", "registry-user": "Registre (utilisateur)", "registry-machine": "Registre (machine)" },
+    relDependentsWarning: (names) => `Sa suppression emporte aussi les programmes installés dans son dossier : ${names}.`,
+    relInstalledVia: (name) => `Installé via ${name} — envisagez de le supprimer depuis là.`,
+    relSiblings: (count) => `${String(count)} autre(s) programme(s) de cet éditeur sont installés.`,
     familyNote:
       "Cette application fait partie de votre suite PC Tweaker. Vous pouvez la supprimer, mais les fonctions de la suite qui en dépendent cesseront de fonctionner.",
     hiddenNote:
@@ -891,6 +903,9 @@ const es: Dictionary = {
     residueDone: (count, mb) => `${String(count)} elemento(s) limpiados, unos ${mb} MB liberados.`,
     residueFailed: (count) => `${String(count)} elemento(s) no se pudieron eliminar.`,
     residueKinds: { "install-dir": "Carpeta de instalación", "app-data": "Datos de la aplicación", shortcut: "Acceso directo", "registry-user": "Registro (usuario)", "registry-machine": "Registro (equipo)" },
+    relDependentsWarning: (names) => `Al eliminarlo también se eliminan los programas instalados en su carpeta: ${names}.`,
+    relInstalledVia: (name) => `Instalado a través de ${name}; considera eliminarlo desde allí.`,
+    relSiblings: (count) => `Hay ${String(count)} programa(s) más de este editor instalados.`,
     familyNote:
       "Esta aplicación forma parte de tu suite PC Tweaker. Puedes eliminarla, pero las funciones de la suite que dependen de ella dejarán de funcionar.",
     hiddenNote:
@@ -1087,6 +1102,9 @@ const de: Dictionary = {
     residueDone: (count, mb) => `${String(count)} Element(e) bereinigt, etwa ${mb} MB freigegeben.`,
     residueFailed: (count) => `${String(count)} Element(e) konnten nicht entfernt werden.`,
     residueKinds: { "install-dir": "Installationsordner", "app-data": "Anwendungsdaten", shortcut: "Verknüpfung", "registry-user": "Registrierung (Benutzer)", "registry-machine": "Registrierung (System)" },
+    relDependentsWarning: (names) => `Beim Entfernen werden auch Programme in seinem Ordner entfernt: ${names}.`,
+    relInstalledVia: (name) => `Installiert über ${name} — besser dort entfernen.`,
+    relSiblings: (count) => `${String(count)} weitere(s) Programm(e) dieses Herausgebers sind installiert.`,
     familyNote:
       "Diese App gehört zu deiner PC-Tweaker-Suite. Du kannst sie entfernen, aber davon abhängige Suite-Funktionen hören auf zu funktionieren.",
     hiddenNote:

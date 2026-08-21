@@ -12,6 +12,7 @@ pub mod elevation;
 pub mod ledger;
 pub mod license;
 pub mod programs;
+pub mod relations;
 pub mod residue;
 pub mod restore_point;
 pub mod rollback;
