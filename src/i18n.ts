@@ -118,6 +118,16 @@ export type Dictionary = {
     readonly restorePointSkipped: (reason: string) => string;
     readonly restorePointFailed: (reason: string) => string;
     readonly exitCodeLabel: string;
+    readonly residueScan: string;
+    readonly residueScanning: string;
+    readonly residueTitle: string;
+    readonly residueNone: string;
+    readonly residueIntro: (count: number, mb: string) => string;
+    readonly residueClean: string;
+    readonly residueRegistryNote: string;
+    readonly residueDone: (count: number, mb: string) => string;
+    readonly residueFailed: (count: number) => string;
+    readonly residueKinds: Readonly<Record<string, string>>;
     readonly familyNote: string;
     readonly hiddenNote: string;
   };
@@ -293,6 +303,16 @@ const en: Dictionary = {
     restorePointSkipped: (reason) => `System Restore point: skipped - ${reason}`,
     restorePointFailed: (reason) => `System Restore point: not created - ${reason}`,
     exitCodeLabel: "Exit code",
+    residueScan: "Scan for leftovers",
+    residueScanning: "Scanning for leftovers...",
+    residueTitle: "Leftovers found",
+    residueNone: "No leftovers found. Clean removal.",
+    residueIntro: (count, mb) => `${String(count)} item(s) left behind, about ${mb} MB. Everything you select goes to the Recycle Bin, so it stays recoverable.`,
+    residueClean: "Move selected to Recycle Bin",
+    residueRegistryNote: "User registry keys are deleted directly (not recoverable); machine-wide keys are listed for reference only.",
+    residueDone: (count, mb) => `Cleaned ${String(count)} item(s), freed about ${mb} MB.`,
+    residueFailed: (count) => `${String(count)} item(s) could not be removed.`,
+    residueKinds: { "install-dir": "Install folder", "app-data": "App data", shortcut: "Shortcut", "registry-user": "Registry (user)", "registry-machine": "Registry (machine)" },
     familyNote:
       "This app is part of your PC Tweaker suite. You can remove it, but suite features that depend on it will stop working.",
     hiddenNote:
@@ -475,6 +495,16 @@ const it: Dictionary = {
     restorePointSkipped: (reason) => `Punto di ripristino: saltato - ${reason}`,
     restorePointFailed: (reason) => `Punto di ripristino: non creato - ${reason}`,
     exitCodeLabel: "Codice di uscita",
+    residueScan: "Cerca residui",
+    residueScanning: "Ricerca dei residui...",
+    residueTitle: "Residui trovati",
+    residueNone: "Nessun residuo trovato. Rimozione pulita.",
+    residueIntro: (count, mb) => `${String(count)} elemento/i rimasti, circa ${mb} MB. Tutto ciò che selezioni va nel Cestino, quindi resta recuperabile.`,
+    residueClean: "Sposta selezionati nel Cestino",
+    residueRegistryNote: "Le chiavi di registro utente vengono eliminate direttamente (non recuperabili); quelle di sistema sono elencate solo per riferimento.",
+    residueDone: (count, mb) => `Puliti ${String(count)} elemento/i, liberati circa ${mb} MB.`,
+    residueFailed: (count) => `${String(count)} elemento/i non rimossi.`,
+    residueKinds: { "install-dir": "Cartella di installazione", "app-data": "Dati applicazione", shortcut: "Collegamento", "registry-user": "Registro (utente)", "registry-machine": "Registro (sistema)" },
     familyNote:
       "Questa app fa parte della tua suite PC Tweaker. Puoi rimuoverla, ma le funzioni della suite che ne dipendono smetteranno di funzionare.",
     hiddenNote:
@@ -658,6 +688,16 @@ const fr: Dictionary = {
     restorePointSkipped: (reason) => `Point de restauration : ignoré - ${reason}`,
     restorePointFailed: (reason) => `Point de restauration : non créé - ${reason}`,
     exitCodeLabel: "Code de sortie",
+    residueScan: "Rechercher les restes",
+    residueScanning: "Recherche des restes...",
+    residueTitle: "Restes trouvés",
+    residueNone: "Aucun reste trouvé. Désinstallation propre.",
+    residueIntro: (count, mb) => `${String(count)} élément(s) restants, environ ${mb} Mo. Tout ce que vous sélectionnez va à la Corbeille et reste récupérable.`,
+    residueClean: "Déplacer la sélection vers la Corbeille",
+    residueRegistryNote: "Les clés de registre utilisateur sont supprimées directement (non récupérables) ; les clés machine sont listées à titre indicatif.",
+    residueDone: (count, mb) => `${String(count)} élément(s) nettoyés, environ ${mb} Mo libérés.`,
+    residueFailed: (count) => `${String(count)} élément(s) n'ont pas pu être supprimés.`,
+    residueKinds: { "install-dir": "Dossier d'installation", "app-data": "Données d'application", shortcut: "Raccourci", "registry-user": "Registre (utilisateur)", "registry-machine": "Registre (machine)" },
     familyNote:
       "Cette application fait partie de votre suite PC Tweaker. Vous pouvez la supprimer, mais les fonctions de la suite qui en dépendent cesseront de fonctionner.",
     hiddenNote:
@@ -841,6 +881,16 @@ const es: Dictionary = {
     restorePointSkipped: (reason) => `Punto de restauración: omitido - ${reason}`,
     restorePointFailed: (reason) => `Punto de restauración: no creado - ${reason}`,
     exitCodeLabel: "Código de salida",
+    residueScan: "Buscar restos",
+    residueScanning: "Buscando restos...",
+    residueTitle: "Restos encontrados",
+    residueNone: "No se encontraron restos. Desinstalación limpia.",
+    residueIntro: (count, mb) => `${String(count)} elemento(s) restantes, unos ${mb} MB. Todo lo que selecciones va a la Papelera y sigue siendo recuperable.`,
+    residueClean: "Mover selección a la Papelera",
+    residueRegistryNote: "Las claves de registro del usuario se eliminan directamente (no recuperables); las de sistema se listan solo como referencia.",
+    residueDone: (count, mb) => `${String(count)} elemento(s) limpiados, unos ${mb} MB liberados.`,
+    residueFailed: (count) => `${String(count)} elemento(s) no se pudieron eliminar.`,
+    residueKinds: { "install-dir": "Carpeta de instalación", "app-data": "Datos de la aplicación", shortcut: "Acceso directo", "registry-user": "Registro (usuario)", "registry-machine": "Registro (equipo)" },
     familyNote:
       "Esta aplicación forma parte de tu suite PC Tweaker. Puedes eliminarla, pero las funciones de la suite que dependen de ella dejarán de funcionar.",
     hiddenNote:
@@ -1027,6 +1077,16 @@ const de: Dictionary = {
     restorePointSkipped: (reason) => `Wiederherstellungspunkt: übersprungen - ${reason}`,
     restorePointFailed: (reason) => `Wiederherstellungspunkt: nicht erstellt - ${reason}`,
     exitCodeLabel: "Exit-Code",
+    residueScan: "Nach Resten suchen",
+    residueScanning: "Suche nach Resten...",
+    residueTitle: "Reste gefunden",
+    residueNone: "Keine Reste gefunden. Saubere Deinstallation.",
+    residueIntro: (count, mb) => `${String(count)} Element(e) übrig, etwa ${mb} MB. Alles Ausgewählte wandert in den Papierkorb und bleibt wiederherstellbar.`,
+    residueClean: "Auswahl in den Papierkorb verschieben",
+    residueRegistryNote: "Benutzer-Registrierungsschlüssel werden direkt gelöscht (nicht wiederherstellbar); Maschinenschlüssel werden nur aufgelistet.",
+    residueDone: (count, mb) => `${String(count)} Element(e) bereinigt, etwa ${mb} MB freigegeben.`,
+    residueFailed: (count) => `${String(count)} Element(e) konnten nicht entfernt werden.`,
+    residueKinds: { "install-dir": "Installationsordner", "app-data": "Anwendungsdaten", shortcut: "Verknüpfung", "registry-user": "Registrierung (Benutzer)", "registry-machine": "Registrierung (System)" },
     familyNote:
       "Diese App gehört zu deiner PC-Tweaker-Suite. Du kannst sie entfernen, aber davon abhängige Suite-Funktionen hören auf zu funktionieren.",
     hiddenNote:

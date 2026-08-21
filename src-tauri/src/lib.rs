@@ -12,6 +12,7 @@ pub mod elevation;
 pub mod ledger;
 pub mod license;
 pub mod programs;
+pub mod residue;
 pub mod restore_point;
 pub mod rollback;
 pub mod uninstall_command;
@@ -46,6 +47,8 @@ pub fn run() {
             programs::list_programs,
             uninstall_exec::plan_uninstall,
             uninstall_exec::execute_uninstall,
+            residue::scan_residue,
+            residue::clean_residue,
             ledger::list_removal_ledger,
             ledger::export_removal_ledger,
             actions::open_install_folder,
