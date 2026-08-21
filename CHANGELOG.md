@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.7.0 — 2026-08-21
+
+Pro gating: residue cleanup and Safe Batch execution require
+Uninstaller Pro; residue scanning, batch preview and every single-
+uninstall feature stay free.
+
 ## v0.6.0 — 2026-08-21
 
 Uninstaller Pro purchasable in-app: Stripe checkout in the system
