@@ -33,7 +33,7 @@ use crate::uninstall_command::{self, Classification};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::Mutex;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 /// Must match `tauri.conf.json`'s identifier: the headless elevated child has
 /// no Tauri context, so the app data dir is derived from this constant.
@@ -442,6 +442,30 @@ fn run_and_report(
     })
 }
 
+/// Many third-party (especially NSIS/Inno-based) uninstallers copy
+/// themselves to a temp file, relaunch that copy, and exit almost
+/// immediately — so `Command::status()` returns success while the real
+/// removal work (deleting the registry key, the install folder) is still
+/// running in the detached child. MSI uninstalls via `msiexec /qn` don't
+/// have this problem: `msiexec.exe` itself performs the removal and only
+/// exits once it's done.
+///
+/// So after a successful *executable*-kind uninstall, poll the registry
+/// briefly for the key to actually disappear before returning — otherwise
+/// the list the caller refreshes right after still shows the "removed"
+/// program. Bounded: a genuinely stuck/buggy uninstaller must not hang the
+/// report forever, so this gives up silently after the cap and returns the
+/// report exactly as before.
+fn wait_for_removal(source: &str, id: &str) {
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while Instant::now() < deadline {
+        if programs::read_raw_entry(source, id).is_err() {
+            return; // Key is gone — confirmed, no need to wait further.
+        }
+        std::thread::sleep(Duration::from_millis(250));
+    }
+}
+
 /// `ERROR_ELEVATION_REQUIRED`: the target executable's manifest demands
 /// administrator rights, so a plain spawn is refused by Windows.
 const ELEVATION_REQUIRED: i32 = 740;
@@ -554,6 +578,17 @@ pub async fn execute_uninstall(source: String, id: String) -> Result<UninstallRe
         let pre = measure_install_dir(&source, &id);
         let result = execute_sync(&source, &id);
         if let Ok(report) = &result {
+            // Executable-kind uninstallers can report success before the
+            // registry key is actually gone (see `wait_for_removal`); give
+            // it a chance to catch up before the caller measures freed
+            // space and reloads the program list.
+            let is_msi = report
+                .command
+                .first()
+                .is_some_and(|c| c.to_ascii_lowercase().ends_with("msiexec.exe"));
+            if report.success && !is_msi {
+                wait_for_removal(&source, &id);
+            }
             let post = measure_install_dir(&source, &id);
             record_receipt(&source, report, pre, post, estimated_size_kb);
         }
