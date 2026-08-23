@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.7.1 — 2026-08-23
+
+Fixed: a program could stay listed after being uninstalled. Executable-
+kind uninstallers (NSIS/Inno, common for Electron apps) can report
+success before the registry key is actually gone; the app now waits for
+it to disappear before refreshing the list. MSI uninstalls were
+unaffected.
+
 ## v0.7.0 — 2026-08-21
 
 Pro gating: residue cleanup and Safe Batch execution require
