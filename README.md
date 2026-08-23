@@ -10,11 +10,24 @@
 </p>
 
 <p align="center">
+  <a href="https://pctweaker.app"><img src="https://img.shields.io/badge/DOWNLOAD-pctweaker.app-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Download from the official site"></a>
   <a href="https://github.com/AurelioAvila/pc-tweaker-uninstaller/blob/master/LICENSE"><img src="https://img.shields.io/badge/License-Proprietary-6B7280?style=for-the-badge" alt="Proprietary License"></a>
   <a href="https://github.com/AurelioAvila"><img src="https://img.shields.io/badge/%C2%A9%20Aurelio%20Avila-PC%20Tweaker%20suite-7C3AED?style=for-the-badge" alt="Copyright Aurelio Avila - PC Tweaker suite"></a>
-  <a href="https://pctweaker.app"><img src="https://img.shields.io/badge/pctweaker.app-Official%20site-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Official site"></a>
+  <a href="https://github.com/AurelioAvila/pc-tweaker-uninstaller/releases/latest"><img src="https://img.shields.io/github/v/release/AurelioAvila/pc-tweaker-uninstaller?display_name=tag&style=for-the-badge&color=7C3AED" alt="Latest release"></a>
 </p>
 
+## Download
+
+**[pctweaker.app](https://pctweaker.app)** — official site, same account and
+entitlements as the main PC Tweaker app.
+
+Prefer the raw installer? **[⬇ Latest GitHub release](../../releases/latest)**
+— `.exe` or `.msi` for Windows 10/11 x64. Not code-signed yet, so Windows
+SmartScreen shows a warning on first run: click **More info** → **Run
+anyway**. A winget package (no SmartScreen prompt) is planned once the
+suite's signing pipeline is in place — see
+[pc-tweaker-app](https://github.com/AurelioAvila/pc-tweaker-app) for the
+same fix already shipped there.
 
 Uninstall Windows programs cleanly — with a safety net. Part of the
 PC Tweaker ecosystem: one account, shared entitlements, loyalty pricing for
