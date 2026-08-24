@@ -142,7 +142,10 @@ mod tests {
     #[test]
     fn corrupt_lines_are_skipped_not_fatal() {
         let good = receipt("Good", 1);
-        let body = format!("not json at all\n{}\n{{half", serde_json::to_string(&good).unwrap());
+        let body = format!(
+            "not json at all\n{}\n{{half",
+            serde_json::to_string(&good).unwrap()
+        );
         assert_eq!(parse_ledger(&body), vec![good]);
     }
 

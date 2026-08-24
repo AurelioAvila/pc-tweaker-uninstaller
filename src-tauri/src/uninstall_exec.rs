@@ -341,7 +341,13 @@ fn measure_install_dir(source: &str, id: &str) -> Option<u64> {
 
 /// Best-effort ledger receipt. A receipt failure never fails the uninstall —
 /// the report the user sees is already complete without it.
-fn record_receipt(source: &str, report: &UninstallReport, pre_bytes: Option<u64>, post_bytes: Option<u64>, estimated_size_kb: Option<u32>) {
+fn record_receipt(
+    source: &str,
+    report: &UninstallReport,
+    pre_bytes: Option<u64>,
+    post_bytes: Option<u64>,
+    estimated_size_kb: Option<u32>,
+) {
     let verified_freed_kb = match (pre_bytes, post_bytes) {
         // Folder measured before and now gone: everything it held is freed.
         (Some(pre), None) => Some(pre / 1024),

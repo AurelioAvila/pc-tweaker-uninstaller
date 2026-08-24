@@ -328,23 +328,35 @@ const en: Dictionary = {
     residueScanning: "Scanning for leftovers...",
     residueTitle: "Leftovers found",
     residueNone: "No leftovers found. Clean removal.",
-    residueIntro: (count, mb) => `${String(count)} item(s) left behind, about ${mb} MB. Everything you select goes to the Recycle Bin, so it stays recoverable.`,
+    residueIntro: (count, mb) =>
+      `${String(count)} item(s) left behind, about ${mb} MB. Everything you select goes to the Recycle Bin, so it stays recoverable.`,
     residueClean: "Move selected to Recycle Bin",
-    residueRegistryNote: "User registry keys are deleted directly (not recoverable); machine-wide keys are listed for reference only.",
+    residueRegistryNote:
+      "User registry keys are deleted directly (not recoverable); machine-wide keys are listed for reference only.",
     residueDone: (count, mb) => `Cleaned ${String(count)} item(s), freed about ${mb} MB.`,
     residueFailed: (count) => `${String(count)} item(s) could not be removed.`,
-    residueKinds: { "install-dir": "Install folder", "app-data": "App data", shortcut: "Shortcut", "registry-user": "Registry (user)", "registry-machine": "Registry (machine)" },
-    relDependentsWarning: (names) => `Removing this also takes down programs installed inside its folder: ${names}.`,
+    residueKinds: {
+      "install-dir": "Install folder",
+      "app-data": "App data",
+      shortcut: "Shortcut",
+      "registry-user": "Registry (user)",
+      "registry-machine": "Registry (machine)",
+    },
+    relDependentsWarning: (names) =>
+      `Removing this also takes down programs installed inside its folder: ${names}.`,
     relInstalledVia: (name) => `Installed via ${name} — consider removing it from there instead.`,
     relSiblings: (count) => `${String(count)} other program(s) from this publisher are installed.`,
     batchBar: (count, size) => `Uninstall ${String(count)} selected · ${size}`,
     batchClear: "Clear selection",
     batchConfirmTitle: (count) => `Remove ${String(count)} programs?`,
-    batchConfirmBody: "They run one at a time, contained programs before their containers, with the same checks as a single uninstall. Protected entries (system components, shared runtimes, your PC Tweaker suite) cannot be selected at all.",
+    batchConfirmBody:
+      "They run one at a time, contained programs before their containers, with the same checks as a single uninstall. Protected entries (system components, shared runtimes, your PC Tweaker suite) cannot be selected at all.",
     batchNotBatchable: "Protected — not available for batch removal.",
-    batchRunningStep: (name, index, total) => `Uninstalling ${name} (${String(index)} of ${String(total)})...`,
+    batchRunningStep: (name, index, total) =>
+      `Uninstalling ${name} (${String(index)} of ${String(total)})...`,
     batchDoneTitle: "Batch complete",
-    batchFailedNote: (count) => `${String(count)} program(s) did not complete — see the ledger for details.`,
+    batchFailedNote: (count) =>
+      `${String(count)} program(s) did not complete — see the ledger for details.`,
     familyNote:
       "This app is part of your PC Tweaker suite. You can remove it, but suite features that depend on it will stop working.",
     hiddenNote:
@@ -395,8 +407,10 @@ const en: Dictionary = {
     upsCheckoutHint: "Checkout opens in your browser. Come back here afterwards and refresh.",
     upsRefresh: "I've completed checkout — refresh",
     upsError: "Checkout could not be started. Please try again.",
-    proGateResidue: "Cleaning leftovers is an Uninstaller Pro feature. The scan above is free — removing what it found takes Pro.",
-    proGateBatch: "Batch removal is an Uninstaller Pro feature. Single uninstalls stay free, always.",
+    proGateResidue:
+      "Cleaning leftovers is an Uninstaller Pro feature. The scan above is free — removing what it found takes Pro.",
+    proGateBatch:
+      "Batch removal is an Uninstaller Pro feature. Single uninstalls stay free, always.",
     proGateSignIn: "Sign in from the account menu first, then unlock Pro.",
     loyaltyLocked: "Sign in with your PC Tweaker Pro account to unlock the loyalty price.",
     checkFailed: "Could not verify your account right now. Try again shortly.",
@@ -541,23 +555,36 @@ const it: Dictionary = {
     residueScanning: "Ricerca dei residui...",
     residueTitle: "Residui trovati",
     residueNone: "Nessun residuo trovato. Rimozione pulita.",
-    residueIntro: (count, mb) => `${String(count)} elemento/i rimasti, circa ${mb} MB. Tutto ciò che selezioni va nel Cestino, quindi resta recuperabile.`,
+    residueIntro: (count, mb) =>
+      `${String(count)} elemento/i rimasti, circa ${mb} MB. Tutto ciò che selezioni va nel Cestino, quindi resta recuperabile.`,
     residueClean: "Sposta selezionati nel Cestino",
-    residueRegistryNote: "Le chiavi di registro utente vengono eliminate direttamente (non recuperabili); quelle di sistema sono elencate solo per riferimento.",
+    residueRegistryNote:
+      "Le chiavi di registro utente vengono eliminate direttamente (non recuperabili); quelle di sistema sono elencate solo per riferimento.",
     residueDone: (count, mb) => `Puliti ${String(count)} elemento/i, liberati circa ${mb} MB.`,
     residueFailed: (count) => `${String(count)} elemento/i non rimossi.`,
-    residueKinds: { "install-dir": "Cartella di installazione", "app-data": "Dati applicazione", shortcut: "Collegamento", "registry-user": "Registro (utente)", "registry-machine": "Registro (sistema)" },
-    relDependentsWarning: (names) => `Rimuovendolo elimini anche i programmi installati nella sua cartella: ${names}.`,
+    residueKinds: {
+      "install-dir": "Cartella di installazione",
+      "app-data": "Dati applicazione",
+      shortcut: "Collegamento",
+      "registry-user": "Registro (utente)",
+      "registry-machine": "Registro (sistema)",
+    },
+    relDependentsWarning: (names) =>
+      `Rimuovendolo elimini anche i programmi installati nella sua cartella: ${names}.`,
     relInstalledVia: (name) => `Installato tramite ${name} — valuta di rimuoverlo da lì.`,
-    relSiblings: (count) => `${String(count)} altro/i programma/i di questo publisher sono installati.`,
+    relSiblings: (count) =>
+      `${String(count)} altro/i programma/i di questo publisher sono installati.`,
     batchBar: (count, size) => `Disinstalla ${String(count)} selezionati · ${size}`,
     batchClear: "Svuota selezione",
     batchConfirmTitle: (count) => `Rimuovere ${String(count)} programmi?`,
-    batchConfirmBody: "Vengono eseguiti uno alla volta, i programmi contenuti prima dei loro contenitori, con gli stessi controlli di una disinstallazione singola. Le voci protette (componenti di sistema, runtime condivisi, la tua suite PC Tweaker) non sono selezionabili.",
+    batchConfirmBody:
+      "Vengono eseguiti uno alla volta, i programmi contenuti prima dei loro contenitori, con gli stessi controlli di una disinstallazione singola. Le voci protette (componenti di sistema, runtime condivisi, la tua suite PC Tweaker) non sono selezionabili.",
     batchNotBatchable: "Protetto — non disponibile per la rimozione in batch.",
-    batchRunningStep: (name, index, total) => `Disinstallazione di ${name} (${String(index)} di ${String(total)})...`,
+    batchRunningStep: (name, index, total) =>
+      `Disinstallazione di ${name} (${String(index)} di ${String(total)})...`,
     batchDoneTitle: "Batch completato",
-    batchFailedNote: (count) => `${String(count)} programma/i non completati — vedi il registro per i dettagli.`,
+    batchFailedNote: (count) =>
+      `${String(count)} programma/i non completati — vedi il registro per i dettagli.`,
     familyNote:
       "Questa app fa parte della tua suite PC Tweaker. Puoi rimuoverla, ma le funzioni della suite che ne dipendono smetteranno di funzionare.",
     hiddenNote:
@@ -608,8 +635,10 @@ const it: Dictionary = {
     upsCheckoutHint: "Il pagamento si apre nel browser. Al termine torna qui e aggiorna.",
     upsRefresh: "Ho completato il pagamento — aggiorna",
     upsError: "Impossibile avviare il pagamento. Riprova.",
-    proGateResidue: "La pulizia dei residui è una funzione di Uninstaller Pro. La scansione qui sopra è gratuita — rimuovere ciò che trova richiede Pro.",
-    proGateBatch: "La rimozione in batch è una funzione di Uninstaller Pro. Le disinstallazioni singole restano gratuite, sempre.",
+    proGateResidue:
+      "La pulizia dei residui è una funzione di Uninstaller Pro. La scansione qui sopra è gratuita — rimuovere ciò che trova richiede Pro.",
+    proGateBatch:
+      "La rimozione in batch è una funzione di Uninstaller Pro. Le disinstallazioni singole restano gratuite, sempre.",
     proGateSignIn: "Accedi prima dal menu account, poi sblocca Pro.",
     loyaltyLocked: "Accedi con il tuo account PC Tweaker Pro per sbloccare il prezzo fedeltà.",
     checkFailed: "Impossibile verificare l'account in questo momento. Riprova tra poco.",
@@ -755,23 +784,35 @@ const fr: Dictionary = {
     residueScanning: "Recherche des restes...",
     residueTitle: "Restes trouvés",
     residueNone: "Aucun reste trouvé. Désinstallation propre.",
-    residueIntro: (count, mb) => `${String(count)} élément(s) restants, environ ${mb} Mo. Tout ce que vous sélectionnez va à la Corbeille et reste récupérable.`,
+    residueIntro: (count, mb) =>
+      `${String(count)} élément(s) restants, environ ${mb} Mo. Tout ce que vous sélectionnez va à la Corbeille et reste récupérable.`,
     residueClean: "Déplacer la sélection vers la Corbeille",
-    residueRegistryNote: "Les clés de registre utilisateur sont supprimées directement (non récupérables) ; les clés machine sont listées à titre indicatif.",
+    residueRegistryNote:
+      "Les clés de registre utilisateur sont supprimées directement (non récupérables) ; les clés machine sont listées à titre indicatif.",
     residueDone: (count, mb) => `${String(count)} élément(s) nettoyés, environ ${mb} Mo libérés.`,
     residueFailed: (count) => `${String(count)} élément(s) n'ont pas pu être supprimés.`,
-    residueKinds: { "install-dir": "Dossier d'installation", "app-data": "Données d'application", shortcut: "Raccourci", "registry-user": "Registre (utilisateur)", "registry-machine": "Registre (machine)" },
-    relDependentsWarning: (names) => `Sa suppression emporte aussi les programmes installés dans son dossier : ${names}.`,
+    residueKinds: {
+      "install-dir": "Dossier d'installation",
+      "app-data": "Données d'application",
+      shortcut: "Raccourci",
+      "registry-user": "Registre (utilisateur)",
+      "registry-machine": "Registre (machine)",
+    },
+    relDependentsWarning: (names) =>
+      `Sa suppression emporte aussi les programmes installés dans son dossier : ${names}.`,
     relInstalledVia: (name) => `Installé via ${name} — envisagez de le supprimer depuis là.`,
     relSiblings: (count) => `${String(count)} autre(s) programme(s) de cet éditeur sont installés.`,
     batchBar: (count, size) => `Désinstaller ${String(count)} sélectionnés · ${size}`,
     batchClear: "Vider la sélection",
     batchConfirmTitle: (count) => `Supprimer ${String(count)} programmes ?`,
-    batchConfirmBody: "Ils s'exécutent un par un, les programmes contenus avant leurs conteneurs, avec les mêmes contrôles qu'une désinstallation simple. Les entrées protégées (composants système, runtimes partagés, votre suite PC Tweaker) ne sont pas sélectionnables.",
+    batchConfirmBody:
+      "Ils s'exécutent un par un, les programmes contenus avant leurs conteneurs, avec les mêmes contrôles qu'une désinstallation simple. Les entrées protégées (composants système, runtimes partagés, votre suite PC Tweaker) ne sont pas sélectionnables.",
     batchNotBatchable: "Protégé — indisponible pour la suppression par lot.",
-    batchRunningStep: (name, index, total) => `Désinstallation de ${name} (${String(index)} sur ${String(total)})...`,
+    batchRunningStep: (name, index, total) =>
+      `Désinstallation de ${name} (${String(index)} sur ${String(total)})...`,
     batchDoneTitle: "Lot terminé",
-    batchFailedNote: (count) => `${String(count)} programme(s) inachevé(s) — voir le registre pour les détails.`,
+    batchFailedNote: (count) =>
+      `${String(count)} programme(s) inachevé(s) — voir le registre pour les détails.`,
     familyNote:
       "Cette application fait partie de votre suite PC Tweaker. Vous pouvez la supprimer, mais les fonctions de la suite qui en dépendent cesseront de fonctionner.",
     hiddenNote:
@@ -819,11 +860,14 @@ const fr: Dictionary = {
     upsInactive: "Uninstaller Pro — non actif",
     upsGoPro: "Passer Pro — 13,99 € / an",
     upsGoProLoyalty: "Passer Pro — 4,99 € / an (tarif fidélité PC Tweaker Pro)",
-    upsCheckoutHint: "Le paiement s'ouvre dans votre navigateur. Revenez ici ensuite et actualisez.",
+    upsCheckoutHint:
+      "Le paiement s'ouvre dans votre navigateur. Revenez ici ensuite et actualisez.",
     upsRefresh: "Paiement terminé — actualiser",
     upsError: "Impossible de démarrer le paiement. Réessayez.",
-    proGateResidue: "Le nettoyage des restes est une fonction d'Uninstaller Pro. L'analyse ci-dessus est gratuite — supprimer ce qu'elle trouve requiert Pro.",
-    proGateBatch: "La suppression par lot est une fonction d'Uninstaller Pro. Les désinstallations individuelles restent gratuites, toujours.",
+    proGateResidue:
+      "Le nettoyage des restes est une fonction d'Uninstaller Pro. L'analyse ci-dessus est gratuite — supprimer ce qu'elle trouve requiert Pro.",
+    proGateBatch:
+      "La suppression par lot est une fonction d'Uninstaller Pro. Les désinstallations individuelles restent gratuites, toujours.",
     proGateSignIn: "Connectez-vous d'abord depuis le menu compte, puis débloquez Pro.",
     loyaltyLocked:
       "Connectez-vous avec votre compte PC Tweaker Pro pour débloquer le prix fidélité.",
@@ -969,23 +1013,35 @@ const es: Dictionary = {
     residueScanning: "Buscando restos...",
     residueTitle: "Restos encontrados",
     residueNone: "No se encontraron restos. Desinstalación limpia.",
-    residueIntro: (count, mb) => `${String(count)} elemento(s) restantes, unos ${mb} MB. Todo lo que selecciones va a la Papelera y sigue siendo recuperable.`,
+    residueIntro: (count, mb) =>
+      `${String(count)} elemento(s) restantes, unos ${mb} MB. Todo lo que selecciones va a la Papelera y sigue siendo recuperable.`,
     residueClean: "Mover selección a la Papelera",
-    residueRegistryNote: "Las claves de registro del usuario se eliminan directamente (no recuperables); las de sistema se listan solo como referencia.",
+    residueRegistryNote:
+      "Las claves de registro del usuario se eliminan directamente (no recuperables); las de sistema se listan solo como referencia.",
     residueDone: (count, mb) => `${String(count)} elemento(s) limpiados, unos ${mb} MB liberados.`,
     residueFailed: (count) => `${String(count)} elemento(s) no se pudieron eliminar.`,
-    residueKinds: { "install-dir": "Carpeta de instalación", "app-data": "Datos de la aplicación", shortcut: "Acceso directo", "registry-user": "Registro (usuario)", "registry-machine": "Registro (equipo)" },
-    relDependentsWarning: (names) => `Al eliminarlo también se eliminan los programas instalados en su carpeta: ${names}.`,
+    residueKinds: {
+      "install-dir": "Carpeta de instalación",
+      "app-data": "Datos de la aplicación",
+      shortcut: "Acceso directo",
+      "registry-user": "Registro (usuario)",
+      "registry-machine": "Registro (equipo)",
+    },
+    relDependentsWarning: (names) =>
+      `Al eliminarlo también se eliminan los programas instalados en su carpeta: ${names}.`,
     relInstalledVia: (name) => `Instalado a través de ${name}; considera eliminarlo desde allí.`,
     relSiblings: (count) => `Hay ${String(count)} programa(s) más de este editor instalados.`,
     batchBar: (count, size) => `Desinstalar ${String(count)} seleccionados · ${size}`,
     batchClear: "Vaciar selección",
     batchConfirmTitle: (count) => `¿Eliminar ${String(count)} programas?`,
-    batchConfirmBody: "Se ejecutan de uno en uno, los programas contenidos antes que sus contenedores, con los mismos controles que una desinstalación individual. Las entradas protegidas (componentes del sistema, runtimes compartidos, tu suite PC Tweaker) no se pueden seleccionar.",
+    batchConfirmBody:
+      "Se ejecutan de uno en uno, los programas contenidos antes que sus contenedores, con los mismos controles que una desinstalación individual. Las entradas protegidas (componentes del sistema, runtimes compartidos, tu suite PC Tweaker) no se pueden seleccionar.",
     batchNotBatchable: "Protegido — no disponible para eliminación por lotes.",
-    batchRunningStep: (name, index, total) => `Desinstalando ${name} (${String(index)} de ${String(total)})...`,
+    batchRunningStep: (name, index, total) =>
+      `Desinstalando ${name} (${String(index)} de ${String(total)})...`,
     batchDoneTitle: "Lote completado",
-    batchFailedNote: (count) => `${String(count)} programa(s) no completados — consulta el registro para más detalles.`,
+    batchFailedNote: (count) =>
+      `${String(count)} programa(s) no completados — consulta el registro para más detalles.`,
     familyNote:
       "Esta aplicación forma parte de tu suite PC Tweaker. Puedes eliminarla, pero las funciones de la suite que dependen de ella dejarán de funcionar.",
     hiddenNote:
@@ -1036,8 +1092,10 @@ const es: Dictionary = {
     upsCheckoutHint: "El pago se abre en tu navegador. Vuelve aquí después y actualiza.",
     upsRefresh: "He completado el pago — actualizar",
     upsError: "No se pudo iniciar el pago. Inténtalo de nuevo.",
-    proGateResidue: "Limpiar los restos es una función de Uninstaller Pro. El análisis de arriba es gratuito; eliminar lo encontrado requiere Pro.",
-    proGateBatch: "La eliminación por lotes es una función de Uninstaller Pro. Las desinstalaciones individuales siguen siendo gratuitas, siempre.",
+    proGateResidue:
+      "Limpiar los restos es una función de Uninstaller Pro. El análisis de arriba es gratuito; eliminar lo encontrado requiere Pro.",
+    proGateBatch:
+      "La eliminación por lotes es una función de Uninstaller Pro. Las desinstalaciones individuales siguen siendo gratuitas, siempre.",
     proGateSignIn: "Inicia sesión primero desde el menú de cuenta y luego desbloquea Pro.",
     loyaltyLocked:
       "Inicia sesión con tu cuenta PC Tweaker Pro para desbloquear el precio de fidelidad.",
@@ -1186,23 +1244,36 @@ const de: Dictionary = {
     residueScanning: "Suche nach Resten...",
     residueTitle: "Reste gefunden",
     residueNone: "Keine Reste gefunden. Saubere Deinstallation.",
-    residueIntro: (count, mb) => `${String(count)} Element(e) übrig, etwa ${mb} MB. Alles Ausgewählte wandert in den Papierkorb und bleibt wiederherstellbar.`,
+    residueIntro: (count, mb) =>
+      `${String(count)} Element(e) übrig, etwa ${mb} MB. Alles Ausgewählte wandert in den Papierkorb und bleibt wiederherstellbar.`,
     residueClean: "Auswahl in den Papierkorb verschieben",
-    residueRegistryNote: "Benutzer-Registrierungsschlüssel werden direkt gelöscht (nicht wiederherstellbar); Maschinenschlüssel werden nur aufgelistet.",
+    residueRegistryNote:
+      "Benutzer-Registrierungsschlüssel werden direkt gelöscht (nicht wiederherstellbar); Maschinenschlüssel werden nur aufgelistet.",
     residueDone: (count, mb) => `${String(count)} Element(e) bereinigt, etwa ${mb} MB freigegeben.`,
     residueFailed: (count) => `${String(count)} Element(e) konnten nicht entfernt werden.`,
-    residueKinds: { "install-dir": "Installationsordner", "app-data": "Anwendungsdaten", shortcut: "Verknüpfung", "registry-user": "Registrierung (Benutzer)", "registry-machine": "Registrierung (System)" },
-    relDependentsWarning: (names) => `Beim Entfernen werden auch Programme in seinem Ordner entfernt: ${names}.`,
+    residueKinds: {
+      "install-dir": "Installationsordner",
+      "app-data": "Anwendungsdaten",
+      shortcut: "Verknüpfung",
+      "registry-user": "Registrierung (Benutzer)",
+      "registry-machine": "Registrierung (System)",
+    },
+    relDependentsWarning: (names) =>
+      `Beim Entfernen werden auch Programme in seinem Ordner entfernt: ${names}.`,
     relInstalledVia: (name) => `Installiert über ${name} — besser dort entfernen.`,
-    relSiblings: (count) => `${String(count)} weitere(s) Programm(e) dieses Herausgebers sind installiert.`,
+    relSiblings: (count) =>
+      `${String(count)} weitere(s) Programm(e) dieses Herausgebers sind installiert.`,
     batchBar: (count, size) => `${String(count)} ausgewählte deinstallieren · ${size}`,
     batchClear: "Auswahl leeren",
     batchConfirmTitle: (count) => `${String(count)} Programme entfernen?`,
-    batchConfirmBody: "Sie laufen nacheinander, enthaltene Programme vor ihren Containern, mit denselben Prüfungen wie eine einzelne Deinstallation. Geschützte Einträge (Systemkomponenten, gemeinsame Runtimes, Ihre PC-Tweaker-Suite) sind nicht auswählbar.",
+    batchConfirmBody:
+      "Sie laufen nacheinander, enthaltene Programme vor ihren Containern, mit denselben Prüfungen wie eine einzelne Deinstallation. Geschützte Einträge (Systemkomponenten, gemeinsame Runtimes, Ihre PC-Tweaker-Suite) sind nicht auswählbar.",
     batchNotBatchable: "Geschützt — nicht für Stapelentfernung verfügbar.",
-    batchRunningStep: (name, index, total) => `Deinstalliere ${name} (${String(index)} von ${String(total)})...`,
+    batchRunningStep: (name, index, total) =>
+      `Deinstalliere ${name} (${String(index)} von ${String(total)})...`,
     batchDoneTitle: "Stapel abgeschlossen",
-    batchFailedNote: (count) => `${String(count)} Programm(e) nicht abgeschlossen — Details im Protokoll.`,
+    batchFailedNote: (count) =>
+      `${String(count)} Programm(e) nicht abgeschlossen — Details im Protokoll.`,
     familyNote:
       "Diese App gehört zu deiner PC-Tweaker-Suite. Du kannst sie entfernen, aber davon abhängige Suite-Funktionen hören auf zu funktionieren.",
     hiddenNote:
@@ -1251,11 +1322,14 @@ const de: Dictionary = {
     upsInactive: "Uninstaller Pro — nicht aktiv",
     upsGoPro: "Pro werden — 13,99 € / Jahr",
     upsGoProLoyalty: "Pro werden — 4,99 € / Jahr (PC-Tweaker-Pro-Treuepreis)",
-    upsCheckoutHint: "Die Zahlung öffnet sich im Browser. Danach hierher zurückkehren und aktualisieren.",
+    upsCheckoutHint:
+      "Die Zahlung öffnet sich im Browser. Danach hierher zurückkehren und aktualisieren.",
     upsRefresh: "Zahlung abgeschlossen — aktualisieren",
     upsError: "Die Zahlung konnte nicht gestartet werden. Bitte erneut versuchen.",
-    proGateResidue: "Das Bereinigen von Resten ist eine Uninstaller-Pro-Funktion. Der Scan oben ist kostenlos — das Entfernen der Funde erfordert Pro.",
-    proGateBatch: "Die Stapelentfernung ist eine Uninstaller-Pro-Funktion. Einzelne Deinstallationen bleiben immer kostenlos.",
+    proGateResidue:
+      "Das Bereinigen von Resten ist eine Uninstaller-Pro-Funktion. Der Scan oben ist kostenlos — das Entfernen der Funde erfordert Pro.",
+    proGateBatch:
+      "Die Stapelentfernung ist eine Uninstaller-Pro-Funktion. Einzelne Deinstallationen bleiben immer kostenlos.",
     proGateSignIn: "Zuerst über das Kontomenü anmelden, dann Pro freischalten.",
     loyaltyLocked:
       "Melde dich mit deinem PC-Tweaker-Pro-Konto an, um den Treuepreis freizuschalten.",

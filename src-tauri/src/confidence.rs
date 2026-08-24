@@ -69,7 +69,8 @@ fn is_shared_runtime(name: &str) -> bool {
         return true;
     }
     // Java runtimes ship under many vendors; the name is the stable signal.
-    name.contains("java") && (name.contains("runtime") || name.contains("jre") || name.contains("jdk"))
+    name.contains("java")
+        && (name.contains("runtime") || name.contains("jre") || name.contains("jdk"))
 }
 
 /// Driver/chipset packages: hardware support, not applications.
@@ -114,7 +115,11 @@ pub fn assess(entry: &RawEntry, hidden: bool, summary: &UninstallSummary) -> Con
     if is_shared_launcher(&name) {
         review_reasons.push("sharedLauncher");
     }
-    if entry.publisher.as_deref().is_none_or(|p| p.trim().is_empty()) {
+    if entry
+        .publisher
+        .as_deref()
+        .is_none_or(|p| p.trim().is_empty())
+    {
         review_reasons.push("noPublisher");
     }
     match summary {
@@ -165,7 +170,11 @@ mod tests {
 
     #[test]
     fn a_normal_app_with_publisher_and_exe_uninstaller_is_safe() {
-        let e = entry("7-Zip", Some("Igor Pavlov"), Some(r#""C:\7z\Uninstall.exe""#));
+        let e = entry(
+            "7-Zip",
+            Some("Igor Pavlov"),
+            Some(r#""C:\7z\Uninstall.exe""#),
+        );
         let c = assess(&e, false, &summary_of(&e));
         assert_eq!(c.level, ConfidenceLevel::Safe);
         assert!(c.reasons.contains(&"namedPublisher"));
@@ -193,7 +202,10 @@ mod tests {
             Some("Intel Corporation"),
             Some(r#""C:\Intel\u.exe""#),
         );
-        assert_eq!(assess(&e, false, &summary_of(&e)).level, ConfidenceLevel::Keep);
+        assert_eq!(
+            assess(&e, false, &summary_of(&e)).level,
+            ConfidenceLevel::Keep
+        );
     }
 
     #[test]
@@ -208,7 +220,11 @@ mod tests {
 
     #[test]
     fn launchers_are_review_not_keep_and_not_safe() {
-        let e = entry("Steam", Some("Valve Corporation"), Some(r#""C:\Steam\u.exe""#));
+        let e = entry(
+            "Steam",
+            Some("Valve Corporation"),
+            Some(r#""C:\Steam\u.exe""#),
+        );
         let c = assess(&e, false, &summary_of(&e));
         assert_eq!(c.level, ConfidenceLevel::Review);
         assert!(c.reasons.contains(&"sharedLauncher"));
@@ -223,7 +239,11 @@ mod tests {
         assert!(c.reasons.contains(&"noPublisher"));
 
         // Malformed msiexec GUID → Invalid → brokenUninstaller.
-        let b = entry("Broken", Some("Someone"), Some("msiexec.exe /x {not-a-guid}"));
+        let b = entry(
+            "Broken",
+            Some("Someone"),
+            Some("msiexec.exe /x {not-a-guid}"),
+        );
         let c = assess(&b, false, &summary_of(&b));
         assert_eq!(c.level, ConfidenceLevel::Review);
         assert!(c.reasons.contains(&"brokenUninstaller"));
@@ -238,7 +258,10 @@ mod tests {
     fn per_user_scope_alone_never_downgrades_a_clean_entry() {
         // Scope (HKCU vs HKLM) is presented as a badge, not as risk: a clean
         // per-user app with publisher + EXE uninstaller stays Safe.
-        let e = entry("Notable", Some("Notable Team", ), Some(r#""C:\n\u.exe" /S"#));
-        assert_eq!(assess(&e, false, &summary_of(&e)).level, ConfidenceLevel::Safe);
+        let e = entry("Notable", Some("Notable Team"), Some(r#""C:\n\u.exe" /S"#));
+        assert_eq!(
+            assess(&e, false, &summary_of(&e)).level,
+            ConfidenceLevel::Safe
+        );
     }
 }

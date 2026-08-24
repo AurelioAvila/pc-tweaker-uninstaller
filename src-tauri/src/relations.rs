@@ -64,7 +64,11 @@ fn normalized_publisher(publisher: Option<&str>) -> Option<String> {
         .filter(|c| c.is_ascii_alphanumeric())
         .collect::<String>()
         .to_ascii_lowercase();
-    if token.len() < 3 { None } else { Some(token) }
+    if token.len() < 3 {
+        None
+    } else {
+        Some(token)
+    }
 }
 
 /// Computes the relations for every entry, positionally parallel to the
@@ -83,12 +87,16 @@ pub fn compute_relations(entries: &[RelEntry]) -> Vec<Relations> {
     let mut out: Vec<Relations> = entries.iter().map(|_| Relations::default()).collect();
 
     for i in 0..entries.len() {
-        let Some(parent) = roots[i].as_deref() else { continue };
+        let Some(parent) = roots[i].as_deref() else {
+            continue;
+        };
         for j in 0..entries.len() {
             if i == j {
                 continue;
             }
-            let Some(child) = roots[j].as_deref() else { continue };
+            let Some(child) = roots[j].as_deref() else {
+                continue;
+            };
             if is_inside(child, parent) {
                 out[i].dependents.push(entries[j].name.clone());
                 // The DEEPEST containing tree wins as "installed via": a game
@@ -141,9 +149,21 @@ mod tests {
     #[test]
     fn games_under_a_launcher_tree_are_its_dependents() {
         let entries = [
-            entry("Steam", Some("Valve"), Some(r"C:\Program Files (x86)\Steam")),
-            entry("Half-Life", Some("Valve"), Some(r"C:\Program Files (x86)\Steam\steamapps\common\Half-Life")),
-            entry("Unrelated", Some("Acme"), Some(r"C:\Program Files\Unrelated")),
+            entry(
+                "Steam",
+                Some("Valve"),
+                Some(r"C:\Program Files (x86)\Steam"),
+            ),
+            entry(
+                "Half-Life",
+                Some("Valve"),
+                Some(r"C:\Program Files (x86)\Steam\steamapps\common\Half-Life"),
+            ),
+            entry(
+                "Unrelated",
+                Some("Acme"),
+                Some(r"C:\Program Files\Unrelated"),
+            ),
         ];
         let rel = compute_relations(&entries);
         assert_eq!(rel[0].dependents, vec!["Half-Life".to_string()]);
@@ -157,7 +177,11 @@ mod tests {
         let entries = [
             entry("VendorHub", None, Some(r"C:\Program Files\Vendor")),
             entry("Launcher", None, Some(r"C:\Program Files\Vendor\Launcher")),
-            entry("Game", None, Some(r"C:\Program Files\Vendor\Launcher\games\Game")),
+            entry(
+                "Game",
+                None,
+                Some(r"C:\Program Files\Vendor\Launcher\games\Game"),
+            ),
         ];
         let rel = compute_relations(&entries);
         assert_eq!(rel[2].installed_via.as_deref(), Some("Launcher"));
@@ -174,8 +198,14 @@ mod tests {
             entry("App", None, Some(r"C:\Tools\App")),
         ];
         let rel = compute_relations(&entries);
-        assert!(rel[0].dependents.is_empty(), "C:\\ must not contain the world");
-        assert!(rel[1].dependents.is_empty(), "single-level paths are too weak as evidence");
+        assert!(
+            rel[0].dependents.is_empty(),
+            "C:\\ must not contain the world"
+        );
+        assert!(
+            rel[1].dependents.is_empty(),
+            "single-level paths are too weak as evidence"
+        );
     }
 
     #[test]

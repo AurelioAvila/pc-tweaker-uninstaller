@@ -566,24 +566,21 @@ export default function App() {
       });
   }, []);
 
-  const runResidueClean = useCallback(
-    (program: ProgramInfo, selected: readonly string[]) => {
-      setFlow({ step: "residueScanning", program });
-      invoke<CleanResult>("clean_residue", {
-        name: program.name,
-        publisher: program.publisher,
-        installLocation: program.installLocation,
-        paths: [...selected],
+  const runResidueClean = useCallback((program: ProgramInfo, selected: readonly string[]) => {
+    setFlow({ step: "residueScanning", program });
+    invoke<CleanResult>("clean_residue", {
+      name: program.name,
+      publisher: program.publisher,
+      installLocation: program.installLocation,
+      paths: [...selected],
+    })
+      .then((result) => {
+        setFlow({ step: "residueDone", program, result });
       })
-        .then((result) => {
-          setFlow({ step: "residueDone", program, result });
-        })
-        .catch(() => {
-          setFlow({ step: "idle" });
-        });
-    },
-    [],
-  );
+      .catch(() => {
+        setFlow({ step: "idle" });
+      });
+  }, []);
 
   // Safe Batch: sequential removals with the same per-item machinery as a
   // single uninstall — the backend's one-at-a-time lock stays authoritative,
@@ -623,7 +620,14 @@ export default function App() {
   // the child process owns the action.
   const flowStep = flow.step;
   useEffect(() => {
-    if (flowStep === "idle" || flowStep === "planning" || flowStep === "running" || flowStep === "residueScanning" || flowStep === "batchRunning") return;
+    if (
+      flowStep === "idle" ||
+      flowStep === "planning" ||
+      flowStep === "running" ||
+      flowStep === "residueScanning" ||
+      flowStep === "batchRunning"
+    )
+      return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         closeFlow();
@@ -742,11 +746,7 @@ export default function App() {
                       via Stripe Checkout in the system browser. The backend
                       picks the loyalty price server-side; the label here only
                       mirrors what it will charge. */}
-                  <p
-                    className={
-                      uninstallerPro?.active ? "menu-hint menu-hint-ok" : "menu-hint"
-                    }
-                  >
+                  <p className={uninstallerPro?.active ? "menu-hint menu-hint-ok" : "menu-hint"}>
                     {uninstallerPro?.active ? text.menu.upsActive : text.menu.upsInactive}
                   </p>
                   {!uninstallerPro?.active && (
@@ -1015,251 +1015,270 @@ export default function App() {
 
             {filtered.length > 0 && (
               <>
-              {batchSelected.length > 0 && (
-                <div className="batch-bar">
-                  <button
-                    type="button"
-                    className="button primary"
-                    disabled={flow.step !== "idle"}
-                    onClick={() => {
-                      const chosen = batchOrder(
-                        state.programs.filter((p) => batchSelected.includes(`${p.source}:${p.id}`)),
-                      );
-                      if (chosen.length > 0) setFlow({ step: "batchConfirm", programs: chosen });
-                    }}
-                  >
-                    {text.uninstall.batchBar(
-                      batchSelected.length,
-                      formatSize(
-                        state.programs
-                          .filter((p) => batchSelected.includes(`${p.source}:${p.id}`))
-                          .reduce((sum, p) => sum + (p.estimatedSizeKb ?? 0), 0),
-                      ),
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    className="button"
-                    onClick={() => {
-                      setBatchSelected([]);
-                    }}
-                  >
-                    {text.uninstall.batchClear}
-                  </button>
-                </div>
-              )}
-              <div className="list" role="table" aria-label={text.programs.columnProgram}>
-                <div className="list-head" role="row">
-                  <span
-                    role="columnheader"
-                    aria-sort={sortKey === "name" ? (sortAsc ? "ascending" : "descending") : "none"}
-                  >
+                {batchSelected.length > 0 && (
+                  <div className="batch-bar">
                     <button
                       type="button"
-                      className="sort-button"
+                      className="button primary"
+                      disabled={flow.step !== "idle"}
                       onClick={() => {
-                        toggleSort("name");
+                        const chosen = batchOrder(
+                          state.programs.filter((p) =>
+                            batchSelected.includes(`${p.source}:${p.id}`),
+                          ),
+                        );
+                        if (chosen.length > 0) setFlow({ step: "batchConfirm", programs: chosen });
                       }}
                     >
-                      {text.programs.columnProgram}
-                      {sortKey === "name" && <span aria-hidden="true">{sortAsc ? "▲" : "▼"}</span>}
+                      {text.uninstall.batchBar(
+                        batchSelected.length,
+                        formatSize(
+                          state.programs
+                            .filter((p) => batchSelected.includes(`${p.source}:${p.id}`))
+                            .reduce((sum, p) => sum + (p.estimatedSizeKb ?? 0), 0),
+                        ),
+                      )}
                     </button>
-                  </span>
-                  <span role="columnheader">{text.programs.columnVersion}</span>
-                  <span
-                    role="columnheader"
-                    className="num"
-                    aria-sort={sortKey === "size" ? (sortAsc ? "ascending" : "descending") : "none"}
-                  >
                     <button
                       type="button"
-                      className="sort-button"
+                      className="button"
                       onClick={() => {
-                        toggleSort("size");
+                        setBatchSelected([]);
                       }}
                     >
-                      {text.programs.columnSize}
-                      {sortKey === "size" && <span aria-hidden="true">{sortAsc ? "▲" : "▼"}</span>}
+                      {text.uninstall.batchClear}
                     </button>
-                  </span>
-                  <span
-                    role="columnheader"
-                    aria-sort={sortKey === "date" ? (sortAsc ? "ascending" : "descending") : "none"}
-                  >
-                    <button
-                      type="button"
-                      className="sort-button"
-                      onClick={() => {
-                        toggleSort("date");
-                      }}
+                  </div>
+                )}
+                <div className="list" role="table" aria-label={text.programs.columnProgram}>
+                  <div className="list-head" role="row">
+                    <span
+                      role="columnheader"
+                      aria-sort={
+                        sortKey === "name" ? (sortAsc ? "ascending" : "descending") : "none"
+                      }
                     >
-                      {text.programs.columnInstalled}
-                      {sortKey === "date" && <span aria-hidden="true">{sortAsc ? "▲" : "▼"}</span>}
-                    </button>
-                  </span>
-                  <span role="columnheader" className="num" />
-                  <span role="columnheader" className="num" />
-                </div>
-                {filtered.map((p) => {
-                  const rowKey = `${p.source}:${p.id}`;
-                  const expanded = expandedKey === rowKey;
-                  return (
-                    <div key={rowKey} className={expanded ? "row-group expanded" : "row-group"}>
-                      <div
-                        className="row"
-                        role="row"
-                        aria-expanded={expanded}
+                      <button
+                        type="button"
+                        className="sort-button"
                         onClick={() => {
-                          toggleExpanded(rowKey);
+                          toggleSort("name");
                         }}
                       >
-                        <span role="cell" className="cell-main">
-                          <input
-                            type="checkbox"
-                            className="batch-check"
-                            disabled={!isBatchable(p)}
-                            title={isBatchable(p) ? undefined : text.uninstall.batchNotBatchable}
-                            checked={batchSelected.includes(rowKey)}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                            onChange={() => {
-                              setBatchSelected((current) =>
-                                current.includes(rowKey)
-                                  ? current.filter((k) => k !== rowKey)
-                                  : [...current, rowKey],
-                              );
-                            }}
-                          />
-                          <span
-                            className="avatar"
-                            aria-hidden="true"
-                            style={{ background: `hsl(${String(hueOf(p.name))} 45% 26%)` }}
-                          >
-                            {monogram(p.name)}
-                          </span>
-                          <span className="titles">
-                            <span className="name">{p.name}</span>
-                            <span className="publisher">{p.publisher ?? " "}</span>
-                          </span>
-                        </span>
-                        <span role="cell" className="dim">
-                          {p.version ?? "—"}
-                        </span>
-                        <span role="cell" className="dim num">
-                          {formatSize(p.estimatedSizeKb)}
-                        </span>
-                        <span role="cell" className="dim">
-                          {p.installDate ?? "—"}
-                        </span>
-                        <span role="cell" className="cell-badges num">
-                          <span
-                            className={`conf-chip conf-${p.confidence.level}`}
-                            title={confidenceTitle(p.confidence)}
-                          >
-                            <span className="conf-dot" aria-hidden="true" />
-                            {confidenceLabel(p.confidence.level)}
-                          </span>
-                          {isFamilyApp(p) && (
-                            <span
-                              className="badge badge-suite"
-                              title={text.programs.badgeSuiteHint}
-                            >
-                              {text.programs.badgeSuite}
-                            </span>
-                          )}
-                          {p.hidden && (
-                            <span
-                              className="badge badge-hidden"
-                              title={text.programs.badgeHiddenHint}
-                            >
-                              {text.programs.badgeHidden}
-                            </span>
-                          )}
-                          {p.source === "user" && (
-                            <span className="badge badge-user" title={text.programs.badgeUserHint}>
-                              {text.programs.badgeUser}
-                            </span>
-                          )}
-                          <span
-                            className={`badge badge-${p.uninstall}`}
-                            title={badgeHint(p.uninstall)}
-                          >
-                            {badgeLabel(p.uninstall)}
-                          </span>
-                        </span>
-                        <span role="cell" className="cell-action num">
-                          {(p.uninstall === "msi" || p.uninstall === "executable") && (
-                            <button
-                              type="button"
-                              className="row-action"
-                              disabled={flow.step !== "idle"}
+                        {text.programs.columnProgram}
+                        {sortKey === "name" && (
+                          <span aria-hidden="true">{sortAsc ? "▲" : "▼"}</span>
+                        )}
+                      </button>
+                    </span>
+                    <span role="columnheader">{text.programs.columnVersion}</span>
+                    <span
+                      role="columnheader"
+                      className="num"
+                      aria-sort={
+                        sortKey === "size" ? (sortAsc ? "ascending" : "descending") : "none"
+                      }
+                    >
+                      <button
+                        type="button"
+                        className="sort-button"
+                        onClick={() => {
+                          toggleSort("size");
+                        }}
+                      >
+                        {text.programs.columnSize}
+                        {sortKey === "size" && (
+                          <span aria-hidden="true">{sortAsc ? "▲" : "▼"}</span>
+                        )}
+                      </button>
+                    </span>
+                    <span
+                      role="columnheader"
+                      aria-sort={
+                        sortKey === "date" ? (sortAsc ? "ascending" : "descending") : "none"
+                      }
+                    >
+                      <button
+                        type="button"
+                        className="sort-button"
+                        onClick={() => {
+                          toggleSort("date");
+                        }}
+                      >
+                        {text.programs.columnInstalled}
+                        {sortKey === "date" && (
+                          <span aria-hidden="true">{sortAsc ? "▲" : "▼"}</span>
+                        )}
+                      </button>
+                    </span>
+                    <span role="columnheader" className="num" />
+                    <span role="columnheader" className="num" />
+                  </div>
+                  {filtered.map((p) => {
+                    const rowKey = `${p.source}:${p.id}`;
+                    const expanded = expandedKey === rowKey;
+                    return (
+                      <div key={rowKey} className={expanded ? "row-group expanded" : "row-group"}>
+                        <div
+                          className="row"
+                          role="row"
+                          aria-expanded={expanded}
+                          onClick={() => {
+                            toggleExpanded(rowKey);
+                          }}
+                        >
+                          <span role="cell" className="cell-main">
+                            <input
+                              type="checkbox"
+                              className="batch-check"
+                              disabled={!isBatchable(p)}
+                              title={isBatchable(p) ? undefined : text.uninstall.batchNotBatchable}
+                              checked={batchSelected.includes(rowKey)}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                beginUninstall(p);
                               }}
+                              onChange={() => {
+                                setBatchSelected((current) =>
+                                  current.includes(rowKey)
+                                    ? current.filter((k) => k !== rowKey)
+                                    : [...current, rowKey],
+                                );
+                              }}
+                            />
+                            <span
+                              className="avatar"
+                              aria-hidden="true"
+                              style={{ background: `hsl(${String(hueOf(p.name))} 45% 26%)` }}
                             >
-                              {text.uninstall.action}
-                            </button>
-                          )}
-                        </span>
-                      </div>
-                      {expanded && (
-                        <div className="row-details" role="row">
-                          <div role="cell" className="details-grid">
-                            <div>
-                              <span className="detail-label">{text.programs.detailSource}</span>
-                              <span className="detail-value">{sourceLabel(p.source)}</span>
-                            </div>
-                            <div>
-                              <span className="detail-label">{text.programs.detailKey}</span>
-                              <span className="detail-value mono">{p.id}</span>
-                            </div>
-                            <div className="detail-wide">
-                              <span className="detail-label">{text.programs.detailLocation}</span>
-                              <span className="detail-value mono">
-                                {p.installLocation ?? text.programs.detailNoLocation}
+                              {monogram(p.name)}
+                            </span>
+                            <span className="titles">
+                              <span className="name">{p.name}</span>
+                              <span className="publisher">{p.publisher ?? " "}</span>
+                            </span>
+                          </span>
+                          <span role="cell" className="dim">
+                            {p.version ?? "—"}
+                          </span>
+                          <span role="cell" className="dim num">
+                            {formatSize(p.estimatedSizeKb)}
+                          </span>
+                          <span role="cell" className="dim">
+                            {p.installDate ?? "—"}
+                          </span>
+                          <span role="cell" className="cell-badges num">
+                            <span
+                              className={`conf-chip conf-${p.confidence.level}`}
+                              title={confidenceTitle(p.confidence)}
+                            >
+                              <span className="conf-dot" aria-hidden="true" />
+                              {confidenceLabel(p.confidence.level)}
+                            </span>
+                            {isFamilyApp(p) && (
+                              <span
+                                className="badge badge-suite"
+                                title={text.programs.badgeSuiteHint}
+                              >
+                                {text.programs.badgeSuite}
                               </span>
-                            </div>
-                            {/* Why this confidence band: the evidence itself,
+                            )}
+                            {p.hidden && (
+                              <span
+                                className="badge badge-hidden"
+                                title={text.programs.badgeHiddenHint}
+                              >
+                                {text.programs.badgeHidden}
+                              </span>
+                            )}
+                            {p.source === "user" && (
+                              <span
+                                className="badge badge-user"
+                                title={text.programs.badgeUserHint}
+                              >
+                                {text.programs.badgeUser}
+                              </span>
+                            )}
+                            <span
+                              className={`badge badge-${p.uninstall}`}
+                              title={badgeHint(p.uninstall)}
+                            >
+                              {badgeLabel(p.uninstall)}
+                            </span>
+                          </span>
+                          <span role="cell" className="cell-action num">
+                            {(p.uninstall === "msi" || p.uninstall === "executable") && (
+                              <button
+                                type="button"
+                                className="row-action"
+                                disabled={flow.step !== "idle"}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  beginUninstall(p);
+                                }}
+                              >
+                                {text.uninstall.action}
+                              </button>
+                            )}
+                          </span>
+                        </div>
+                        {expanded && (
+                          <div className="row-details" role="row">
+                            <div role="cell" className="details-grid">
+                              <div>
+                                <span className="detail-label">{text.programs.detailSource}</span>
+                                <span className="detail-value">{sourceLabel(p.source)}</span>
+                              </div>
+                              <div>
+                                <span className="detail-label">{text.programs.detailKey}</span>
+                                <span className="detail-value mono">{p.id}</span>
+                              </div>
+                              <div className="detail-wide">
+                                <span className="detail-label">{text.programs.detailLocation}</span>
+                                <span className="detail-value mono">
+                                  {p.installLocation ?? text.programs.detailNoLocation}
+                                </span>
+                              </div>
+                              {/* Why this confidence band: the evidence itself,
                                 one line per reason, plus the honesty note. */}
-                            <div className="detail-wide">
-                              <span className="detail-label">{text.uninstall.confidenceLabel}</span>
-                              <span className={`detail-value conf-text-${p.confidence.level}`}>
-                                {confidenceLabel(p.confidence.level)}
-                              </span>
-                              <ul className="conf-reasons">
-                                {p.confidence.reasons.map((r) => (
-                                  <li key={r}>{text.confidence.reasons[r]}</li>
-                                ))}
-                                <li className="conf-disclaimer">{text.confidence.disclaimer}</li>
-                              </ul>
-                            </div>
-                            <div className="detail-actions">
-                              {p.installLocation !== null && (
-                                <button
-                                  type="button"
-                                  className="button-ghost small"
-                                  onClick={() => {
-                                    openFolder(p);
-                                  }}
-                                >
-                                  {text.programs.openFolder}
-                                </button>
+                              <div className="detail-wide">
+                                <span className="detail-label">
+                                  {text.uninstall.confidenceLabel}
+                                </span>
+                                <span className={`detail-value conf-text-${p.confidence.level}`}>
+                                  {confidenceLabel(p.confidence.level)}
+                                </span>
+                                <ul className="conf-reasons">
+                                  {p.confidence.reasons.map((r) => (
+                                    <li key={r}>{text.confidence.reasons[r]}</li>
+                                  ))}
+                                  <li className="conf-disclaimer">{text.confidence.disclaimer}</li>
+                                </ul>
+                              </div>
+                              <div className="detail-actions">
+                                {p.installLocation !== null && (
+                                  <button
+                                    type="button"
+                                    className="button-ghost small"
+                                    onClick={() => {
+                                      openFolder(p);
+                                    }}
+                                  >
+                                    {text.programs.openFolder}
+                                  </button>
+                                )}
+                              </div>
+                              {detailNotice !== null && (
+                                <p className="detail-notice" role="alert">
+                                  {detailNotice}
+                                </p>
                               )}
                             </div>
-                            {detailNotice !== null && (
-                              <p className="detail-notice" role="alert">
-                                {detailNotice}
-                              </p>
-                            )}
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </>
             )}
           </>
@@ -1769,9 +1788,7 @@ export default function App() {
                 </ul>
                 {flow.results.some((r) => !r.success) && (
                   <p className="dialog-body subtle">
-                    {text.uninstall.batchFailedNote(
-                      flow.results.filter((r) => !r.success).length,
-                    )}
+                    {text.uninstall.batchFailedNote(flow.results.filter((r) => !r.success).length)}
                   </p>
                 )}
                 <div className="dialog-actions">

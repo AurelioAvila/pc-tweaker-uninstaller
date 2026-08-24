@@ -52,11 +52,39 @@ pub struct CleanResult {
 /// Folder names that are never residue no matter how a program is called.
 /// Lowercase, normalized (alphanumeric only).
 const STOPLIST: &[&str] = &[
-    "microsoft", "windows", "google", "mozilla", "apple", "adobe", "intel",
-    "nvidia", "amd", "common", "commonfiles", "programs", "programfiles",
-    "temp", "system", "system32", "data", "cache", "local", "roaming",
-    "packages", "default", "public", "update", "updates", "setup", "install",
-    "app", "apps", "application", "applications", "software", "games",
+    "microsoft",
+    "windows",
+    "google",
+    "mozilla",
+    "apple",
+    "adobe",
+    "intel",
+    "nvidia",
+    "amd",
+    "common",
+    "commonfiles",
+    "programs",
+    "programfiles",
+    "temp",
+    "system",
+    "system32",
+    "data",
+    "cache",
+    "local",
+    "roaming",
+    "packages",
+    "default",
+    "public",
+    "update",
+    "updates",
+    "setup",
+    "install",
+    "app",
+    "apps",
+    "application",
+    "applications",
+    "software",
+    "games",
 ];
 
 /// Lowercases and strips everything but ASCII alphanumerics, so
@@ -75,9 +103,9 @@ pub fn normalize(value: &str) -> String {
 fn strip_version(name: &str) -> String {
     let mut words: Vec<&str> = name.split_whitespace().collect();
     while let Some(last) = words.last() {
-        let looks_like_version = last
-            .chars()
-            .all(|c| c.is_ascii_digit() || c == '.' || c == 'v' || c == 'V' || c == '(' || c == ')');
+        let looks_like_version = last.chars().all(|c| {
+            c.is_ascii_digit() || c == '.' || c == 'v' || c == 'V' || c == '(' || c == ')'
+        });
         if looks_like_version && words.len() > 1 {
             words.pop();
         } else {
@@ -90,9 +118,12 @@ fn strip_version(name: &str) -> String {
 /// The normalized tokens a leftover's file/folder name may equal.
 pub fn name_candidates(display_name: &str, publisher: Option<&str>) -> Vec<String> {
     let mut out = Vec::new();
-    for raw in [Some(strip_version(display_name)), publisher.map(str::to_string)]
-        .into_iter()
-        .flatten()
+    for raw in [
+        Some(strip_version(display_name)),
+        publisher.map(str::to_string),
+    ]
+    .into_iter()
+    .flatten()
     {
         let token = normalize(&raw);
         if token.len() >= 4 && !STOPLIST.contains(&token.as_str()) && !out.contains(&token) {
@@ -126,8 +157,15 @@ fn push_if_dir(items: &mut Vec<ResidueItem>, kind: &str, path: PathBuf) {
     }
 }
 
-fn scan_root_for_candidates(items: &mut Vec<ResidueItem>, kind: &str, root: &Path, candidates: &[String]) {
-    let Ok(entries) = std::fs::read_dir(root) else { return };
+fn scan_root_for_candidates(
+    items: &mut Vec<ResidueItem>,
+    kind: &str,
+    root: &Path,
+    candidates: &[String],
+) {
+    let Ok(entries) = std::fs::read_dir(root) else {
+        return;
+    };
     for entry in entries.flatten() {
         let name = entry.file_name().to_string_lossy().into_owned();
         if matches_candidates(&name, candidates) {
@@ -162,7 +200,9 @@ fn start_menu_roots() -> Vec<PathBuf> {
 
 fn scan_shortcuts(items: &mut Vec<ResidueItem>, candidates: &[String]) {
     for root in start_menu_roots() {
-        let Ok(entries) = std::fs::read_dir(&root) else { continue };
+        let Ok(entries) = std::fs::read_dir(&root) else {
+            continue;
+        };
         for entry in entries.flatten() {
             let path = entry.path();
             let raw = entry.file_name().to_string_lossy().into_owned();
@@ -198,7 +238,12 @@ fn scan_registry(items: &mut Vec<ResidueItem>, candidates: &[String]) {
         for name in software.enum_keys().flatten() {
             if matches_candidates(&name, candidates) {
                 items.push(ResidueItem {
-                    kind: if deletable { "registry-user" } else { "registry-machine" }.into(),
+                    kind: if deletable {
+                        "registry-user"
+                    } else {
+                        "registry-machine"
+                    }
+                    .into(),
                     path: format!(r"{label}\Software\{name}"),
                     size_kb: None,
                     deletable,
@@ -263,7 +308,9 @@ fn path_is_cleanable(path: &Path, candidates: &[String], install_location: Optio
     }
     let mut roots = data_roots();
     roots.extend(start_menu_roots());
-    roots.iter().any(|root| path.parent() == Some(root.as_path()))
+    roots
+        .iter()
+        .any(|root| path.parent() == Some(root.as_path()))
 }
 
 /// Moves the selected leftovers to the Recycle Bin (filesystem items) or
@@ -361,8 +408,16 @@ mod tests {
     #[test]
     fn cleanup_rejects_paths_outside_known_roots() {
         let c = name_candidates("SuperTool", None);
-        assert!(!path_is_cleanable(Path::new(r"C:\Windows\System32"), &c, None));
-        assert!(!path_is_cleanable(Path::new(r"C:\random\supertool"), &c, None));
+        assert!(!path_is_cleanable(
+            Path::new(r"C:\Windows\System32"),
+            &c,
+            None
+        ));
+        assert!(!path_is_cleanable(
+            Path::new(r"C:\random\supertool"),
+            &c,
+            None
+        ));
         // Install location is honored exactly, nothing near it.
         assert!(path_is_cleanable(
             Path::new(r"C:\Program Files\SuperTool"),
