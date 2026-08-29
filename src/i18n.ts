@@ -19,7 +19,17 @@ export type ConfidenceReason =
   | "manualUninstaller"
   | "noUninstaller"
   | "namedPublisher"
-  | "standardUninstaller";
+  | "standardUninstaller"
+  // MSIX/Store packages: the platform reports different evidence than the
+  // registry does, so these bands have their own reason codes.
+  | "storeFramework"
+  | "storeOsComponent"
+  | "storeResourcePackage"
+  | "storeNoDisplayName"
+  | "storeSystemSigned"
+  | "storeNoPublisher"
+  | "storeFromStore"
+  | "storeCleanRemoval";
 
 export type Dictionary = {
   readonly app: {
@@ -53,6 +63,8 @@ export type Dictionary = {
     readonly badgeManualOnlyHint: string;
     readonly badgeNoneHint: string;
     readonly badgeInvalidHint: string;
+    readonly badgeStore: string;
+    readonly badgeStoreHint: string;
     readonly badgeUser: string;
     readonly badgeUserHint: string;
     readonly badgeHidden: string;
@@ -65,12 +77,14 @@ export type Dictionary = {
     readonly showHidden: string;
     readonly detailSource: string;
     readonly detailKey: string;
+    readonly detailPackageName: string;
     readonly detailLocation: string;
     readonly detailNoLocation: string;
     readonly openFolder: string;
     readonly sourceMachine64: string;
     readonly sourceMachine32: string;
     readonly sourceUser: string;
+    readonly sourceStore: string;
   };
   readonly confidence: {
     readonly labelSafe: string;
@@ -91,6 +105,9 @@ export type Dictionary = {
     readonly action: string;
     readonly confirmTitle: (name: string) => string;
     readonly confirmBody: string;
+    readonly storeConfirmBody: string;
+    readonly storeRemoving: string;
+    readonly storeRemoved: (name: string) => string;
     readonly commandLabel: string;
     readonly methodLabel: string;
     readonly methodMsi: string;
@@ -243,6 +260,9 @@ const en: Dictionary = {
       "This program's uninstall command runs a script interpreter, so for safety it must be run manually.",
     badgeNoneHint: "This registry entry declares no uninstall command.",
     badgeInvalidHint: "This program's uninstall command could not be understood.",
+    badgeStore: "Store",
+    badgeStoreHint:
+      "Installed as an MSIX package. Removal is handled by Windows and leaves nothing behind.",
     badgeUser: "User",
     badgeUserHint: "Installed for this user only, not machine-wide.",
     badgeHidden: "Hidden",
@@ -256,12 +276,14 @@ const en: Dictionary = {
     showHidden: "Show hidden",
     detailSource: "Scope",
     detailKey: "Registry entry",
+    detailPackageName: "Package name",
     detailLocation: "Install folder",
     detailNoLocation: "Not recorded",
     openFolder: "Open folder",
     sourceMachine64: "This PC (64-bit)",
     sourceMachine32: "This PC (32-bit)",
     sourceUser: "This user only",
+    sourceStore: "Microsoft Store (MSIX)",
   },
   confidence: {
     labelSafe: "Safe to remove",
@@ -279,6 +301,16 @@ const en: Dictionary = {
       noUninstaller: "It declares no uninstall command at all.",
       namedPublisher: "A named publisher is recorded.",
       standardUninstaller: "It has a standard MSI/EXE uninstaller.",
+      storeFramework: "Shared runtime package: other apps are built on it.",
+      storeOsComponent: "Part of the Windows shell, not an application.",
+      storeResourcePackage: "A resource package (language or display assets), not an app.",
+      storeNoDisplayName:
+        "Windows gives this package no display name - it is an internal component.",
+      storeSystemSigned: "Signed as part of Windows - it may have shipped with the system.",
+      storeNoPublisher: "No publisher recorded - origin cannot be verified.",
+      storeFromStore: "Signed by the Microsoft Store.",
+      storeCleanRemoval:
+        "MSIX package: removal leaves nothing behind and it can be reinstalled from the Store.",
     },
   },
   footer: {
@@ -296,6 +328,10 @@ const en: Dictionary = {
     confirmBody:
       "Exactly the command below will run - nothing else. It was rebuilt from the Windows registry and will be re-checked at the moment it runs.",
     commandLabel: "Command",
+    storeConfirmBody:
+      "Windows removes this package for the current user. Nothing is left behind to clean up, and you can reinstall it from the Microsoft Store at any time.",
+    storeRemoving: "Removing the package...",
+    storeRemoved: (name: string) => `${name} was removed.`,
     methodLabel: "Method",
     methodMsi: "Windows Installer (silent)",
     methodExe: "The program's own uninstaller",
@@ -468,6 +504,9 @@ const it: Dictionary = {
       "Il comando di disinstallazione usa un interprete di script: per sicurezza va eseguito manualmente.",
     badgeNoneHint: "Questa voce di registro non dichiara alcun comando di disinstallazione.",
     badgeInvalidHint: "Il comando di disinstallazione di questo programma non è comprensibile.",
+    badgeStore: "Store",
+    badgeStoreHint:
+      "Installata come pacchetto MSIX. La rimozione la gestisce Windows e non lascia residui.",
     badgeUser: "Utente",
     badgeUserHint: "Installato solo per questo utente, non per tutto il PC.",
     badgeHidden: "Nascosto",
@@ -481,12 +520,14 @@ const it: Dictionary = {
     showHidden: "Mostra nascosti",
     detailSource: "Ambito",
     detailKey: "Voce di registro",
+    detailPackageName: "Nome del pacchetto",
     detailLocation: "Cartella di installazione",
     detailNoLocation: "Non registrata",
     openFolder: "Apri cartella",
     sourceMachine64: "Questo PC (64 bit)",
     sourceMachine32: "Questo PC (32 bit)",
     sourceUser: "Solo questo utente",
+    sourceStore: "Microsoft Store (MSIX)",
   },
   confidence: {
     labelSafe: "Rimozione sicura",
@@ -506,6 +547,16 @@ const it: Dictionary = {
       noUninstaller: "Non dichiara alcun comando di disinstallazione.",
       namedPublisher: "È registrato un produttore con nome.",
       standardUninstaller: "Ha un uninstaller standard MSI/EXE.",
+      storeFramework: "Runtime condiviso: altre app sono costruite su questo.",
+      storeOsComponent: "Fa parte dell'interfaccia di Windows, non è un'applicazione.",
+      storeResourcePackage: "Pacchetto di risorse (lingua o grafica), non un'app.",
+      storeNoDisplayName:
+        "Windows non dà un nome visualizzabile a questo pacchetto: è un componente interno.",
+      storeSystemSigned: "Firmato come parte di Windows: potrebbe essere preinstallato.",
+      storeNoPublisher: "Nessun editore registrato: l'origine non è verificabile.",
+      storeFromStore: "Firmato dal Microsoft Store.",
+      storeCleanRemoval:
+        "Pacchetto MSIX: la rimozione non lascia residui e puoi reinstallarlo dallo Store.",
     },
   },
   footer: {
@@ -523,6 +574,10 @@ const it: Dictionary = {
     confirmBody:
       "Verrà eseguito esattamente il comando qui sotto, nient'altro. È ricostruito dal registro di Windows e verrà ricontrollato al momento dell'esecuzione.",
     commandLabel: "Comando",
+    storeConfirmBody:
+      "Windows rimuove questo pacchetto per l'utente corrente. Non resta nulla da pulire e puoi reinstallarlo dal Microsoft Store quando vuoi.",
+    storeRemoving: "Rimozione del pacchetto...",
+    storeRemoved: (name: string) => `${name} è stato rimosso.`,
     methodLabel: "Metodo",
     methodMsi: "Windows Installer (silenzioso)",
     methodExe: "L'uninstaller del programma stesso",
@@ -697,6 +752,9 @@ const fr: Dictionary = {
       "La commande de désinstallation passe par un interpréteur de scripts : par sécurité, elle doit être lancée manuellement.",
     badgeNoneHint: "Cette entrée de registre ne déclare aucune commande de désinstallation.",
     badgeInvalidHint: "La commande de désinstallation de ce programme est incompréhensible.",
+    badgeStore: "Store",
+    badgeStoreHint:
+      "Installée comme paquet MSIX. La suppression est gérée par Windows et ne laisse aucun résidu.",
     badgeUser: "Utilisateur",
     badgeUserHint: "Installé pour cet utilisateur uniquement, pas pour tout le PC.",
     badgeHidden: "Masqué",
@@ -710,12 +768,14 @@ const fr: Dictionary = {
     showHidden: "Afficher masqués",
     detailSource: "Portée",
     detailKey: "Entrée de registre",
+    detailPackageName: "Nom du paquet",
     detailLocation: "Dossier d'installation",
     detailNoLocation: "Non enregistré",
     openFolder: "Ouvrir le dossier",
     sourceMachine64: "Ce PC (64 bits)",
     sourceMachine32: "Ce PC (32 bits)",
     sourceUser: "Cet utilisateur uniquement",
+    sourceStore: "Microsoft Store (MSIX)",
   },
   confidence: {
     labelSafe: "Suppression sûre",
@@ -735,6 +795,16 @@ const fr: Dictionary = {
       noUninstaller: "Il ne déclare aucune commande de désinstallation.",
       namedPublisher: "Un éditeur nommé est enregistré.",
       standardUninstaller: "Il possède un désinstalleur standard MSI/EXE.",
+      storeFramework: "Runtime partagé : d'autres applications reposent dessus.",
+      storeOsComponent: "Fait partie de l'interface de Windows, ce n'est pas une application.",
+      storeResourcePackage: "Paquet de ressources (langue ou affichage), pas une application.",
+      storeNoDisplayName:
+        "Windows ne donne aucun nom affichable à ce paquet : c'est un composant interne.",
+      storeSystemSigned: "Signé comme partie de Windows : il peut être préinstallé.",
+      storeNoPublisher: "Aucun éditeur enregistré : l'origine n'est pas vérifiable.",
+      storeFromStore: "Signé par le Microsoft Store.",
+      storeCleanRemoval:
+        "Paquet MSIX : la suppression ne laisse aucun résidu et il est réinstallable depuis le Store.",
     },
   },
   footer: {
@@ -752,6 +822,10 @@ const fr: Dictionary = {
     confirmBody:
       "Exactement la commande ci-dessous sera exécutée, rien d'autre. Elle est reconstruite depuis le registre Windows et sera revérifiée au moment de l'exécution.",
     commandLabel: "Commande",
+    storeConfirmBody:
+      "Windows supprime ce paquet pour l'utilisateur actuel. Rien ne reste à nettoyer et vous pouvez le réinstaller depuis le Microsoft Store à tout moment.",
+    storeRemoving: "Suppression du paquet...",
+    storeRemoved: (name: string) => `${name} a été supprimé.`,
     methodLabel: "Méthode",
     methodMsi: "Windows Installer (silencieux)",
     methodExe: "Le désinstalleur du programme lui-même",
@@ -926,6 +1000,9 @@ const es: Dictionary = {
       "El comando de desinstalación usa un intérprete de scripts: por seguridad debe ejecutarse manualmente.",
     badgeNoneHint: "Esta entrada del registro no declara ningún comando de desinstalación.",
     badgeInvalidHint: "El comando de desinstalación de este programa no se pudo entender.",
+    badgeStore: "Store",
+    badgeStoreHint:
+      "Instalada como paquete MSIX. Windows gestiona la eliminación y no deja restos.",
     badgeUser: "Usuario",
     badgeUserHint: "Instalado solo para este usuario, no para todo el equipo.",
     badgeHidden: "Oculto",
@@ -939,12 +1016,14 @@ const es: Dictionary = {
     showHidden: "Mostrar ocultos",
     detailSource: "Ámbito",
     detailKey: "Entrada del registro",
+    detailPackageName: "Nombre del paquete",
     detailLocation: "Carpeta de instalación",
     detailNoLocation: "No registrada",
     openFolder: "Abrir carpeta",
     sourceMachine64: "Este PC (64 bits)",
     sourceMachine32: "Este PC (32 bits)",
     sourceUser: "Solo este usuario",
+    sourceStore: "Microsoft Store (MSIX)",
   },
   confidence: {
     labelSafe: "Eliminación segura",
@@ -964,6 +1043,15 @@ const es: Dictionary = {
       noUninstaller: "No declara ningún comando de desinstalación.",
       namedPublisher: "Hay un fabricante con nombre registrado.",
       standardUninstaller: "Tiene un desinstalador estándar MSI/EXE.",
+      storeFramework: "Runtime compartido: otras aplicaciones se apoyan en él.",
+      storeOsComponent: "Forma parte de la interfaz de Windows, no es una aplicación.",
+      storeResourcePackage: "Paquete de recursos (idioma o gráficos), no una aplicación.",
+      storeNoDisplayName: "Windows no da nombre visible a este paquete: es un componente interno.",
+      storeSystemSigned: "Firmado como parte de Windows: puede venir preinstalado.",
+      storeNoPublisher: "Sin editor registrado: no se puede verificar el origen.",
+      storeFromStore: "Firmado por Microsoft Store.",
+      storeCleanRemoval:
+        "Paquete MSIX: la eliminación no deja restos y se puede reinstalar desde la Store.",
     },
   },
   footer: {
@@ -981,6 +1069,10 @@ const es: Dictionary = {
     confirmBody:
       "Se ejecutará exactamente el comando de abajo, nada más. Se reconstruyó desde el registro de Windows y se volverá a comprobar en el momento de ejecutarse.",
     commandLabel: "Comando",
+    storeConfirmBody:
+      "Windows elimina este paquete para el usuario actual. No queda nada que limpiar y puedes reinstalarlo desde Microsoft Store cuando quieras.",
+    storeRemoving: "Eliminando el paquete...",
+    storeRemoved: (name: string) => `${name} se ha eliminado.`,
     methodLabel: "Método",
     methodMsi: "Windows Installer (silencioso)",
     methodExe: "El desinstalador del propio programa",
@@ -1155,6 +1247,9 @@ const de: Dictionary = {
       "Der Deinstallationsbefehl nutzt einen Skript-Interpreter und muss aus Sicherheitsgründen manuell ausgeführt werden.",
     badgeNoneHint: "Dieser Registrierungseintrag deklariert keinen Deinstallationsbefehl.",
     badgeInvalidHint: "Der Deinstallationsbefehl dieses Programms war unverständlich.",
+    badgeStore: "Store",
+    badgeStoreHint:
+      "Als MSIX-Paket installiert. Windows übernimmt die Entfernung und hinterlässt nichts.",
     badgeUser: "Benutzer",
     badgeUserHint: "Nur für diesen Benutzer installiert, nicht PC-weit.",
     badgeHidden: "Verborgen",
@@ -1168,12 +1263,14 @@ const de: Dictionary = {
     showHidden: "Verborgene zeigen",
     detailSource: "Bereich",
     detailKey: "Registrierungseintrag",
+    detailPackageName: "Paketname",
     detailLocation: "Installationsordner",
     detailNoLocation: "Nicht erfasst",
     openFolder: "Ordner öffnen",
     sourceMachine64: "Dieser PC (64-Bit)",
     sourceMachine32: "Dieser PC (32-Bit)",
     sourceUser: "Nur dieser Benutzer",
+    sourceStore: "Microsoft Store (MSIX)",
   },
   confidence: {
     labelSafe: "Sicher entfernbar",
@@ -1195,6 +1292,16 @@ const de: Dictionary = {
       noUninstaller: "Es ist überhaupt kein Deinstallationsbefehl deklariert.",
       namedPublisher: "Ein benannter Hersteller ist erfasst.",
       standardUninstaller: "Es gibt einen Standard-Uninstaller (MSI/EXE).",
+      storeFramework: "Gemeinsame Laufzeit: andere Apps bauen darauf auf.",
+      storeOsComponent: "Teil der Windows-Oberfläche, keine Anwendung.",
+      storeResourcePackage: "Ressourcenpaket (Sprache oder Grafik), keine App.",
+      storeNoDisplayName:
+        "Windows gibt diesem Paket keinen Anzeigenamen - es ist eine interne Komponente.",
+      storeSystemSigned: "Als Teil von Windows signiert - möglicherweise vorinstalliert.",
+      storeNoPublisher: "Kein Herausgeber hinterlegt - die Herkunft ist nicht prüfbar.",
+      storeFromStore: "Vom Microsoft Store signiert.",
+      storeCleanRemoval:
+        "MSIX-Paket: die Entfernung hinterlässt nichts und es lässt sich aus dem Store neu installieren.",
     },
   },
   footer: {
@@ -1212,6 +1319,10 @@ const de: Dictionary = {
     confirmBody:
       "Es wird genau der folgende Befehl ausgeführt - nichts anderes. Er wurde aus der Windows-Registrierung neu aufgebaut und wird im Moment der Ausführung erneut geprüft.",
     commandLabel: "Befehl",
+    storeConfirmBody:
+      "Windows entfernt dieses Paket für den aktuellen Benutzer. Es bleibt nichts zum Aufräumen und Sie können es jederzeit aus dem Microsoft Store neu installieren.",
+    storeRemoving: "Paket wird entfernt...",
+    storeRemoved: (name: string) => `${name} wurde entfernt.`,
     methodLabel: "Methode",
     methodMsi: "Windows Installer (still)",
     methodExe: "Der Uninstaller des Programms selbst",

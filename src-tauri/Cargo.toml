@@ -8,7 +8,7 @@
 
 [package]
 name = "pc-tweaker-uninstaller"
-version = "0.7.1"
+version = "0.8.0"
 description = "Uninstall Windows programs cleanly, with a safety net"
 authors = ["Aurelio Avila"]
 edition = "2021"
@@ -41,6 +41,16 @@ trash = "5"
 windows-sys = { version = "0.59", features = [
   "Win32_Foundation",
   "Win32_System_LibraryLoader",
+] }
+# WinRT PackageManager: the same API Settings > Installed apps uses to list
+# and remove MSIX/Store packages. Deliberately not PowerShell — this app
+# refuses to run interpreters for uninstalls (see uninstall_command.rs), and
+# that rule would be hollow if the Store path shelled out to one.
+windows = { version = "0.58", features = [
+  "Management_Deployment",
+  "Foundation_Collections",
+  "ApplicationModel",
+  "Win32_System_Com",
 ] }
 
 [features]

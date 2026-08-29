@@ -16,6 +16,7 @@ pub mod relations;
 pub mod residue;
 pub mod restore_point;
 pub mod rollback;
+pub mod store_apps;
 pub mod uninstall_command;
 pub mod uninstall_exec;
 
@@ -46,6 +47,8 @@ pub fn run() {
             license::license_status,
             license::clear_license,
             programs::list_programs,
+            store_apps::list_store_apps,
+            store_apps::remove_store_app,
             uninstall_exec::plan_uninstall,
             uninstall_exec::execute_uninstall,
             residue::scan_residue,

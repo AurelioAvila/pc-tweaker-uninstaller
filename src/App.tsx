@@ -25,7 +25,7 @@ import "./App.css";
 /** Mirror of the Rust `ProgramInfo` shape (src-tauri/src/programs.rs). Every
  *  string here originates in the registry and is untrusted display data —
  *  rendered exclusively as text, never as markup. */
-type UninstallSummary = "msi" | "executable" | "manualOnly" | "none" | "invalid";
+type UninstallSummary = "msi" | "executable" | "manualOnly" | "none" | "invalid" | "store";
 
 type ConfidenceLevel = "safe" | "review" | "keep";
 
@@ -36,7 +36,7 @@ interface Confidence {
 
 interface ProgramInfo {
   id: string;
-  source: "machine64" | "machine32" | "user";
+  source: "machine64" | "machine32" | "user" | "store";
   name: string;
   version: string | null;
   publisher: string | null;
@@ -54,6 +54,45 @@ interface ProgramRelations {
   dependents: string[];
   installedVia: string | null;
   publisherSiblings: number;
+}
+
+/** Mirror of the Rust `StoreApp` shape (src-tauri/src/store_apps.rs). */
+interface StoreApp {
+  id: string;
+  name: string;
+  publisher: string | null;
+  version: string;
+  installLocation: string | null;
+  installDate: string | null;
+  confidence: Confidence;
+  isFramework: boolean;
+  isSystem: boolean;
+  hidden: boolean;
+}
+
+/** Presents an MSIX package as a row of the one installed-software list.
+ *
+ *  Windows keeps these in a separate world from the registry, but a user
+ *  looking for "what is on this machine" should not have to know that, so
+ *  search, sorting and the confidence badges all work on a single shape.
+ *  The fields an MSIX package genuinely does not have stay null rather than
+ *  being invented: there is no uninstall string to show, no dependent tree
+ *  to derive, and no size the package manager will report. */
+function storeAppAsProgram(app: StoreApp): ProgramInfo {
+  return {
+    id: app.id,
+    source: "store",
+    name: app.name,
+    version: app.version || null,
+    publisher: app.publisher,
+    installDate: app.installDate,
+    estimatedSizeKb: null,
+    installLocation: app.installLocation,
+    uninstall: "store",
+    hidden: app.hidden,
+    confidence: app.confidence,
+    relations: { dependents: [], installedVia: null, publisherSiblings: 0 },
+  };
 }
 
 type SortKey = "name" | "size" | "date";
@@ -124,6 +163,9 @@ type FlowState =
   | { step: "residueScanning"; program: ProgramInfo }
   | { step: "residue"; program: ProgramInfo; residue: ResidueReport; selected: readonly string[] }
   | { step: "residueDone"; program: ProgramInfo; result: CleanResult }
+  | { step: "storeConfirm"; program: ProgramInfo }
+  | { step: "storeRunning"; program: ProgramInfo }
+  | { step: "storeDone"; program: ProgramInfo }
   | { step: "batchConfirm"; programs: ProgramInfo[] }
   | { step: "batchRunning"; programs: ProgramInfo[]; index: number; results: BatchItemResult[] }
   | { step: "batchDone"; results: BatchItemResult[] };
@@ -232,6 +274,8 @@ function sourceLabel(source: ProgramInfo["source"]): string {
       return text.programs.sourceMachine32;
     case "user":
       return text.programs.sourceUser;
+    case "store":
+      return text.programs.sourceStore;
   }
 }
 
@@ -274,6 +318,8 @@ function badgeLabel(summary: UninstallSummary): string {
       return text.programs.badgeNone;
     case "invalid":
       return text.programs.badgeInvalid;
+    case "store":
+      return text.programs.badgeStore;
   }
 }
 
@@ -285,6 +331,8 @@ function badgeHint(summary: UninstallSummary): string | undefined {
       return text.programs.badgeNoneHint;
     case "invalid":
       return text.programs.badgeInvalidHint;
+    case "store":
+      return text.programs.badgeStoreHint;
     default:
       return undefined;
   }
@@ -419,9 +467,19 @@ export default function App() {
 
   const load = useCallback(() => {
     setState({ phase: "loading" });
-    invoke<ProgramInfo[]>("list_programs")
-      .then((programs) => {
-        setState({ phase: "ready", programs });
+    // Two independent sources, one list. The registry read decides whether
+    // the screen can render at all; the MSIX read is allowed to fail on its
+    // own (an older Windows, a package manager that will not start) without
+    // taking the rest of the inventory down with it.
+    Promise.all([
+      invoke<ProgramInfo[]>("list_programs"),
+      invoke<StoreApp[]>("list_store_apps").catch(() => [] as StoreApp[]),
+    ])
+      .then(([programs, storeApps]) => {
+        setState({
+          phase: "ready",
+          programs: [...programs, ...storeApps.map(storeAppAsProgram)],
+        });
       })
       .catch((error: unknown) => {
         setState({
@@ -510,6 +568,13 @@ export default function App() {
   }, []);
 
   const beginUninstall = useCallback((program: ProgramInfo) => {
+    // An MSIX package has no uninstall command to plan: Windows owns the
+    // removal. Planning it would mean showing a command line that does not
+    // exist, so this path goes straight to its own confirmation.
+    if (program.source === "store") {
+      setFlow({ step: "storeConfirm", program });
+      return;
+    }
     setFlow({ step: "planning", program });
     invoke<UninstallPlan>("plan_uninstall", { source: program.source, id: program.id })
       .then((plan) => {
@@ -531,6 +596,26 @@ export default function App() {
         .then((report) => {
           setFlow({ step: "report", program, report });
           load(); // The registry changed (or should have): refresh honestly.
+        })
+        .catch((error: unknown) => {
+          setFlow({
+            step: "execError",
+            program,
+            message: typeof error === "string" ? error : text.errors.generic,
+          });
+          load();
+        });
+    },
+    [load],
+  );
+
+  const confirmStoreRemoval = useCallback(
+    (program: ProgramInfo) => {
+      setFlow({ step: "storeRunning", program });
+      invoke("remove_store_app", { packageFullName: program.id })
+        .then(() => {
+          setFlow({ step: "storeDone", program });
+          load();
         })
         .catch((error: unknown) => {
           setFlow({
@@ -1206,7 +1291,9 @@ export default function App() {
                             </span>
                           </span>
                           <span role="cell" className="cell-action num">
-                            {(p.uninstall === "msi" || p.uninstall === "executable") && (
+                            {(p.uninstall === "msi" ||
+                              p.uninstall === "executable" ||
+                              p.uninstall === "store") && (
                               <button
                                 type="button"
                                 className="row-action"
@@ -1229,7 +1316,15 @@ export default function App() {
                                 <span className="detail-value">{sourceLabel(p.source)}</span>
                               </div>
                               <div>
-                                <span className="detail-label">{text.programs.detailKey}</span>
+                                <span className="detail-label">
+                                  {/* An MSIX package has no registry entry to
+                                    name; calling its package name one would
+                                    be a small lie in a panel whose whole job
+                                    is to show exactly what this app read. */}
+                                  {p.source === "store"
+                                    ? text.programs.detailPackageName
+                                    : text.programs.detailKey}
+                                </span>
                                 <span className="detail-value mono">{p.id}</span>
                               </div>
                               <div className="detail-wide">
@@ -1424,7 +1519,11 @@ export default function App() {
         <div
           className="overlay"
           role="presentation"
-          onClick={flow.step === "planning" || flow.step === "running" ? undefined : closeFlow}
+          onClick={
+            flow.step === "planning" || flow.step === "running" || flow.step === "storeRunning"
+              ? undefined
+              : closeFlow
+          }
         >
           <div
             className="dialog"
@@ -1538,6 +1637,46 @@ export default function App() {
                     }}
                   >
                     {text.uninstall.confirm}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {flow.step === "storeConfirm" && (
+              <>
+                <h2>{text.uninstall.confirmTitle(flow.program.name)}</h2>
+                <p className="dialog-body">{text.uninstall.storeConfirmBody}</p>
+                <div className="dialog-actions">
+                  <button type="button" className="button" onClick={closeFlow}>
+                    {text.uninstall.cancel}
+                  </button>
+                  <button
+                    type="button"
+                    className="button button-danger"
+                    onClick={() => {
+                      confirmStoreRemoval(flow.program);
+                    }}
+                  >
+                    {text.uninstall.confirm}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {flow.step === "storeRunning" && (
+              <p className="status" role="status">
+                <span className="spinner" aria-hidden="true" />
+                {text.uninstall.storeRemoving}
+              </p>
+            )}
+
+            {flow.step === "storeDone" && (
+              <>
+                <h2>{text.uninstall.reportSuccessTitle}</h2>
+                <p className="dialog-body">{text.uninstall.storeRemoved(flow.program.name)}</p>
+                <div className="dialog-actions">
+                  <button type="button" className="button" onClick={closeFlow}>
+                    {text.uninstall.close}
                   </button>
                 </div>
               </>
