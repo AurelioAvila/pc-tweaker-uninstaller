@@ -28,7 +28,7 @@
     "targets": "all",
     "shortDescription": "Uninstall Windows programs cleanly, with a safety net",
     "publisher": "Aurelio Avila",
-    "copyright": "Copyright © 2026 Aurelio Avila",
+    "copyright": "Copyright © 2026 Aurelio Avila. All rights reserved.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
