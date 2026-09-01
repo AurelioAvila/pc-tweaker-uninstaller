@@ -348,7 +348,10 @@ pub fn clean_residue(
                 }
             }
             #[cfg(not(windows))]
-            result.failed.push(raw);
+            {
+                let _ = key;
+                result.failed.push(raw);
+            }
             continue;
         }
         let path = PathBuf::from(&raw);
@@ -409,31 +412,31 @@ mod tests {
     fn cleanup_rejects_paths_outside_known_roots() {
         let c = name_candidates("SuperTool", None);
         assert!(!path_is_cleanable(
-            Path::new(r"C:\Windows\System32"),
+            Path::new(r"C:/Windows/System32"),
             &c,
             None
         ));
         assert!(!path_is_cleanable(
-            Path::new(r"C:\random\supertool"),
+            Path::new(r"C:/random/supertool"),
             &c,
             None
         ));
         // Install location is honored exactly, nothing near it.
         assert!(path_is_cleanable(
-            Path::new(r"C:\Program Files\SuperTool"),
+            Path::new(r"C:/Program Files/SuperTool"),
             &c,
-            Some(r"C:\Program Files\SuperTool")
+            Some(r"C:/Program Files/SuperTool")
         ));
         assert!(!path_is_cleanable(
-            Path::new(r"C:\Program Files\Other"),
+            Path::new(r"C:/Program Files/Other"),
             &c,
-            Some(r"C:\Program Files\SuperTool")
+            Some(r"C:/Program Files/SuperTool")
         ));
     }
 
     #[test]
     fn bare_drive_install_locations_are_never_cleanable() {
         let c = name_candidates("SuperTool", None);
-        assert!(!path_is_cleanable(Path::new(r"C:\"), &c, Some(r"C:\")));
+        assert!(!path_is_cleanable(Path::new(r"C:/"), &c, Some(r"C:/")));
     }
 }
