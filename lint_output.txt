@@ -1,0 +1,17 @@
+
+> pc-tweaker-uninstaller@0.8.1 lint
+> eslint src
+
+
+/app/src/App.tsx
+  1064:46  error  Unsafe assignment of an error typed value         @typescript-eslint/no-unsafe-assignment
+  1064:74  error  The type of computed name [r] cannot be resolved  @typescript-eslint/no-unsafe-member-access
+  1323:37  error  Unsafe return of a value of type error            @typescript-eslint/no-unsafe-return
+  1323:61  error  The type of computed name [r] cannot be resolved  @typescript-eslint/no-unsafe-member-access
+
+/app/src/utils.ts
+  109:38  error  Unsafe return of a value of type error            @typescript-eslint/no-unsafe-return
+  109:62  error  The type of computed name [r] cannot be resolved  @typescript-eslint/no-unsafe-member-access
+  110:11  error  Unsafe spread of an `any` value in an array       @typescript-eslint/no-unsafe-assignment
+
+✖ 7 problems (7 errors, 0 warnings)
