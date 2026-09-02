@@ -1,5 +1,36 @@
 # Changelog
 
+## v0.8.2 — 2026-09-02
+
+The Uninstaller stopped recognising Redaxa as one of ours, and started
+offering to remove it in bulk.
+
+The suite guard matched on product name, and it knew "promptshield". That
+product was renamed to Redaxa and its installer now registers the new name,
+so the guard quietly stopped matching. From then on the shipped Uninstaller
+treated a sibling product as an ordinary program: eligible for Safe Batch
+bulk removal, and listed without the Suite mark that exists to stop somebody
+removing it by accident.
+
+- Both names are recognised now. A rename only changes what *new* installers
+  register: the machines that installed it as PromptShield still report that,
+  and dropping the old string would have stopped protecting the users who
+  have had it longest.
+- Releases submit themselves to winget from now on. This is the first version
+  where that runs, so the first submission still waits on a moderator — new
+  packages always do.
+
+## v0.8.1 — 2026-09-01
+
+Housekeeping, no user-visible change. Written down after the fact: this
+release shipped without an entry here.
+
+- The Uninstaller has its own update-signing key instead of borrowing PC
+  Tweaker's, so the two products can be released independently.
+- Releases are announced on Discord, through the same workflow PC Tweaker
+  uses.
+- The package metadata states the proprietary license.
+
 ## v0.8.0 — 2026-08-29
 
 Microsoft Store apps are now listed and removable.
