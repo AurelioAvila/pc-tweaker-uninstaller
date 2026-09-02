@@ -242,8 +242,19 @@ function displayCommand(argv: string[]): string {
 function isFamilyApp(p: ProgramInfo): boolean {
   // Hyphens normalize to spaces: installers register "pc-tweaker-app", not
   // "PC Tweaker" — without this, the suite never recognized its own flagship.
+  //
+  // Both names for the same product, deliberately. PromptShield became
+  // Redaxa, but a rename only changes what new installers register: the
+  // machines that installed it under the old name still report the old one,
+  // and dropping it would stop protecting exactly the users who have had it
+  // longest. A product renamed again needs a line here, or Safe Batch will
+  // offer to bulk-remove it.
   const name = p.name.toLowerCase().replace(/[-_]/g, " ");
-  return name.startsWith("pc tweaker") || name.startsWith("promptshield");
+  return (
+    name.startsWith("pc tweaker") ||
+    name.startsWith("redaxa") ||
+    name.startsWith("promptshield")
+  );
 }
 
 function isRecent(installDate: string | null, now: Date): boolean {
