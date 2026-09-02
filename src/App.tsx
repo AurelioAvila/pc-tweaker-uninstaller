@@ -251,9 +251,7 @@ function isFamilyApp(p: ProgramInfo): boolean {
   // offer to bulk-remove it.
   const name = p.name.toLowerCase().replace(/[-_]/g, " ");
   return (
-    name.startsWith("pc tweaker") ||
-    name.startsWith("redaxa") ||
-    name.startsWith("promptshield")
+    name.startsWith("pc tweaker") || name.startsWith("redaxa") || name.startsWith("promptshield")
   );
 }
 
