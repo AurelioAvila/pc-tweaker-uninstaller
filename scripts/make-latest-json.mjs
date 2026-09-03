@@ -75,3 +75,35 @@ const manifest = {
 const out = path.join(nsisDir, "latest.json");
 fs.writeFileSync(out, JSON.stringify(manifest, null, 2) + "\n");
 console.log(`latest.json written for v${version}\n  bundle: ${setup}\n  out:    ${out}`);
+
+// A copy under a name that carries no version number. GitHub only serves
+// `releases/latest/download/<name>` for an exact filename, so a versioned
+// asset has no permanent URL - and PC Tweaker's Uninstaller card links a
+// permanent one so the button starts a download instead of dropping somebody
+// on a repository page. Forget this copy on a release and that button 404s
+// silently, which is why it is produced here rather than left to whoever is
+// cutting the release. PC Tweaker has published PCTweaker-Setup.exe this way
+// for a while; this is the same trick for the Uninstaller.
+const stable = path.join(nsisDir, "PCTweakerUninstaller-Setup.exe");
+fs.copyFileSync(path.join(nsisDir, setup), stable);
+
+const msiDir = path.join(root, "src-tauri", "target", "release", "bundle", "msi");
+const msi = fs.existsSync(msiDir)
+  ? fs.readdirSync(msiDir).find((f) => f.includes(`_${version}_`) && f.endsWith(".msi"))
+  : undefined;
+
+const assets = [
+  path.join(nsisDir, setup),
+  path.join(nsisDir, setup + ".sig"),
+  ...(msi ? [path.join(msiDir, msi), path.join(msiDir, msi + ".sig")] : []),
+  stable,
+  out,
+];
+console.log(
+  "\nUpload all of these. The stable-named copy is what the in-app download " +
+    "button points at:\n\n  gh release upload v" +
+    version +
+    " \\\n" +
+    assets.map((a) => `    "${a}"`).join(" \\\n") +
+    "\n",
+);
