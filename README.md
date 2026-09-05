@@ -22,12 +22,16 @@
 entitlements as the main PC Tweaker app.
 
 Prefer the raw installer? **[⬇ Latest GitHub release](../../releases/latest)**
-— `.exe` or `.msi` for Windows 10/11 x64. Not code-signed yet, so Windows
-SmartScreen shows a warning on first run: click **More info** → **Run
-anyway**. A winget package (no SmartScreen prompt) is planned once the
-suite's signing pipeline is in place — see
-[pc-tweaker-app](https://github.com/AurelioAvila/pc-tweaker-app) for the
-same fix already shipped there.
+— `.exe` or `.msi` for Windows 10/11 x64.
+
+**Signing status:** the v0.8.2 Windows installers are not Authenticode-signed,
+as verified on 2026-09-06. Their updater `.sig` files do not establish a Windows
+publisher signature. PC Tweaker's signed release is a separate product and does
+not confer signing status on this application. WinGet does not guarantee the
+absence of SmartScreen warnings.
+
+See the [signing inventory and verification guide](https://github.com/AurelioAvila/.github/blob/master/CODE_SIGNING.md).
+Use official downloads and investigate security warnings before proceeding.
 
 Uninstall Windows programs cleanly — with a safety net. Part of the
 PC Tweaker ecosystem: one account, shared entitlements, loyalty pricing for
