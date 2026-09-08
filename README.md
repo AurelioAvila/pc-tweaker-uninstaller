@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://pctweaker.app"><img src="https://img.shields.io/badge/DOWNLOAD-pctweaker.app-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Download from the official site"></a>
+  <a href="https://pctweaker.app/uninstaller/"><img src="https://img.shields.io/badge/WEBSITE-pctweaker.app-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Official product information and release status"></a>
   <a href="https://github.com/AurelioAvila/pc-tweaker-uninstaller/blob/master/LICENSE"><img src="https://img.shields.io/badge/License-Proprietary-6B7280?style=for-the-badge" alt="Proprietary License"></a>
   <a href="https://github.com/AurelioAvila"><img src="https://img.shields.io/badge/%C2%A9%20Aurelio%20Avila-PC%20Tweaker%20suite-7C3AED?style=for-the-badge" alt="Copyright Aurelio Avila - PC Tweaker suite"></a>
   <a href="https://github.com/AurelioAvila/pc-tweaker-uninstaller/releases/latest"><img src="https://img.shields.io/github/v/release/AurelioAvila/pc-tweaker-uninstaller?display_name=tag&style=for-the-badge&color=7C3AED" alt="Latest release"></a>
@@ -18,11 +18,13 @@
 
 ## Download
 
-**[pctweaker.app](https://pctweaker.app)** — official site, same account and
-entitlements as the main PC Tweaker app.
+**[Official product page](https://pctweaker.app/uninstaller/)** — release status
+and product information. Uninstaller shares a suite account with PC Tweaker,
+but requires its own product entitlement; a PC Tweaker license does not unlock it.
 
-Prefer the raw installer? **[⬇ Latest GitHub release](../../releases/latest)**
-— `.exe` or `.msi` for Windows 10/11 x64.
+The [release archive](../../releases) contains historical Windows 10/11 x64
+installers. Version 0.8.2 is not recommended for distribution while a verified,
+publisher-signed replacement is pending.
 
 **Signing status:** the v0.8.2 Windows installers are not Authenticode-signed,
 as verified again on 2026-09-08. Their updater `.sig` files do not establish a Windows
@@ -34,8 +36,7 @@ See the [signing inventory and verification guide](https://github.com/AurelioAvi
 Use official downloads and investigate security warnings before proceeding.
 
 Uninstall Windows programs cleanly — with a safety net. Part of the
-PC Tweaker ecosystem: one account, shared entitlements, loyalty pricing for
-existing subscribers.
+PC Tweaker ecosystem: one account with product-specific entitlements.
 
 **Removal Intelligence**: every program carries an evidence-based Removal
 Confidence Score (Safe / Review / Keep) with its reasons spelled out; every
