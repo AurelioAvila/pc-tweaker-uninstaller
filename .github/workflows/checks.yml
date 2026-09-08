@@ -49,6 +49,9 @@ jobs:
       - name: Release tag and cleanup safety tests
         run: ./scripts/test-release-safety.ps1
 
+      - name: Inventory sorting and date regression tests
+        run: node --test scripts/inventory.test.mjs
+
       - name: ESLint
         run: npm run lint
 
