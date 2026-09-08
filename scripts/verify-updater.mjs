@@ -6,7 +6,8 @@ import { execFileSync } from "node:child_process";
 // Tauri wraps the standard minisign public key and detached signature in base64.
 // Verification never accesses a private key or opens a signing session.
 export function verifyUpdater(file, encodedPublicKey) {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "uninstaller-verify-"));
+  const temporaryRoot = fs.realpathSync(os.tmpdir());
+  const directory = fs.mkdtempSync(path.join(temporaryRoot, "uninstaller-verify-"));
   try {
     const signature = fs.readFileSync(file + ".sig", "utf8").trim();
     for (const value of [signature, encodedPublicKey]) {
@@ -25,6 +26,22 @@ export function verifyUpdater(file, encodedPublicKey) {
     );
     return signature;
   } finally {
-    fs.rmSync(directory, { recursive: true, force: true });
+    removeVerificationDirectory(directory, temporaryRoot);
   }
+}
+
+export function removeVerificationDirectory(directory, temporaryRoot) {
+  const resolved = fs.realpathSync(directory);
+  const root = fs.realpathSync(temporaryRoot);
+  if (
+    !path.isAbsolute(directory) ||
+    fs.lstatSync(directory).isSymbolicLink() ||
+    !fs.lstatSync(directory).isDirectory() ||
+    resolved !== path.resolve(directory) ||
+    path.dirname(resolved) !== root ||
+    !/^uninstaller-verify-[A-Za-z0-9]{6}$/.test(path.basename(resolved))
+  ) {
+    throw new Error("Unsafe updater verification cleanup target.");
+  }
+  fs.rmSync(resolved, { recursive: true, force: true });
 }

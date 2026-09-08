@@ -5,10 +5,21 @@ import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
-import { verifyUpdater } from "./verify-updater.mjs";
+import { verifyUpdater, removeVerificationDirectory } from "./verify-updater.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const conf = JSON.parse(fs.readFileSync(path.join(root, "src-tauri/tauri.conf.json")));
+
+test("updater cleanup rejects the temporary root and unrelated directories", () => {
+  const temporaryRoot = fs.realpathSync(os.tmpdir());
+  assert.throws(() => removeVerificationDirectory(temporaryRoot, temporaryRoot), /Unsafe/);
+  assert.throws(() => removeVerificationDirectory(root, temporaryRoot), /Unsafe/);
+  const directory = fs.mkdtempSync(path.join(temporaryRoot, "uninstaller-verify-"));
+  assert.throws(() => removeVerificationDirectory(directory, root), /Unsafe/);
+  assert.ok(fs.existsSync(directory));
+  removeVerificationDirectory(directory, temporaryRoot);
+  assert.equal(fs.existsSync(directory), false);
+});
 
 test("missing and empty updater signatures fail closed", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "uninstaller-test-"));
