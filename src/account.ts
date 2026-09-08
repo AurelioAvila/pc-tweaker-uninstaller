@@ -133,7 +133,7 @@ export async function fetchUninstallerEntitlement(): Promise<UninstallerEntitlem
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!license.ok) return null;
-    const response = await license.json();
+    const response: unknown = await license.json();
     if (readToken() !== token) return null;
     await invoke("save_license", { response });
     if (readToken() !== token) {
