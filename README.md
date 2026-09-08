@@ -22,7 +22,7 @@
 and product information. Uninstaller shares a suite account with PC Tweaker,
 but requires its own product entitlement; a PC Tweaker license does not unlock it.
 
-**[Download signed version 0.8.3](../../releases/tag/v0.8.3)** for Windows 10/11 x64.
+**[Download latest signed version](../../releases/latest)** for Windows 10/11 x64.
 The application, EXE and MSI installers carry verified Authenticode signatures
 identifying **Aurelio Avila**, with trusted timestamps. Both installer updater
 signatures were verified separately. Published downloads were checked again on
