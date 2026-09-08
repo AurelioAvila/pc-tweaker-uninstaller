@@ -93,8 +93,8 @@ fn extract(raw: &str) -> Option<String> {
             if rows != h as i32 {
                 return None;
             }
-            let alpha = pixels.chunks_exact(4).any(|p| p[3] != 0);
-            for p in pixels.chunks_exact_mut(4) {
+            let alpha = pixels.as_chunks::<4>().0.iter().any(|p| p[3] != 0);
+            for p in pixels.as_chunks_mut::<4>().0 {
                 p.swap(0, 2);
                 if !alpha {
                     p[3] = 255;
