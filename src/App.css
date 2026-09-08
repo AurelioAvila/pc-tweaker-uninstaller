@@ -1243,3 +1243,15 @@ body {
   padding-top: 7px;
   padding-bottom: 7px;
 }
+.inventory-controls select {
+  min-width: 0;
+  width: 140px;
+}
+.inventory-controls label:first-child select {
+  width: 110px;
+}
+.inventory-controls button {
+  font-size: 11px;
+  padding: 8px 10px;
+  min-height: 36px;
+}
