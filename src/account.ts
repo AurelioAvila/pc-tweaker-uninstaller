@@ -10,7 +10,10 @@
  * existing suite account.
  */
 
-export const API_BASE_URL: string = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
+import { invoke } from "@tauri-apps/api/core";
+export const API_BASE_URL: string =
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
+  "https://pc-tweaker-app-production.up.railway.app";
 
 const TOKEN_KEY = "pcu-token";
 const EMAIL_KEY = "pcu-email";
@@ -111,9 +114,14 @@ export async function fetchAccount(): Promise<AccountState> {
 
 export function logout(): void {
   clearSession();
+  void invoke("clear_license").catch(() => {});
 }
 
-export type UninstallerEntitlement = { active: boolean; plan: string | null };
+export type UninstallerEntitlement = {
+  active: boolean;
+  plan: string | null;
+  expiresAt?: string | null;
+};
 
 /** The per-product entitlement map; only the uninstaller's row matters here.
  *  Informational for the UI — enforcement lives server-side. */
@@ -121,15 +129,34 @@ export async function fetchUninstallerEntitlement(): Promise<UninstallerEntitlem
   const token = readToken();
   if (!token || !API_BASE_URL) return null;
   try {
+    const license = await fetch(`${API_BASE_URL}/api/license?product=uninstaller`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!license.ok) return null;
+    const response = await license.json();
+    if (readToken() !== token) return null;
+    await invoke("save_license", { response });
+    if (readToken() !== token) {
+      await invoke("clear_license");
+      return null;
+    }
+    const verified = await invoke<boolean>("license_status");
     const res = await fetch(`${API_BASE_URL}/api/entitlements`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) return null;
     const data = (await res.json()) as {
-      products?: { product: string; active: boolean; plan: string | null }[];
+      products?: {
+        product: string;
+        active: boolean;
+        plan: string | null;
+        expiresAt?: string | null;
+      }[];
     };
     const row = data.products?.find((p) => p.product === "uninstaller");
-    return row ? { active: row.active, plan: row.plan } : { active: false, plan: null };
+    return row
+      ? { active: row.active && verified, plan: row.plan, expiresAt: row.expiresAt ?? null }
+      : { active: false, plan: null };
   } catch {
     return null;
   }
