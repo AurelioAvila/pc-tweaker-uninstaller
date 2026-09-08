@@ -28,7 +28,24 @@ permissions:
   contents: read
 
 jobs:
+  verify:
+    runs-on: windows-latest
+    outputs:
+      tag: ${{ steps.verify.outputs.tag }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Verify downloaded installers before distribution
+        id: verify
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name }}
+        run: ./scripts/verify-published-release.ps1 -Tag $env:RELEASE_TAG
+
   publish:
+    needs: verify
     runs-on: ubuntu-latest
     steps:
       # Same shape as the Discord announcement workflow: a missing secret
@@ -44,8 +61,10 @@ jobs:
       # which is how a red run stops meaning anything.
       - name: Check the PAT and that the package is in the index
         id: gate
+        env:
+          WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
         run: |
-          if [ -z "${{ secrets.WINGET_TOKEN }}" ]; then
+          if [ -z "$WINGET_TOKEN" ]; then
             echo "::warning::WINGET_TOKEN secret is not set; skipping the winget submission"
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else
@@ -54,8 +73,11 @@ jobs:
             if [ "$CODE" = "404" ]; then
               echo "::warning::AurelioAvila.PCTweakerUninstaller is not in winget-pkgs yet, so there is no version to update. The new-package pull request must be merged by a moderator first; skipping."
               echo "skip=true" >> "$GITHUB_OUTPUT"
-            else
+            elif [ "$CODE" = "200" ]; then
               echo "skip=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "::error::Could not verify the WinGet index (HTTP $CODE)"
+              exit 1
             fi
           fi
 
@@ -68,10 +90,7 @@ jobs:
           # architecture twice; the setup is the installer people expect
           # from winget, so it is the only one submitted.
           installers-regex: '_x64-setup\.exe$'
-          # On a release event `inputs.tag` is empty, and the action then
-          # asks GitHub for the release at `/releases/tags/` — a 404 that
-          # fails the job before Komac ever runs. The event carries the tag
-          # already, so fall back to it and keep the manual input as an
-          # override for re-submitting an older release.
-          release-tag: ${{ inputs.tag || github.event.release.tag_name }}
+          # Use the exact tag resolved and checked by the Windows job.
+          # A manual run without an input resolves latest there only once.
+          release-tag: ${{ needs.verify.outputs.tag }}
           token: ${{ secrets.WINGET_TOKEN }}

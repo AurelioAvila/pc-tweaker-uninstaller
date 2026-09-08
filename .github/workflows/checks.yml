@@ -43,6 +43,9 @@ jobs:
       - name: TypeScript
         run: npx tsc --noEmit
 
+      - name: Release verification regression tests
+        run: node --test scripts/release-verification.test.mjs
+
       - name: ESLint
         run: npm run lint
 
