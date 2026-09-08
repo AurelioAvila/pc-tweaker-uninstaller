@@ -1,8 +1,9 @@
 # Preparing a Windows release
 
-Version 0.8.2 is still unsigned: its EXE, MSI and stable EXE alias were
-downloaded again on 2026-09-08 and returned `NotSigned`. Their hashes match
-GitHub's asset digests. Do not redistribute this backlog as a signed release.
+Version 0.8.3 was signed, timestamped and published on 2026-09-08. Its EXE, MSI
+and stable EXE alias passed verification after downloading them again from GitHub.
+Both updater signatures and extracted executable payloads were also verified.
+Historical version 0.8.2 remains unsigned; do not label that backlog as signed.
 
 Release preparation and signing run locally. The repository has checks,
 Discord announcements and a WinGet submission workflow, but no automated
