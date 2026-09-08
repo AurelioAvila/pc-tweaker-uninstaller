@@ -1,6 +1,6 @@
 # Preparing a Windows release
 
-Version 0.8.3 was signed, timestamped and published on 2026-09-08. Its EXE, MSI
+Version 0.9.0 was signed, timestamped and published on 2026-09-08. Its EXE, MSI
 and stable EXE alias passed verification after downloading them again from GitHub.
 Both updater signatures and extracted executable payloads were also verified.
 Historical version 0.8.2 remains unsigned; do not label that backlog as signed.
@@ -57,8 +57,7 @@ The WinGet action subsequently downloads assets itself. Keep published assets
 immutable and verify its proposed manifest hashes before merging a catalog PR.
 This gate does not prevent someone from bypassing the helpers with a manual
 upload, and it does not inspect installed payloads. The local payload review
-and final package verification above remain required. Existing Discord release
-announcements remain unchanged.
+and final package verification above remain required. Discord announcements run locally; the legacy GitHub announcement workflow is disabled to avoid duplicate publishing.
 
 ## Verification tests
 
