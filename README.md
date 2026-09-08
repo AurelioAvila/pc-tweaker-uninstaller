@@ -22,15 +22,14 @@
 and product information. Uninstaller shares a suite account with PC Tweaker,
 but requires its own product entitlement; a PC Tweaker license does not unlock it.
 
-The [release archive](../../releases) contains historical Windows 10/11 x64
-installers. Version 0.8.2 is not recommended for distribution while a verified,
-publisher-signed replacement is pending.
+**[Download signed version 0.8.3](../../releases/tag/v0.8.3)** for Windows 10/11 x64.
+The application, EXE and MSI installers carry verified Authenticode signatures
+identifying **Aurelio Avila**, with trusted timestamps. Both installer updater
+signatures were verified separately. Published downloads were checked again on
+2026-09-08; historical version 0.8.2 remains unsigned.
 
-**Signing status:** the v0.8.2 Windows installers are not Authenticode-signed,
-as verified again on 2026-09-08. Their updater `.sig` files do not establish a Windows
-publisher signature. PC Tweaker's signed release is a separate product and does
-not confer signing status on this application. WinGet does not guarantee the
-absence of SmartScreen warnings.
+Signing identifies the publisher and protects file integrity; neither code signing
+nor WinGet guarantees the absence of SmartScreen warnings.
 
 See the [signing inventory and verification guide](https://github.com/AurelioAvila/.github/blob/master/CODE_SIGNING.md).
 Use official downloads and investigate security warnings before proceeding.
