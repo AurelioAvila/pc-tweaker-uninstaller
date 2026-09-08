@@ -2655,7 +2655,7 @@ dependencies = [
 
 [[package]]
 name = "pc-tweaker-uninstaller"
-version = "0.8.2"
+version = "0.8.3"
 dependencies = [
  "base64 0.22.1",
  "ed25519-dalek",
