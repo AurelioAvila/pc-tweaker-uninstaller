@@ -515,8 +515,21 @@ body {
 
 .cell-badges {
   display: flex;
+  flex-wrap: wrap;
+  justify-self: stretch;
+  width: 100%;
+  min-width: 0;
   gap: 6px;
   justify-content: flex-end;
+}
+.cell-badges > span {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+.row > [role="cell"] {
+  min-width: 0;
 }
 
 /* ---- Badges ---------------------------------------------------------- */
