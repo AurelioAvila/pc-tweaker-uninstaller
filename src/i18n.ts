@@ -96,7 +96,7 @@ export type Dictionary = {
   readonly footer: {
     readonly family: string;
     readonly pcTweaker: string;
-    readonly promptShield: string;
+    readonly redaxa: string;
     readonly privacy: string;
     readonly restoreInfo: string;
     readonly openRestore: string;
@@ -316,7 +316,7 @@ const en: Dictionary = {
   footer: {
     family: "Part of the PC Tweaker family",
     pcTweaker: "PC Tweaker",
-    promptShield: "PromptShield",
+    redaxa: "Redaxa",
     privacy: "Privacy",
     restoreInfo:
       "Restore points are created and stored by Windows on your system drive (System Protection).",
@@ -562,7 +562,7 @@ const it: Dictionary = {
   footer: {
     family: "Parte della famiglia PC Tweaker",
     pcTweaker: "PC Tweaker",
-    promptShield: "PromptShield",
+    redaxa: "Redaxa",
     privacy: "Privacy",
     restoreInfo:
       "I punti di ripristino sono creati e conservati da Windows sull'unità di sistema (Protezione sistema).",
@@ -810,7 +810,7 @@ const fr: Dictionary = {
   footer: {
     family: "Fait partie de la famille PC Tweaker",
     pcTweaker: "PC Tweaker",
-    promptShield: "PromptShield",
+    redaxa: "Redaxa",
     privacy: "Confidentialité",
     restoreInfo:
       "Les points de restauration sont créés et conservés par Windows sur le disque système (Protection du système).",
@@ -1057,7 +1057,7 @@ const es: Dictionary = {
   footer: {
     family: "Parte de la familia PC Tweaker",
     pcTweaker: "PC Tweaker",
-    promptShield: "PromptShield",
+    redaxa: "Redaxa",
     privacy: "Privacidad",
     restoreInfo:
       "Los puntos de restauración los crea y guarda Windows en la unidad del sistema (Protección del sistema).",
@@ -1307,7 +1307,7 @@ const de: Dictionary = {
   footer: {
     family: "Teil der PC-Tweaker-Familie",
     pcTweaker: "PC Tweaker",
-    promptShield: "PromptShield",
+    redaxa: "Redaxa",
     privacy: "Datenschutz",
     restoreInfo:
       "Wiederherstellungspunkte werden von Windows auf dem Systemlaufwerk erstellt und gespeichert (Computerschutz).",
