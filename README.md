@@ -25,7 +25,7 @@ Prefer the raw installer? **[⬇ Latest GitHub release](../../releases/latest)**
 — `.exe` or `.msi` for Windows 10/11 x64.
 
 **Signing status:** the v0.8.2 Windows installers are not Authenticode-signed,
-as verified on 2026-09-06. Their updater `.sig` files do not establish a Windows
+as verified again on 2026-09-08. Their updater `.sig` files do not establish a Windows
 publisher signature. PC Tweaker's signed release is a separate product and does
 not confer signing status on this application. WinGet does not guarantee the
 absence of SmartScreen warnings.
@@ -74,6 +74,9 @@ npm run lint          # eslint (strict, type-checked)
 npm run format:check  # prettier
 cd src-tauri && cargo fmt --check && cargo clippy -- -D warnings && cargo test
 ```
+
+Release maintainers: follow the [local signing and verification procedure](RELEASING.md).
+Distribution must stop if publisher signing or timestamp verification fails.
 
 ## Legal
 
