@@ -2655,11 +2655,12 @@ dependencies = [
 
 [[package]]
 name = "pc-tweaker-uninstaller"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "base64 0.22.1",
  "ed25519-dalek",
  "is_elevated",
+ "png 0.17.16",
  "runas",
  "serde",
  "serde_json",
@@ -2669,6 +2670,7 @@ dependencies = [
  "tauri-plugin-process",
  "tauri-plugin-updater",
  "trash",
+ "url",
  "windows 0.58.0",
  "windows-sys 0.59.0",
  "winreg 0.52.0",

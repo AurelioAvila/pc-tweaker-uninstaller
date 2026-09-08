@@ -9,6 +9,7 @@ type Copy = {
   all: string;
   compact: string;
   reset: string;
+  export: string;
   estimated: string;
   unknown: string;
   hint: string;
@@ -23,6 +24,7 @@ export const inventoryCopy: Record<Locale, Copy> = {
     all: "All",
     compact: "Compact rows",
     reset: "Reset view",
+    export: "Export view to CSV",
     estimated: "Reported size in this view",
     unknown: "Apps with unknown size",
     hint: "Sizes and dates are reported by installers and may be incomplete. Dates may reflect an update or repair. Reported size is not guaranteed recoverable space. Unknown values stay last.",
@@ -36,6 +38,7 @@ export const inventoryCopy: Record<Locale, Copy> = {
     all: "Tutti",
     compact: "Righe compatte",
     reset: "Ripristina vista",
+    export: "Esporta vista in CSV",
     estimated: "Dimensione dichiarata nella vista",
     unknown: "App con dimensione sconosciuta",
     hint: "Dimensioni e date sono dichiarate dagli installer e possono essere incomplete. Le date possono indicare un aggiornamento o una riparazione. Lo spazio recuperabile non è garantito. I valori sconosciuti restano in fondo.",
@@ -49,6 +52,7 @@ export const inventoryCopy: Record<Locale, Copy> = {
     all: "Tous",
     compact: "Lignes compactes",
     reset: "Réinitialiser la vue",
+    export: "Exporter la vue en CSV",
     estimated: "Taille déclarée dans cette vue",
     unknown: "Applications de taille inconnue",
     hint: "Les tailles et dates proviennent des programmes d’installation et peuvent être incomplètes. Les dates peuvent correspondre à une mise à jour ou réparation. L’espace récupérable n’est pas garanti. Les valeurs inconnues restent en dernier.",
@@ -62,6 +66,7 @@ export const inventoryCopy: Record<Locale, Copy> = {
     all: "Todos",
     compact: "Filas compactas",
     reset: "Restablecer vista",
+    export: "Exportar vista a CSV",
     estimated: "Tamaño declarado en esta vista",
     unknown: "Apps con tamaño desconocido",
     hint: "Los instaladores proporcionan los tamaños y fechas, que pueden estar incompletos. Las fechas pueden indicar una actualización o reparación. El espacio recuperable no está garantizado. Los valores desconocidos quedan al final.",
@@ -75,6 +80,7 @@ export const inventoryCopy: Record<Locale, Copy> = {
     all: "Alle",
     compact: "Kompakte Zeilen",
     reset: "Ansicht zurücksetzen",
+    export: "Ansicht als CSV exportieren",
     estimated: "Gemeldete Größe in dieser Ansicht",
     unknown: "Apps mit unbekannter Größe",
     hint: "Größen und Datumsangaben stammen von Installationsprogrammen und können unvollständig sein. Datumsangaben können ein Update oder eine Reparatur betreffen. Freigebbarer Speicherplatz ist nicht garantiert. Unbekannte Werte stehen immer am Ende.",

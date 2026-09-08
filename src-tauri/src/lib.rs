@@ -9,8 +9,10 @@
 pub mod actions;
 pub mod confidence;
 pub mod elevation;
+pub mod inventory_export;
 pub mod ledger;
 pub mod license;
+pub mod program_icons;
 pub mod programs;
 pub mod relations;
 pub mod residue;
@@ -47,6 +49,8 @@ pub fn run() {
             license::license_status,
             license::clear_license,
             programs::list_programs,
+            inventory_export::export_inventory,
+            program_icons::program_icon,
             store_apps::list_store_apps,
             store_apps::remove_store_app,
             uninstall_exec::plan_uninstall,
