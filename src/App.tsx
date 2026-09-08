@@ -21,6 +21,7 @@ import {
 import { UpdateBanner } from "./updater";
 import { comparePrograms, isRecent, readView, SORT_KEYS, type SortKey } from "./inventory";
 import { inventoryCopy } from "./inventory-copy";
+import { ProgramIcon } from "./program-icon";
 import appLogo from "../src-tauri/icons/128x128.png";
 import "./App.css";
 
@@ -218,19 +219,6 @@ function formatSize(kb: number | null): string {
   return `${(mb / 1024).toFixed(2)} GB`;
 }
 
-/** Deterministic hue from the program name, so each monogram keeps a stable
- *  color across launches without storing anything. */
-function hueOf(name: string): number {
-  let hash = 0;
-  for (const ch of name) hash = (hash * 31 + (ch.codePointAt(0) ?? 0)) | 0;
-  return Math.abs(hash) % 360;
-}
-
-function monogram(name: string): string {
-  const codePoint = name.trim().codePointAt(0);
-  return codePoint === undefined ? "?" : String.fromCodePoint(codePoint).toUpperCase();
-}
-
 /** Renders an argv for humans: tokens with spaces get quotes back. */
 function displayCommand(argv: string[]): string {
   return argv.map((token) => (token.includes(" ") ? `"${token}"` : token)).join(" ");
@@ -358,6 +346,8 @@ export default function App() {
   const [lang, setLang] = useState<Locale>(() => currentLocale());
   const [theme, setTheme] = useState<ThemeCode>(() => initialTheme());
   const copy = inventoryCopy[lang];
+  const [inventoryExport, setInventoryExport] = useState<string | null>(null);
+  const [inventoryExportBusy, setInventoryExportBusy] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
     applyTheme(theme);
@@ -465,6 +455,7 @@ export default function App() {
 
   const signOut = useCallback(() => {
     logout();
+    setUninstallerPro(null);
     setAccount({ status: "anonymous" });
     setLoginEmail("");
   }, []);
@@ -839,6 +830,11 @@ export default function App() {
                   <p className={uninstallerPro?.active ? "menu-hint menu-hint-ok" : "menu-hint"}>
                     {uninstallerPro?.active ? text.menu.upsActive : text.menu.upsInactive}
                   </p>
+                  {uninstallerPro?.expiresAt && (
+                    <p className="menu-hint menu-hint-ok">
+                      Pro until {new Date(uninstallerPro.expiresAt).toLocaleDateString()}
+                    </p>
+                  )}
                   {!uninstallerPro?.active && (
                     <>
                       <button
@@ -1181,6 +1177,31 @@ export default function App() {
               >
                 {copy.reset}
               </button>
+              <button
+                type="button"
+                className="button-ghost"
+                disabled={inventoryExportBusy || filtered.length === 0}
+                onClick={() => {
+                  setInventoryExportBusy(true);
+                  void invoke<string>("export_inventory", {
+                    keys: filtered.map((p) => `${p.source}:${p.id}`),
+                  })
+                    .then(setInventoryExport)
+                    .catch(() => {
+                      setInventoryExport(text.errors.generic);
+                    })
+                    .finally(() => {
+                      setInventoryExportBusy(false);
+                    });
+                }}
+              >
+                {copy.export}
+              </button>
+              {inventoryExport && (
+                <p className="inventory-hint" role="status">
+                  {inventoryExport}
+                </p>
+              )}
               <p className="inventory-hint">
                 {copy.hint}{" "}
                 <strong>
@@ -1340,15 +1361,11 @@ export default function App() {
                                 );
                               }}
                             />
-                            <span
-                              className="avatar"
-                              aria-hidden="true"
-                              style={{ background: `hsl(${String(hueOf(p.name))} 45% 26%)` }}
-                            >
-                              {monogram(p.name)}
-                            </span>
+                            <ProgramIcon source={p.source} id={p.id} name={p.name} />
                             <span className="titles">
-                              <span className="name">{p.name}</span>
+                              <span className="name" title={p.name}>
+                                {p.name}
+                              </span>
                               <span className="publisher">{p.publisher ?? " "}</span>
                             </span>
                           </span>
@@ -1509,10 +1526,10 @@ export default function App() {
             type="button"
             className="footbar-link"
             onClick={() => {
-              openLink("promptshield");
+              openLink("redaxa");
             }}
           >
-            {text.footer.promptShield}
+            {text.footer.redaxa}
           </button>
           <span className="footbar-sep" aria-hidden="true">
             ·

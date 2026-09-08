@@ -318,11 +318,15 @@ fn path_is_cleanable(path: &Path, candidates: &[String], install_location: Optio
 /// non-recoverable step). Every path is revalidated; unknown paths fail.
 #[tauri::command]
 pub fn clean_residue(
+    app: tauri::AppHandle,
     name: String,
     publisher: Option<String>,
     install_location: Option<String>,
     paths: Vec<String>,
 ) -> Result<CleanResult, String> {
+    if !crate::license::license_status(app)? {
+        return Err("An active Uninstaller Pro license is required for cleanup.".into());
+    }
     if paths.len() > 64 {
         return Err("Too many items in one cleanup.".into());
     }

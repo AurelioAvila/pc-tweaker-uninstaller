@@ -50,6 +50,8 @@ pub struct LicensePayload {
     /// measured from this, not from local receipt — a cached-and-replayed
     /// response can't be made to look newer than it actually is.
     pub issued_at: u64,
+    #[serde(default)]
+    pub expires_at: Option<u64>,
 }
 
 /// What the server sends: the exact bytes it signed, plus the signature over
@@ -108,7 +110,10 @@ fn now_secs() -> u64 {
 /// period: a validly signed license from three weeks ago proves the server
 /// said something true three weeks ago, not that it is still true now.
 fn is_fresh(payload: &LicensePayload) -> bool {
-    now_secs().saturating_sub(payload.issued_at) <= GRACE_PERIOD_SECS
+    let now = now_secs();
+    payload.issued_at <= now + 60
+        && now.saturating_sub(payload.issued_at) <= GRACE_PERIOD_SECS
+        && payload.expires_at.is_none_or(|expiry| now < expiry)
 }
 
 /// Persists the raw, still-signed response so it survives a restart.
@@ -280,6 +285,7 @@ mod tests {
             plan: Some("annual".into()),
             product: PRODUCT_ID.into(),
             issued_at: now_secs(),
+            expires_at: None,
         };
         assert!(is_fresh(&payload));
         assert_eq!(payload.product, PRODUCT_ID);
@@ -293,8 +299,26 @@ mod tests {
             plan: None,
             product: PRODUCT_ID.into(),
             issued_at: now_secs().saturating_sub(GRACE_PERIOD_SECS + 3600),
+            expires_at: None,
         };
         assert!(!is_fresh(&stale));
+    }
+
+    #[test]
+    fn expiry_and_future_issue_dates_deny_cached_access() {
+        let mut payload = LicensePayload {
+            user_id: "1".into(),
+            is_pro: true,
+            plan: Some("lifetime_bonus".into()),
+            product: PRODUCT_ID.into(),
+            issued_at: now_secs(),
+            expires_at: Some(now_secs()),
+        };
+        assert!(!is_fresh(&payload));
+        payload.expires_at = Some(now_secs() + 3600);
+        assert!(is_fresh(&payload));
+        payload.issued_at = now_secs() + 600;
+        assert!(!is_fresh(&payload));
     }
 
     #[test]
