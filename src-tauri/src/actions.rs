@@ -66,7 +66,7 @@ fn ecosystem_url(target: &str) -> Option<&'static str> {
         // pctweaker.app is the suite account, valid in this app too.
         "account" => Some("https://pctweaker.app"),
         "pricing" => Some("https://pctweaker.app"),
-        "promptshield" => Some("https://promptshield-beta.vercel.app"),
+        "redaxa" => Some("https://promptshield-beta.vercel.app"),
         _ => None,
     }
 }
@@ -131,7 +131,7 @@ mod tests {
     #[test]
     fn only_allowlisted_ecosystem_targets_resolve() {
         assert_eq!(ecosystem_url("pctweaker"), Some("https://pctweaker.app"));
-        assert!(ecosystem_url("promptshield").is_some());
+        assert!(ecosystem_url("redaxa").is_some());
         assert!(ecosystem_url("privacy").is_some());
         assert!(ecosystem_url("support").is_some());
         assert!(ecosystem_url("account").is_some());
