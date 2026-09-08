@@ -1187,3 +1187,71 @@ body {
   opacity: 0.25;
   cursor: not-allowed;
 }
+
+.inventory-controls {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  background: var(--bg-raised);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+}
+.inventory-controls label {
+  display: grid;
+  gap: 6px;
+  color: var(--fg-dim);
+  font-size: 11px;
+  font-weight: 600;
+}
+.inventory-controls select {
+  min-width: 120px;
+  max-width: 200px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--fg);
+  font: inherit;
+  font-size: 12px;
+}
+.inventory-controls select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.inventory-direction {
+  min-height: 36px;
+}
+.inventory-hint {
+  flex-basis: 100%;
+  color: var(--fg-faint);
+  font-size: 11px;
+  line-height: 1.6;
+  margin: 0;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+.inventory-hint strong {
+  color: var(--fg-dim);
+  white-space: nowrap;
+  font-weight: 500;
+}
+.list-compact .row {
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+.inventory-controls select {
+  min-width: 0;
+  width: 140px;
+}
+.inventory-controls label:first-child select {
+  width: 110px;
+}
+.inventory-controls button {
+  font-size: 11px;
+  padding: 8px 10px;
+  min-height: 36px;
+}

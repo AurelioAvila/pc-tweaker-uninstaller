@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import ts from 'typescript';
+const code=ts.transpileModule(fs.readFileSync(new URL('../src/inventory.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
+const {comparePrograms,isRecent,dateValue,readView}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const row=(name,extra={})=>({id:name,name,source:'user',publisher:'Publisher',installDate:'2026-09-01',estimatedSizeKb:10,...extra});
+test('natural names and deterministic ties',()=>{const rows=[row('Tool 10'),row('Tool 2')];assert.equal(rows.sort((a,b)=>comparePrograms(a,b,'name',true))[0].name,'Tool 2');assert.ok(comparePrograms(row('A',{id:'2'}),row('A',{id:'1'}),'size',false)>0);});
+test('unknown, zero, invalid sizes stay last in both directions',()=>{for(const asc of [true,false]){const rows=[row('missing',{estimatedSizeKb:null}),row('small'),row('large',{estimatedSizeKb:100}),row('zero',{estimatedSizeKb:0})].sort((a,b)=>comparePrograms(a,b,'size',asc));assert.equal(rows[0].name,asc?'small':'large');assert.equal(rows[1].name,asc?'large':'small');}});
+test('dates validate real calendar days and unknown dates stay last',()=>{assert.equal(dateValue('2026-02-30'),null);assert.equal(dateValue('invalid'),null);for(const asc of [true,false]) assert.ok(comparePrograms(row('unknown',{installDate:null}),row('known'),'date',asc)>0);});
+test('recent excludes future, invalid and older dates',()=>{const now=new Date(2026,8,8);assert.equal(isRecent('2026-09-09',now),false);assert.equal(isRecent('2026-09-08',now),true);assert.equal(isRecent('2026-08-09',now),true);assert.equal(isRecent('2026-08-08',now),false);assert.equal(isRecent('2026-02-30',now),false);});
+test('publisher sort handles missing publishers and case',()=>{assert.ok(comparePrograms(row('a',{publisher:null}),row('b'),'publisher',true)>0);assert.ok(comparePrograms(row('a',{publisher:'Zulu'}),row('b',{publisher:'alpha'}),'publisher',true)>0);});
+test('view preferences validate stored data and tolerate blocked storage',()=>{globalThis.localStorage={getItem:()=>'{"key":"date","asc":false,"compact":true}'};assert.deepEqual(readView(),{key:'date',asc:false,compact:true});globalThis.localStorage={getItem:()=>'{"key":"evil","asc":"false"}'};assert.deepEqual(readView(),{key:'name',asc:true,compact:false});globalThis.localStorage={getItem:()=>{throw Error('blocked')}};assert.deepEqual(readView(),{key:'name',asc:true,compact:false});});

@@ -19,6 +19,8 @@ import {
   type UninstallerEntitlement,
 } from "./account";
 import { UpdateBanner } from "./updater";
+import { comparePrograms, isRecent, readView, SORT_KEYS, type SortKey } from "./inventory";
+import { inventoryCopy } from "./inventory-copy";
 import appLogo from "../src-tauri/icons/128x128.png";
 import "./App.css";
 
@@ -95,13 +97,10 @@ function storeAppAsProgram(app: StoreApp): ProgramInfo {
   };
 }
 
-type SortKey = "name" | "size" | "date";
 type FilterChip = "all" | "large" | "recent";
 
 /** 500 MB — the "what is eating my disk" threshold for the Large filter. */
 const LARGE_KB = 512000;
-/** The Recent filter window, in days. */
-const RECENT_DAYS = 30;
 
 /** Mirror of `UninstallPlan` (src-tauri/src/uninstall_exec.rs). Display only:
  *  the backend re-derives everything at execution time. */
@@ -255,24 +254,6 @@ function isFamilyApp(p: ProgramInfo): boolean {
   );
 }
 
-function isRecent(installDate: string | null, now: Date): boolean {
-  if (installDate === null) return false;
-  const then = new Date(`${installDate}T00:00:00`);
-  if (Number.isNaN(then.getTime())) return false;
-  return (now.getTime() - then.getTime()) / 86400000 <= RECENT_DAYS;
-}
-
-function compareBy(a: ProgramInfo, b: ProgramInfo, key: SortKey): number {
-  switch (key) {
-    case "name":
-      return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
-    case "size":
-      return (a.estimatedSizeKb ?? -1) - (b.estimatedSizeKb ?? -1);
-    case "date":
-      return (a.installDate ?? "").localeCompare(b.installDate ?? "");
-  }
-}
-
 /** Functions rather than module constants: `text` is swapped on language
  *  change, so labels must be read at render time, not at module init. */
 function sourceLabel(source: ProgramInfo["source"]): string {
@@ -354,8 +335,21 @@ export default function App() {
   const [flow, setFlow] = useState<FlowState>({ step: "idle" });
   const [chip, setChip] = useState<FilterChip>("all");
   const [showHidden, setShowHidden] = useState(false);
-  const [sortKey, setSortKey] = useState<SortKey>("name");
-  const [sortAsc, setSortAsc] = useState(true);
+  const [sortKey, setSortKey] = useState<SortKey>(() => readView().key);
+  const [sortAsc, setSortAsc] = useState(() => readView().asc);
+  const [compact, setCompact] = useState(() => readView().compact);
+  const [sourceFilter, setSourceFilter] = useState("all");
+  const [confidenceFilter, setConfidenceFilter] = useState("all");
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        "pcu-inventory-view",
+        JSON.stringify({ key: sortKey, asc: sortAsc, compact }),
+      );
+    } catch {
+      /* The view still works without storage. */
+    }
+  }, [sortKey, sortAsc, compact]);
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const [batchSelected, setBatchSelected] = useState<readonly string[]>([]);
   const [detailNotice, setDetailNotice] = useState<string | null>(null);
@@ -363,6 +357,7 @@ export default function App() {
   // Language and theme: persisted locally, English + Violet by default.
   const [lang, setLang] = useState<Locale>(() => currentLocale());
   const [theme, setTheme] = useState<ThemeCode>(() => initialTheme());
+  const copy = inventoryCopy[lang];
   const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
     applyTheme(theme);
@@ -522,6 +517,8 @@ export default function App() {
     const needle = query.trim().toLowerCase();
     const now = new Date();
     const matched = visible.filter((p) => {
+      if (sourceFilter !== "all" && p.source !== sourceFilter) return false;
+      if (confidenceFilter !== "all" && p.confidence.level !== confidenceFilter) return false;
       if (
         needle &&
         !p.name.toLowerCase().includes(needle) &&
@@ -533,9 +530,8 @@ export default function App() {
       if (chip === "recent") return isRecent(p.installDate, now);
       return true;
     });
-    const dir = sortAsc ? 1 : -1;
-    return [...matched].sort((a, b) => dir * compareBy(a, b, sortKey));
-  }, [visible, query, chip, sortKey, sortAsc]);
+    return [...matched].sort((a, b) => comparePrograms(a, b, sortKey, sortAsc));
+  }, [visible, query, chip, sortKey, sortAsc, sourceFilter, confidenceFilter]);
 
   const toggleSort = useCallback(
     (key: SortKey) => {
@@ -544,7 +540,7 @@ export default function App() {
       } else {
         setSortKey(key);
         // Size and date read most naturally biggest/newest first.
-        setSortAsc(key === "name");
+        setSortAsc(key !== "size" && key !== "date");
       }
     },
     [sortKey],
@@ -734,8 +730,8 @@ export default function App() {
   }, [flowStep, closeFlow]);
 
   const totalSizeKb = useMemo(
-    () => visible.reduce((sum, p) => sum + (p.estimatedSizeKb ?? 0), 0),
-    [visible],
+    () => filtered.reduce((sum, p) => sum + Math.max(0, p.estimatedSizeKb ?? 0), 0),
+    [filtered],
   );
 
   // The strategic cross-link: when the flagship is installed on this PC, the
@@ -1088,10 +1084,111 @@ export default function App() {
               </span>
               {totalSizeKb > 0 && (
                 <span className="chip chip-accent">
-                  {formatSize(totalSizeKb)} {text.programs.statTotalSize}
+                  {formatSize(totalSizeKb)} {copy.estimated}
                 </span>
               )}
             </div>
+
+            <section className="inventory-controls" aria-label={copy.sort}>
+              <label>
+                {copy.sort}
+                <select
+                  value={sortKey}
+                  onChange={(e) => {
+                    const key = e.target.value as SortKey;
+                    setSortKey(key);
+                    setSortAsc(key !== "size" && key !== "date");
+                  }}
+                >
+                  {SORT_KEYS.map((key) => (
+                    <option key={key} value={key}>
+                      {
+                        {
+                          name: text.programs.columnProgram,
+                          size: text.programs.columnSize,
+                          date: text.programs.columnInstalled,
+                          publisher: text.programs.columnPublisher,
+                          source: copy.source,
+                        }[key]
+                      }
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                className="button-ghost inventory-direction"
+                onClick={() => {
+                  setSortAsc((v) => !v);
+                }}
+              >
+                <span aria-hidden="true">{sortAsc ? "↑" : "↓"}</span>{" "}
+                {sortAsc ? copy.ascending : copy.descending}
+              </button>
+              <label>
+                {copy.source}
+                <select
+                  value={sourceFilter}
+                  onChange={(e) => {
+                    setSourceFilter(e.target.value);
+                  }}
+                >
+                  <option value="all">{copy.all}</option>
+                  {(["machine64", "machine32", "user", "store"] as const).map((source) => (
+                    <option key={source} value={source}>
+                      {sourceLabel(source)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                {copy.confidence}
+                <select
+                  value={confidenceFilter}
+                  onChange={(e) => {
+                    setConfidenceFilter(e.target.value);
+                  }}
+                >
+                  <option value="all">{copy.all}</option>
+                  <option value="safe">{text.confidence.labelSafe}</option>
+                  <option value="review">{text.confidence.labelReview}</option>
+                  <option value="keep">{text.confidence.labelKeep}</option>
+                </select>
+              </label>
+              <button
+                type="button"
+                className="chip chip-button"
+                aria-pressed={compact}
+                onClick={() => {
+                  setCompact((v) => !v);
+                }}
+              >
+                {copy.compact}
+              </button>
+              <button
+                type="button"
+                className="button-ghost"
+                onClick={() => {
+                  setQuery("");
+                  setChip("all");
+                  setSourceFilter("all");
+                  setConfidenceFilter("all");
+                  setSortKey("name");
+                  setSortAsc(true);
+                  setCompact(false);
+                  setShowHidden(false);
+                }}
+              >
+                {copy.reset}
+              </button>
+              <p className="inventory-hint">
+                {copy.hint}{" "}
+                <strong>
+                  {copy.unknown}:{" "}
+                  {filtered.filter((p) => !p.estimatedSizeKb || p.estimatedSizeKb < 0).length}
+                </strong>
+              </p>
+            </section>
 
             {state.programs.length === 0 && (
               <section className="empty">
@@ -1144,7 +1241,11 @@ export default function App() {
                     </button>
                   </div>
                 )}
-                <div className="list" role="table" aria-label={text.programs.columnProgram}>
+                <div
+                  className={`list${compact ? " list-compact" : ""}`}
+                  role="table"
+                  aria-label={text.programs.columnProgram}
+                >
                   <div className="list-head" role="row">
                     <span
                       role="columnheader"
