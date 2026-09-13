@@ -1,5 +1,44 @@
 # Changelog
 
+## v0.11.0 — 2026-09-13
+
+Leftover cleanup could send a whole well-known folder to the Recycle Bin.
+
+The only guard on an install directory was a path-component count, and a
+count cannot say what it looks like it says: `C:\Program Files` is three
+components and `C:\Windows\System32` is four, the same shapes a real
+per-application install directory has. A program whose recorded
+InstallLocation points at its containing folder rather than its own — which
+installers write badly often enough that a safety tool has to assume it —
+would have had that folder offered as a leftover. Cleanup is the one
+destructive step here and it is the Pro feature, so the exposure pointed at
+paying users.
+
+- Every Windows well-known root, the user profile and its document folders,
+  and any bare drive root are now refused as install locations. The
+  application's own directory underneath them is still cleanable, and a test
+  asserts both directions so the guard cannot quietly go back to a count.
+- The window no longer freezes. Six commands ran on the main thread, and two
+  of them fire together at startup: reading every installed program out of
+  the registry and every MSIX package out of the WinRT package manager. They
+  now run off it, as do Store removal, residue scanning and the dry run.
+- The expandable row is reachable by keyboard. It holds the confidence
+  reasons, the install folder, the registry entry and the exact uninstall
+  command, and none of that could be opened without a mouse. Enter and Space
+  now work, with a visible focus ring.
+- An uninstall that takes more than twenty seconds says what is probably
+  happening: the program's own uninstaller has opened a window behind ours.
+  Translated in all five languages.
+- A local diagnostic log. The app wrote nothing, anywhere, and is built for
+  the GUI subsystem, so a crash was completely silent. It now records the
+  decisions it takes and any panic, in a file beside the removal ledger, and
+  "Open log folder" in the ledger dialog is how you reach it. Nothing is
+  uploaded and there is no crash-reporting service; the privacy policy says
+  so, and says the file contains program names and paths.
+
+Windows binaries and installers are digitally signed by Aurelio Avila and
+timestamped; automatic updates carry a separate updater signature.
+
 ## v0.8.2 — 2026-09-02
 
 The Uninstaller stopped recognising Redaxa as one of ours, and started
