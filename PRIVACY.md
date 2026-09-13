@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Last updated: 2026-08-20
+Last updated: 2026-09-13
 
 PC Tweaker Uninstaller is a desktop app. Everything it does to your system — listing installed programs, running uninstallers, scanning for leftovers — happens entirely on your own machine and is never sent anywhere. This policy covers the only two things that ever touch the network: the **optional** account system used for the Pro upgrade, and update checks.
 
@@ -11,8 +11,9 @@ PC Tweaker Uninstaller is a desktop app. Everything it does to your system — l
 - The list of programs installed on your PC.
 - The results of leftover scans, and anything about the files and registry keys they find.
 - Uninstall history, snapshots, and the quarantine's contents.
+- The diagnostic log. The app writes one to `uninstaller.log`, next to the removal ledger in its own data folder, recording the decisions it took: version and start time, elevation attempts, uninstall exit codes and durations, leftover-cleanup outcomes, and any crash. It therefore contains program names and file paths from your machine. It is never uploaded, never scheduled, and never read by us. "Open log folder" in the Removal Ledger dialog is the only way it is surfaced, and it reaches anyone else only if you attach it to a support message yourself. The file rotates once at about 1 MB and you can delete both generations at any time.
 
-The app contains no analytics and no ad or tracking SDKs of any kind.
+The app contains no analytics and no ad or tracking SDKs of any kind. There is no crash-reporting service.
 
 ## What we collect, and why
 

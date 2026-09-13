@@ -381,6 +381,20 @@ export default function App() {
       });
   }, []);
 
+  /* The diagnostic log lives beside the ledger in the app's data folder and
+     is never sent anywhere by the application. This button is the only way a
+     user reaches it, which is the whole point: a support request can now come
+     with an artefact attached instead of a description from memory. */
+  const openLogFolder = useCallback(() => {
+    invoke<string>("open_log_folder")
+      .then((path) => {
+        setExportNote(text.ledger.logAt(path));
+      })
+      .catch((error: unknown) => {
+        setExportNote(typeof error === "string" ? error : text.errors.generic);
+      });
+  }, []);
+
   // Suite account: the sole source of truth for Pro status and loyalty
   // eligibility. Checked on mount and on window focus (catches a purchase
   // made on pctweaker.app in the system browser), mirroring PC Tweaker's own
@@ -1666,6 +1680,9 @@ export default function App() {
                   {text.ledger.exportButton}
                 </button>
               )}
+              <button type="button" className="button-ghost" onClick={openLogFolder}>
+                {text.ledger.logButton}
+              </button>
               <button
                 type="button"
                 className="button"

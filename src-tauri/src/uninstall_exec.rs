@@ -404,10 +404,17 @@ fn write_report(report: &UninstallReport) -> Result<(), String> {
 
 fn read_report() -> Result<UninstallReport, String> {
     let path = report_path()?;
-    let bytes = std::fs::read(&path)
-        .map_err(|_| "The elevated uninstall finished but left no report.".to_string())?;
-    serde_json::from_slice(&bytes)
-        .map_err(|_| "The elevated uninstall report could not be read.".to_string())
+    let bytes = std::fs::read(&path).map_err(|_| {
+        crate::applog::line("elevated child left no report file");
+        "The elevated uninstall finished but left no report.".to_string()
+    })?;
+    serde_json::from_slice(&bytes).map_err(|_| {
+        crate::applog::line(&format!(
+            "elevated report unparseable, {} bytes",
+            bytes.len()
+        ));
+        "The elevated uninstall report could not be read.".to_string()
+    })
 }
 
 /// Runs the derived argv and assembles the report. `restore_point` is decided
@@ -436,6 +443,10 @@ fn run_and_report(
 
     let exit_code = status.code();
     let (success, reboot_required, message) = interpret_exit(&kind, exit_code);
+    crate::applog::line(&format!(
+        "uninstall finished: {program_name} exit {exit_code:?} success {success} after {}ms",
+        started.elapsed().as_millis()
+    ));
     Ok(UninstallReport {
         program_name,
         command: argv,
@@ -485,7 +496,9 @@ fn run_via_elevation(source: &str, id: &str) -> Result<UninstallReport, String> 
         // Best effort: a stale report must never be mistaken for this run's.
         let _ = std::fs::remove_file(path);
     }
+    crate::applog::line(&format!("elevating for {source}:{id}"));
     crate::elevation::run_elevated_args(&["--elevated-uninstall", source, id]).map_err(|e| {
+        crate::applog::line(&format!("elevation failed for {source}:{id}: {e}"));
         format!("The uninstall did not run: {e}. No changes were made by this app.")
     })?;
     read_report()
