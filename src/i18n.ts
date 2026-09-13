@@ -128,6 +128,7 @@ export type Dictionary = {
     readonly planFailedTitle: string;
     readonly running: (name: string) => string;
     readonly runningNote: string;
+    readonly runningSlowNote: string;
     readonly reportSuccessTitle: string;
     readonly reportFailureTitle: string;
     readonly rebootNote: string;
@@ -353,6 +354,8 @@ const en: Dictionary = {
     running: (name) => `Uninstalling ${name}...`,
     runningNote:
       "The program's uninstaller is running. This window stays responsive; some uninstallers open their own windows.",
+    runningSlowNote:
+      "This is taking longer than usual. Some uninstallers open a window of their own, and it can be behind this one - check your taskbar. Nothing is lost if you wait.",
     reportSuccessTitle: "Uninstalled",
     reportFailureTitle: "Uninstall did not complete",
     rebootNote: "A restart is required to finish removing files.",
@@ -599,6 +602,8 @@ const it: Dictionary = {
     running: (name) => `Disinstallazione di ${name}...`,
     runningNote:
       "L'uninstaller del programma è in esecuzione. Questa finestra resta reattiva; alcuni uninstaller aprono finestre proprie.",
+    runningSlowNote:
+      "Sta impiegando piu del solito. Alcuni programmi di disinstallazione aprono una finestra propria, che puo trovarsi dietro a questa: controlla la barra delle applicazioni. Non si perde nulla ad aspettare.",
     reportSuccessTitle: "Disinstallato",
     reportFailureTitle: "Disinstallazione non completata",
     rebootNote: "Serve un riavvio per completare la rimozione dei file.",
@@ -847,6 +852,8 @@ const fr: Dictionary = {
     running: (name) => `Désinstallation de ${name}...`,
     runningNote:
       "Le désinstalleur du programme est en cours. Cette fenêtre reste réactive ; certains désinstalleurs ouvrent leurs propres fenêtres.",
+    runningSlowNote:
+      "Cela prend plus de temps que d'habitude. Certains desinstalleurs ouvrent leur propre fenetre, qui peut se trouver derriere celle-ci : regardez votre barre des taches. Rien n'est perdu si vous attendez.",
     reportSuccessTitle: "Désinstallé",
     reportFailureTitle: "Désinstallation non terminée",
     rebootNote: "Un redémarrage est nécessaire pour finir de supprimer les fichiers.",
@@ -1094,6 +1101,8 @@ const es: Dictionary = {
     running: (name) => `Desinstalando ${name}...`,
     runningNote:
       "El desinstalador del programa se está ejecutando. Esta ventana sigue respondiendo; algunos desinstaladores abren sus propias ventanas.",
+    runningSlowNote:
+      "Esta tardando mas de lo habitual. Algunos desinstaladores abren su propia ventana, que puede estar detras de esta: revisa la barra de tareas. No se pierde nada por esperar.",
     reportSuccessTitle: "Desinstalado",
     reportFailureTitle: "La desinstalación no se completó",
     rebootNote: "Se requiere un reinicio para terminar de eliminar los archivos.",
@@ -1344,6 +1353,8 @@ const de: Dictionary = {
     running: (name) => `${name} wird deinstalliert...`,
     runningNote:
       "Der Uninstaller des Programms läuft. Dieses Fenster bleibt bedienbar; manche Uninstaller öffnen eigene Fenster.",
+    runningSlowNote:
+      "Das dauert langer als ublich. Manche Deinstallationsprogramme offnen ein eigenes Fenster, das hinter diesem liegen kann - sehen Sie in der Taskleiste nach. Es geht nichts verloren, wenn Sie warten.",
     reportSuccessTitle: "Deinstalliert",
     reportFailureTitle: "Deinstallation nicht abgeschlossen",
     rebootNote: "Ein Neustart ist nötig, um die Dateien vollständig zu entfernen.",
