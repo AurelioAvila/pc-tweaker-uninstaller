@@ -389,12 +389,12 @@ mod platform {
     }
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn list_store_apps() -> Result<Vec<StoreApp>, String> {
     platform::list()
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 pub fn remove_store_app(package_full_name: String) -> Result<(), String> {
     platform::remove(&package_full_name)
 }
