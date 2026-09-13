@@ -292,10 +292,63 @@ pub fn scan_residue(
 /// Validates that a path the frontend asked to clean is one this module
 /// would itself have proposed: inside a known root (or the recorded install
 /// location), with a final component that matches the candidates.
+/// Directories that must never be handed to the Recycle Bin whole, however a
+/// program's `InstallLocation` happens to be written.
+///
+/// The depth check alone cannot express this. `C:\Program Files` is three
+/// components and `C:\Windows\System32` is four — the same shapes as a real
+/// per-application install directory — so a vendor that writes its
+/// InstallLocation as the parent folder rather than its own would have had
+/// the whole of Program Files accepted as a leftover. Installers get this
+/// wrong often enough that the guard has to assume it.
+fn is_protected_directory(path: &Path) -> bool {
+    let mut protected: Vec<PathBuf> = Vec::new();
+    for var in [
+        "SystemRoot",
+        "windir",
+        "ProgramFiles",
+        "ProgramFiles(x86)",
+        "ProgramW6432",
+        "ProgramData",
+        "PUBLIC",
+        "USERPROFILE",
+        "APPDATA",
+        "LOCALAPPDATA",
+        "SystemDrive",
+    ] {
+        if let Ok(value) = std::env::var(var) {
+            let root = PathBuf::from(value);
+            if let Ok(local) = std::env::var("LOCALAPPDATA") {
+                if var == "LOCALAPPDATA" {
+                    protected.push(Path::new(&local).join("Programs"));
+                }
+            }
+            protected.push(root);
+        }
+    }
+    if let Ok(profile) = std::env::var("USERPROFILE") {
+        for folder in [
+            "Desktop",
+            "Documents",
+            "Downloads",
+            "Pictures",
+            "Music",
+            "Videos",
+        ] {
+            protected.push(Path::new(&profile).join(folder));
+        }
+    }
+    // A bare drive root ("C:\", "D:\") has no file name of its own.
+    if path.file_name().is_none() {
+        return true;
+    }
+    protected.iter().any(|root| path == root.as_path())
+}
+
 fn path_is_cleanable(path: &Path, candidates: &[String], install_location: Option<&str>) -> bool {
     if let Some(location) = install_location {
         let loc = PathBuf::from(location.trim().trim_matches('"'));
-        if loc.components().count() > 2 && path == loc {
+        if loc.components().count() > 2 && path == loc && !is_protected_directory(path) {
             return true;
         }
     }
@@ -378,6 +431,41 @@ pub fn clean_residue(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A vendor that writes its InstallLocation as the containing folder
+    /// instead of its own used to hand the whole folder to the Recycle Bin:
+    /// the only guard was a component count, and "C:\Program Files" clears
+    /// it exactly as "C:\Program Files\Something" does. Cleanup is the one
+    /// destructive step in the product, so this is the test that has to fail
+    /// if the guard is ever loosened again.
+    #[test]
+    fn a_well_known_folder_is_never_cleanable_as_an_install_location() {
+        for var in [
+            "ProgramFiles",
+            "ProgramData",
+            "SystemRoot",
+            "USERPROFILE",
+            "LOCALAPPDATA",
+        ] {
+            let Ok(value) = std::env::var(var) else {
+                continue;
+            };
+            let root = PathBuf::from(&value);
+            assert!(
+                !path_is_cleanable(&root, &[], Some(&value)),
+                "{} ({}) was accepted as a removable install location",
+                var,
+                value
+            );
+            // The application's own directory underneath it still is.
+            let nested = root.join("ExampleVendorApp");
+            assert!(
+                path_is_cleanable(&nested, &[], Some(&nested.to_string_lossy())),
+                "a real install directory under {} was rejected",
+                var
+            );
+        }
+    }
 
     #[test]
     fn normalization_unifies_spellings() {
