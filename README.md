@@ -20,7 +20,11 @@
 
 **[Official product page](https://pctweaker.app/uninstaller/)** — release status
 and product information. Uninstaller shares a suite account with PC Tweaker,
-but requires its own product entitlement; a PC Tweaker license does not unlock it.
+with product-specific entitlements. A PC Tweaker license token cannot be used as
+an Uninstaller license token. PC Tweaker Lifetime owners also have a
+[documented 12-month Uninstaller Pro benefit](https://github.com/AurelioAvila/pc-tweaker-app#free-and-pro),
+activated on first sign-in to Uninstaller with the same account. This is a
+separate, time-limited entitlement, not a perpetual Uninstaller license.
 
 **[Download latest signed version](../../releases/latest)** for Windows 10/11 x64.
 The application, EXE and MSI installers carry verified Authenticode signatures
