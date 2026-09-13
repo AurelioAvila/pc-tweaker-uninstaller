@@ -327,7 +327,14 @@ fn is_protected_directory(path: &Path) -> bool {
         }
     }
     if let Ok(profile) = std::env::var("USERPROFILE") {
-        for folder in ["Desktop", "Documents", "Downloads", "Pictures", "Music", "Videos"] {
+        for folder in [
+            "Desktop",
+            "Documents",
+            "Downloads",
+            "Pictures",
+            "Music",
+            "Videos",
+        ] {
             protected.push(Path::new(&profile).join(folder));
         }
     }
@@ -433,8 +440,16 @@ mod tests {
     /// if the guard is ever loosened again.
     #[test]
     fn a_well_known_folder_is_never_cleanable_as_an_install_location() {
-        for var in ["ProgramFiles", "ProgramData", "SystemRoot", "USERPROFILE", "LOCALAPPDATA"] {
-            let Ok(value) = std::env::var(var) else { continue };
+        for var in [
+            "ProgramFiles",
+            "ProgramData",
+            "SystemRoot",
+            "USERPROFILE",
+            "LOCALAPPDATA",
+        ] {
+            let Ok(value) = std::env::var(var) else {
+                continue;
+            };
             let root = PathBuf::from(&value);
             assert!(
                 !path_is_cleanable(&root, &[], Some(&value)),
