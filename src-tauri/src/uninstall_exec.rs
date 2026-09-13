@@ -566,7 +566,7 @@ pub fn run_elevated_child(source: &str, id: &str) -> i32 {
 // ---- Tauri commands --------------------------------------------------------
 
 /// Dry-run preview for the confirmation dialog. Read-only.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn plan_uninstall(source: String, id: String) -> Result<UninstallPlan, String> {
     build_plan(&source, &id)
 }

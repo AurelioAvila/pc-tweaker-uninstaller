@@ -259,7 +259,7 @@ fn scan_registry(_items: &mut Vec<ResidueItem>, _candidates: &[String]) {}
 /// Scans for leftovers of an uninstalled program. `install_location` is the
 /// path the registry reported before the uninstall; if the folder still
 /// exists it is the highest-confidence residue there is.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn scan_residue(
     name: String,
     publisher: Option<String>,
@@ -316,7 +316,7 @@ fn path_is_cleanable(path: &Path, candidates: &[String], install_location: Optio
 /// Moves the selected leftovers to the Recycle Bin (filesystem items) or
 /// deletes them (HKCU registry keys — flagged in the UI as the one
 /// non-recoverable step). Every path is revalidated; unknown paths fail.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn clean_residue(
     app: tauri::AppHandle,
     name: String,
