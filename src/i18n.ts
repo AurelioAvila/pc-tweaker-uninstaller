@@ -166,6 +166,8 @@ export type Dictionary = {
     readonly subtitle: string;
     readonly empty: string;
     readonly exportButton: string;
+    readonly logButton: string;
+    readonly logAt: (path: string) => string;
     readonly exportedTo: (path: string) => string;
     readonly verifiedFreed: (size: string) => string;
     readonly estimatedOnly: (size: string) => string;
@@ -408,6 +410,9 @@ const en: Dictionary = {
       "A local receipt for every removal this app ran - successes and failures alike. Stored on this PC, never uploaded.",
     empty: "No removals recorded yet. Your first uninstall will leave its receipt here.",
     exportButton: "Export JSON",
+    logButton: "Open log folder",
+    logAt: (path) =>
+      `Diagnostic log: ${path}. Nothing is sent anywhere; attach it to a support email if you need to.`,
     exportedTo: (path) => `Exported to ${path}`,
     verifiedFreed: (size) => `${size} freed (verified)`,
     estimatedOnly: (size) => `~${size} (registry estimate)`,
@@ -657,6 +662,9 @@ const it: Dictionary = {
       "Una ricevuta locale per ogni rimozione eseguita da questa app, successi e fallimenti inclusi. Salvata su questo PC, mai caricata online.",
     empty: "Nessuna rimozione registrata. La prima disinstallazione lascerà qui la sua ricevuta.",
     exportButton: "Esporta JSON",
+    logButton: "Apri la cartella dei log",
+    logAt: (path) =>
+      `Log diagnostico: ${path}. Non viene inviato da nessuna parte; allegalo a un messaggio di assistenza se ti serve.`,
     exportedTo: (path) => `Esportato in ${path}`,
     verifiedFreed: (size) => `${size} liberati (verificato)`,
     estimatedOnly: (size) => `~${size} (stima del registro)`,
@@ -906,6 +914,9 @@ const fr: Dictionary = {
       "Un reçu local pour chaque suppression effectuée par cette application, réussites comme échecs. Conservé sur ce PC, jamais envoyé en ligne.",
     empty: "Aucune suppression enregistrée. Votre première désinstallation laissera son reçu ici.",
     exportButton: "Exporter en JSON",
+    logButton: "Ouvrir le dossier des journaux",
+    logAt: (path) =>
+      `Journal de diagnostic : ${path}. Rien n'est envoye nulle part ; joignez-le a un message au support si besoin.`,
     exportedTo: (path) => `Exporté vers ${path}`,
     verifiedFreed: (size) => `${size} libérés (vérifié)`,
     estimatedOnly: (size) => `~${size} (estimation du registre)`,
@@ -1155,6 +1166,9 @@ const es: Dictionary = {
       "Un recibo local por cada eliminación que ejecutó esta aplicación, éxitos y fallos incluidos. Guardado en este PC, nunca se sube.",
     empty: "Aún no hay eliminaciones registradas. Tu primera desinstalación dejará aquí su recibo.",
     exportButton: "Exportar JSON",
+    logButton: "Abrir la carpeta de registros",
+    logAt: (path) =>
+      `Registro de diagnostico: ${path}. No se envia a ninguna parte; adjuntalo a un mensaje de soporte si lo necesitas.`,
     exportedTo: (path) => `Exportado a ${path}`,
     verifiedFreed: (size) => `${size} liberados (verificado)`,
     estimatedOnly: (size) => `~${size} (estimación del registro)`,
@@ -1409,6 +1423,9 @@ const de: Dictionary = {
     empty:
       "Noch keine Entfernungen aufgezeichnet. Deine erste Deinstallation hinterlässt hier ihre Quittung.",
     exportButton: "Als JSON exportieren",
+    logButton: "Protokollordner offnen",
+    logAt: (path) =>
+      `Diagnoseprotokoll: ${path}. Es wird nirgendwohin gesendet; hangen Sie es bei Bedarf an eine Supportnachricht an.`,
     exportedTo: (path) => `Exportiert nach ${path}`,
     verifiedFreed: (size) => `${size} freigegeben (verifiziert)`,
     estimatedOnly: (size) => `~${size} (Registrierungs-Schätzung)`,
