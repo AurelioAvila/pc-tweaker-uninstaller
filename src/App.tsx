@@ -696,6 +696,28 @@ export default function App() {
     setFlow({ step: "idle" });
   }, []);
 
+  /* A stuck-looking uninstall is almost never stuck: the program's own
+     uninstaller has opened a window behind ours and is waiting for a click
+     nobody can see. The dialog used to show a spinner and one unchanging
+     line for as long as that took, which reads as a hung application and is
+     the point where people kill the process mid-removal. After twenty
+     seconds it says where to look instead. Purely a display state - the
+     child process still owns the action, so there is nothing here to
+     cancel and nothing is promised that cannot be delivered. */
+  const [runningIsSlow, setRunningIsSlow] = useState(false);
+  useEffect(() => {
+    if (flow.step !== "running") {
+      setRunningIsSlow(false);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setRunningIsSlow(true);
+    }, 20_000);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [flow.step]);
+
   // Esc closes the dialog in every step where closing is meaningful. While
   // an uninstall is actually running there is nothing to cancel from here —
   // the child process owns the action.
@@ -1832,6 +1854,11 @@ export default function App() {
                   {text.uninstall.running(flow.program.name)}
                 </p>
                 <p className="dialog-body">{text.uninstall.runningNote}</p>
+                {runningIsSlow && (
+                  <p className="dialog-body" role="status">
+                    {text.uninstall.runningSlowNote}
+                  </p>
+                )}
               </>
             )}
 
