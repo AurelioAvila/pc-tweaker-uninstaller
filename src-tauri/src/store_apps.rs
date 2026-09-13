@@ -396,7 +396,12 @@ pub fn list_store_apps() -> Result<Vec<StoreApp>, String> {
 
 #[tauri::command(async)]
 pub fn remove_store_app(package_full_name: String) -> Result<(), String> {
-    platform::remove(&package_full_name)
+    let result = platform::remove(&package_full_name);
+    crate::applog::line(&match &result {
+        Ok(()) => format!("store package removed: {package_full_name}"),
+        Err(e) => format!("store package removal failed: {package_full_name}: {e}"),
+    });
+    result
 }
 
 /// Exercises the real WinRT path on the machine running the tests.

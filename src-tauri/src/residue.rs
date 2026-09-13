@@ -422,9 +422,24 @@ pub fn clean_residue(
                 result.freed_kb += size;
                 result.removed.push(raw);
             }
-            Err(_) => result.failed.push(raw),
+            Err(e) => {
+                // Cleanup is the destructive step, so a refusal is the one
+                // thing a support request most needs to be able to show.
+                crate::applog::line(&format!(
+                    "residue not recycled: {} ({e})",
+                    path.to_string_lossy()
+                ));
+                result.failed.push(raw);
+            }
         }
     }
+    crate::applog::line(&format!(
+        "residue cleanup for {}: {} removed, {} failed, {} KB freed",
+        name,
+        result.removed.len(),
+        result.failed.len(),
+        result.freed_kb
+    ));
     Ok(result)
 }
 

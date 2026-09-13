@@ -12,6 +12,10 @@ fn main() {
     // arguments — see uninstall_exec's module docs for the trust model.
     let args: Vec<String> = std::env::args().collect();
     if args.len() == 4 && args[1] == "--elevated-uninstall" {
+        // The child is headless and its only channel back to the GUI is the
+        // report file. When that file does not appear, this log is the only
+        // place that can say why.
+        pc_tweaker_uninstaller_lib::applog::init(env!("CARGO_PKG_VERSION"), "elevated-child");
         std::process::exit(
             pc_tweaker_uninstaller_lib::uninstall_exec::run_elevated_child(&args[2], &args[3]),
         );

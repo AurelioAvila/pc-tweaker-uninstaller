@@ -7,6 +7,7 @@
 //! feature lands.
 
 pub mod actions;
+pub mod applog;
 pub mod confidence;
 pub mod elevation;
 pub mod inventory_export;
@@ -39,6 +40,9 @@ fn app_version(app: tauri::AppHandle) -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Before anything else: the panic hook is the whole point, and a panic
+    // during setup is exactly the one nobody could see until now.
+    applog::init(env!("CARGO_PKG_VERSION"), "gui");
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
@@ -64,7 +68,9 @@ pub fn run() {
             actions::open_ecosystem_link,
             actions::open_pc_tweaker,
             actions::open_checkout_url,
+            applog::open_log_folder,
         ])
         .run(tauri::generate_context!())
+        .inspect_err(|e| applog::line(&format!("FATAL tauri run failed: {e}")))
         .expect("error while running tauri application");
 }
