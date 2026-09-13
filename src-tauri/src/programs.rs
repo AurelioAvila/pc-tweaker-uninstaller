@@ -353,7 +353,7 @@ pub fn read_raw_entry(_source: &str, _key_name: &str) -> Result<RawEntry, String
 
 /// Lists installed programs. Takes no input from the webview at all — the
 /// safest IPC surface is the one with nothing to validate.
-#[tauri::command]
+#[tauri::command(async)]
 pub fn list_programs() -> Result<Vec<ProgramInfo>, String> {
     #[cfg(windows)]
     {
