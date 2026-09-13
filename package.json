@@ -2,7 +2,7 @@
   "name": "pc-tweaker-uninstaller",
   "private": true,
   "license": "UNLICENSED",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
