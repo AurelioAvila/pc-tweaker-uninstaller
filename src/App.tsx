@@ -1338,9 +1338,25 @@ export default function App() {
                         <div
                           className="row"
                           role="row"
+                          tabIndex={0}
                           aria-expanded={expanded}
+                          aria-controls={`details-${rowKey}`}
                           onClick={() => {
                             toggleExpanded(rowKey);
+                          }}
+                          /* The evidence panel below is the reason this
+                             product exists, and until now the only way to
+                             open it was a mouse click on the row. The guard
+                             on currentTarget matters: the row contains a
+                             batch checkbox, and Space on a focused checkbox
+                             would otherwise toggle the checkbox and bubble
+                             up to expand the row in the same keystroke. */
+                          onKeyDown={(e) => {
+                            if (e.currentTarget !== e.target) return;
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              toggleExpanded(rowKey);
+                            }
                           }}
                         >
                           <span role="cell" className="cell-main">
@@ -1436,7 +1452,7 @@ export default function App() {
                           </span>
                         </div>
                         {expanded && (
-                          <div className="row-details" role="row">
+                          <div className="row-details" role="row" id={`details-${rowKey}`}>
                             <div role="cell" className="details-grid">
                               <div>
                                 <span className="detail-label">{text.programs.detailSource}</span>
