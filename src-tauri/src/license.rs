@@ -29,10 +29,28 @@ pub const PRODUCT_ID: &str = "uninstaller";
 /// same backend. Safe to embed: it can only verify, never sign.
 const PUBLIC_KEY_B64: &str = "QisYr46g3mqEeiz1BDyEcPbRO1xO4z0lR3d5/ODppIU=";
 
-/// How long a signed license is trusted without a fresh fetch. Mirrors
-/// PC Tweaker: long enough for a weekend offline, short enough that a
-/// cancelled subscription doesn't keep working indefinitely.
+/// How long a signed license with no stated expiry is trusted without a fresh
+/// fetch. Long enough for a weekend offline, short enough that a cancelled
+/// subscription does not keep working indefinitely.
 const GRACE_PERIOD_SECS: u64 = 3 * 24 * 60 * 60;
+
+/// How long a signed license is trusted when its payload names a paid period
+/// that has not ended yet.
+///
+/// Three days was the only window, and it was applied whether or not the
+/// signature said the customer had paid through next March. That made every
+/// outage a refund conversation: a backend that cannot be reached for four
+/// days - Railway down, DNS, a customer's company firewall, a laptop taken
+/// somewhere without signal - takes Pro away from people who are paid up,
+/// with no way for them to prove it and nothing they can do about it.
+///
+/// When `expires_at` is in the future the signature itself is the proof: the
+/// backend stated a paid-through date and signed it, and the private half of
+/// that key is not on this machine. Honouring it is not a concession, it is
+/// reading what was signed. The bound stays so that a licence can never run
+/// forever without the product hearing from the server again - it just stops
+/// being three days for somebody who is demonstrably paid up.
+const PAID_PERIOD_GRACE_SECS: u64 = 30 * 24 * 60 * 60;
 
 /// Field names must match the backend's `LicensePayload` type exactly,
 /// camelCase included — parsed directly from the JSON string the server
@@ -111,9 +129,22 @@ fn now_secs() -> u64 {
 /// said something true three weeks ago, not that it is still true now.
 fn is_fresh(payload: &LicensePayload) -> bool {
     let now = now_secs();
-    payload.issued_at <= now + 60
-        && now.saturating_sub(payload.issued_at) <= GRACE_PERIOD_SECS
-        && payload.expires_at.is_none_or(|expiry| now < expiry)
+    // A licence issued in the future is a clock problem or a forgery; the
+    // minute of slack is for ordinary clock skew between here and the server.
+    if payload.issued_at > now + 60 {
+        return false;
+    }
+    let age = now.saturating_sub(payload.issued_at);
+    match payload.expires_at {
+        // Paid through a date still ahead of us: trust it for the longer
+        // window, never past the date the backend actually signed.
+        Some(expiry) if now < expiry => age <= PAID_PERIOD_GRACE_SECS,
+        // The paid period has ended. No window applies; this is not a
+        // staleness question any more.
+        Some(_) => false,
+        // Older licences carry no expiry, so age is all there is to go on.
+        None => age <= GRACE_PERIOD_SECS,
+    }
 }
 
 /// Persists the raw, still-signed response so it survives a restart.
@@ -302,6 +333,57 @@ mod tests {
             expires_at: None,
         };
         assert!(!is_fresh(&stale));
+    }
+
+    /// A customer who is paid up must not lose Pro because the backend could
+    /// not be reached. Three days was the only window and it applied even to
+    /// a licence signed as paid through next month, which turned every
+    /// outage - Railway down, a firewall, a laptop with no signal - into a
+    /// refund conversation the customer was right to start.
+    #[test]
+    fn a_paid_period_still_running_survives_more_than_the_short_grace() {
+        let payload = LicensePayload {
+            user_id: "17".into(),
+            is_pro: true,
+            plan: Some("annual".into()),
+            product: PRODUCT_ID.into(),
+            issued_at: now_secs().saturating_sub(GRACE_PERIOD_SECS + 4 * 24 * 60 * 60),
+            expires_at: Some(now_secs() + 90 * 24 * 60 * 60),
+        };
+        assert!(
+            is_fresh(&payload),
+            "a week offline with three months paid ahead must keep Pro"
+        );
+    }
+
+    /// The longer window is a window, not an exemption: a licence still has
+    /// to hear from the server eventually, however far ahead it was paid.
+    #[test]
+    fn even_a_paid_period_stops_once_the_longer_window_runs_out() {
+        let payload = LicensePayload {
+            user_id: "17".into(),
+            is_pro: true,
+            plan: Some("annual".into()),
+            product: PRODUCT_ID.into(),
+            issued_at: now_secs().saturating_sub(PAID_PERIOD_GRACE_SECS + 3600),
+            expires_at: Some(now_secs() + 90 * 24 * 60 * 60),
+        };
+        assert!(!is_fresh(&payload));
+    }
+
+    /// Past the date the backend signed, no window applies at all - the
+    /// question stops being how stale the file is.
+    #[test]
+    fn a_finished_paid_period_is_over_however_recently_it_was_issued() {
+        let payload = LicensePayload {
+            user_id: "17".into(),
+            is_pro: true,
+            plan: Some("annual".into()),
+            product: PRODUCT_ID.into(),
+            issued_at: now_secs().saturating_sub(60),
+            expires_at: Some(now_secs().saturating_sub(1)),
+        };
+        assert!(!is_fresh(&payload));
     }
 
     #[test]
