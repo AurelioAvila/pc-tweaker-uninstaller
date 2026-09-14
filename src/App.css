@@ -10,6 +10,13 @@
   --fg-faint: #7d749b;
   --accent: #8b5cf6;
   --accent-2: #d946ef;
+  /* Text sitting on the accent gradient. White fails WCAG AA on all eight
+     themes - 3.46:1 on violet at best, 1.48:1 on Slate Mono - because every
+     accent pair is a mid-to-light hue. A near-black clears 4.5:1 against both
+     ends of every pair, 4.62:1 at the tightest. One value rather than a
+     per-theme table, because one value is enough; scripts/check-contrast.mjs
+     fails the build if a new theme ever breaks that. */
+  --accent-ink: #0a0c10;
   --glow: #1c142e;
   --ok: #34d399;
   --warn: #fbbf24;
@@ -273,7 +280,7 @@ body {
   padding: 10px 20px;
   font: inherit;
   font-weight: 600;
-  color: #fff;
+  color: var(--accent-ink);
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   border: 0;
   border-radius: 10px;
