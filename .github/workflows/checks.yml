@@ -52,6 +52,9 @@ jobs:
       - name: Inventory sorting and date regression tests
         run: node --test scripts/inventory.test.mjs
 
+      - name: Accent contrast
+        run: npm run check:contrast
+
       - name: ESLint
         run: npm run lint
 
