@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.11.1 - 2026-09-14
+
+Pro stopped working during an outage, and the button you press to buy it was
+unreadable.
+
+A cached licence was trusted for three days from the moment it was issued,
+and that window applied whether or not the signature said the customer had
+paid through next March. Any four days without a reachable backend - the
+server down, a company firewall, a laptop somewhere without signal - took
+Pro away from people who were paid up, with no way for them to prove it.
+Leftover cleaning and batch removal are the two things Pro buys, and both
+stopped.
+
+- A licence whose payload names a paid period still ahead now holds for
+  thirty days without a refresh, never past the date the backend signed. The
+  three-day window stays for licences that state no expiry, and past the
+  signed date no window applies at all.
+- The primary button carried white text on the accent gradient, which fails
+  WCAG AA on every one of the eight themes: 3.46:1 on Violet at best, 1.48:1
+  on Slate Mono, against a 4.5:1 requirement. It is dark ink now, which
+  clears the requirement on all eight. A check in CI reads the themes out of
+  the source and fails the build if a new palette ever breaks it again.
+
+Windows binaries and installers are digitally signed by Aurelio Avila and
+timestamped; automatic updates carry a separate updater signature.
+
 ## v0.11.0 — 2026-09-13
 
 Leftover cleanup could send a whole well-known folder to the Recycle Bin.
