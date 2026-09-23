@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.2 - 2026-09-23
+
+- Leftover scans no longer offer protected Windows or user folders as removable install directories. The shared safety check now also recognizes differently cased Windows paths and aliases.
+
 ## v0.11.1 - 2026-09-14
 
 Pro stopped working during an outage, and the button you press to buy it was
