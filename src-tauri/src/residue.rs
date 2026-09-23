@@ -271,8 +271,8 @@ pub fn scan_residue(
     if let Some(location) = install_location.as_deref().filter(|l| !l.trim().is_empty()) {
         let path = PathBuf::from(location.trim().trim_matches('"'));
         // The install dir bypasses name matching (the registry itself vouched
-        // for it) but never a bare drive/root path.
-        if path.components().count() > 2 {
+        // for it) but must pass the same protected-directory gate as cleanup.
+        if path_is_cleanable(&path, &candidates, Some(location)) {
             push_if_dir(&mut items, "install-dir", path);
         }
     }
@@ -302,6 +302,20 @@ pub fn scan_residue(
 /// the whole of Program Files accepted as a leftover. Installers get this
 /// wrong often enough that the guard has to assume it.
 fn is_protected_directory(path: &Path) -> bool {
+    let canonical = path.canonicalize().ok();
+    for var in ["SystemRoot", "windir"] {
+        if let Ok(value) = std::env::var(var) {
+            let root = PathBuf::from(value);
+            if path.starts_with(&root)
+                || canonical
+                    .as_ref()
+                    .zip(root.canonicalize().ok().as_ref())
+                    .is_some_and(|(path, root)| path.starts_with(root))
+            {
+                return true;
+            }
+        }
+    }
     let mut protected: Vec<PathBuf> = Vec::new();
     for var in [
         "SystemRoot",
@@ -342,13 +356,22 @@ fn is_protected_directory(path: &Path) -> bool {
     if path.file_name().is_none() {
         return true;
     }
-    protected.iter().any(|root| path == root.as_path())
+    protected.iter().any(|root| {
+        path == root
+            || canonical
+                .as_ref()
+                .zip(root.canonicalize().ok().as_ref())
+                .is_some_and(|(path, root)| path == root)
+    })
 }
 
 fn path_is_cleanable(path: &Path, candidates: &[String], install_location: Option<&str>) -> bool {
+    if is_protected_directory(path) {
+        return false;
+    }
     if let Some(location) = install_location {
         let loc = PathBuf::from(location.trim().trim_matches('"'));
-        if loc.components().count() > 2 && path == loc && !is_protected_directory(path) {
+        if loc.components().count() > 2 && path == loc {
             return true;
         }
     }
@@ -472,13 +495,42 @@ mod tests {
                 var,
                 value
             );
-            // The application's own directory underneath it still is.
-            let nested = root.join("ExampleVendorApp");
+            let alternate_case = value.to_ascii_uppercase();
             assert!(
+                !path_is_cleanable(Path::new(&alternate_case), &[], Some(&alternate_case)),
+                "{} ({}) was accepted with alternate casing",
+                var,
+                alternate_case
+            );
+            assert!(
+                scan_residue("x".into(), None, Some(value.clone()))
+                    .unwrap()
+                    .items
+                    .is_empty(),
+                "{} ({}) was shown as a removable leftover",
+                var,
+                value
+            );
+            // Ordinary app directories remain eligible; Windows descendants do not.
+            let nested = root.join("ExampleVendorApp");
+            assert_eq!(
                 path_is_cleanable(&nested, &[], Some(&nested.to_string_lossy())),
-                "a real install directory under {} was rejected",
+                var != "SystemRoot",
+                "unexpected eligibility under {}",
                 var
             );
+            if var == "SystemRoot" {
+                let system32 = root.join("System32").to_string_lossy().to_ascii_uppercase();
+                assert!(!path_is_cleanable(
+                    Path::new(&system32),
+                    &["system32".into()],
+                    Some(&system32)
+                ));
+                assert!(scan_residue("System32".into(), None, Some(system32))
+                    .unwrap()
+                    .items
+                    .is_empty());
+            }
         }
     }
 
