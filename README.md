@@ -27,10 +27,15 @@ activated on first sign-in to Uninstaller with the same account. This is a
 separate, time-limited entitlement, not a perpetual Uninstaller license.
 
 **[Download latest signed version](../../releases/latest)** for Windows 10/11 x64.
-The application, EXE and MSI installers carry verified Authenticode signatures
-identifying **Aurelio Avila**, with trusted timestamps. Both installer updater
-signatures were verified separately. Published downloads were checked again on
-2026-09-08; historical version 0.8.2 remains unsigned.
+The [0.11.2 setup EXE](../../releases/tag/v0.11.2) was checked on September 24, 2026:
+its Authenticode signature identifies **Aurelio Avila** and includes a trusted timestamp.
+Its SHA-256 is `ec7727fcdb78a2d269a573ecfbd30816b9e192a71febe5738a9f3fafa9280243`.
+This check applies to that specific setup EXE, not every asset or future build.
+Historical version 0.8.2 remains unsigned; use current official downloads.
+
+**WinGet:** the [package submission](https://github.com/microsoft/winget-pkgs/pull/434135)
+is awaiting manual review. Passing automated checks is not catalog approval.
+Use the GitHub release download until the package is accepted.
 
 Signing identifies the publisher and protects file integrity; neither code signing
 nor WinGet guarantees the absence of SmartScreen warnings.
