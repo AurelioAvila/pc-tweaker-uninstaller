@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.3 - 2026-09-26
+
+PC Tweaker Uninstaller 0.11.3 is a routine maintenance update.
+
 ## v0.11.2 - 2026-09-23
 
 - Leftover scans no longer offer protected Windows or user folders as removable install directories. The shared safety check now also recognizes differently cased Windows paths and aliases.
