@@ -27,9 +27,9 @@ activated on first sign-in to Uninstaller with the same account. This is a
 separate, time-limited entitlement, not a perpetual Uninstaller license.
 
 **[Download latest signed version](../../releases/latest)** for Windows 10/11 x64.
-The [0.11.2 setup EXE](../../releases/tag/v0.11.2) was checked on September 24, 2026:
+The [0.11.3 setup EXE](../../releases/tag/v0.11.3) was checked on September 26, 2026:
 its Authenticode signature identifies **Aurelio Avila** and includes a trusted timestamp.
-Its SHA-256 is `ec7727fcdb78a2d269a573ecfbd30816b9e192a71febe5738a9f3fafa9280243`.
+Its SHA-256 is `900b411eba7a417eb749fd8be55d4ce3bcfeded86f7fc870b9df7affb81ed571`.
 This check applies to that specific setup EXE, not every asset or future build.
 Historical version 0.8.2 remains unsigned; use current official downloads.
 
