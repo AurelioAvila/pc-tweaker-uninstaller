@@ -178,10 +178,7 @@ export type Dictionary = {
   readonly menu: {
     readonly open: string;
     readonly account: string;
-    readonly signIn: string;
-    readonly signInHint: string;
     readonly plans: string;
-    readonly planMonthly: string;
     readonly planAnnual: string;
     readonly loyaltyTitle: string;
     readonly loyaltyPrice: string;
@@ -209,7 +206,12 @@ export type Dictionary = {
     readonly proGateSignIn: string;
     readonly loyaltyLocked: string;
     readonly checkFailed: string;
-    readonly registerHint: string;
+    readonly createAccount: string;
+    readonly firstNameLabel: string;
+    readonly lastNameLabel: string;
+    readonly birthDateLabel: string;
+    readonly verifyEmail: string;
+    readonly verifyEmailFailed: string;
   };
   readonly updater: {
     readonly title: (version: string) => string;
@@ -423,12 +425,8 @@ const en: Dictionary = {
   menu: {
     open: "Account & settings",
     account: "Account",
-    signIn: "Sign in / Register on pctweaker.app",
-    signInHint:
-      "One account for the whole PC Tweaker suite. Registration happens on pctweaker.app and is valid here too.",
     plans: "Uninstaller Pro",
-    planMonthly: "€3.99 / month",
-    planAnnual: "€13.99 / year",
+    planAnnual: "€9.99 / year",
     loyaltyTitle: "Suite loyalty price",
     loyaltyPrice: "€4.99 / year",
     loyaltyHint:
@@ -446,7 +444,7 @@ const en: Dictionary = {
     proInactive: "This account is not on PC Tweaker Pro yet.",
     upsActive: "Uninstaller Pro — active",
     upsInactive: "Uninstaller Pro — not active",
-    upsGoPro: "Go Pro — €13.99 / year",
+    upsGoPro: "Go Pro — €9.99 / year",
     upsGoProLoyalty: "Go Pro — €4.99 / year (PC Tweaker Pro loyalty price)",
     upsCheckoutHint: "Checkout opens in your browser. Come back here afterwards and refresh.",
     upsRefresh: "I've completed checkout — refresh",
@@ -458,7 +456,13 @@ const en: Dictionary = {
     proGateSignIn: "Sign in from the account menu first, then unlock Pro.",
     loyaltyLocked: "Sign in with your PC Tweaker Pro account to unlock the loyalty price.",
     checkFailed: "Could not verify your account right now. Try again shortly.",
-    registerHint: "No account yet? Create one on pctweaker.app.",
+    createAccount: "Create account",
+    firstNameLabel: "First name",
+    lastNameLabel: "Last name",
+    birthDateLabel: "Date of birth",
+    verifyEmail: "Check your inbox to verify your email address.",
+    verifyEmailFailed:
+      "Account created, but we could not send the verification email. Contact support.",
   },
   updater: {
     title: (version) => `Update ${version} is ready`,
@@ -675,12 +679,8 @@ const it: Dictionary = {
   menu: {
     open: "Account e impostazioni",
     account: "Account",
-    signIn: "Accedi / Registrati su pctweaker.app",
-    signInHint:
-      "Un solo account per tutta la suite PC Tweaker. La registrazione avviene su pctweaker.app e vale anche qui.",
     plans: "Uninstaller Pro",
-    planMonthly: "3,99 € / mese",
-    planAnnual: "13,99 € / anno",
+    planAnnual: "9,99 € / anno",
     loyaltyTitle: "Prezzo fedeltà suite",
     loyaltyPrice: "4,99 € / anno",
     loyaltyHint:
@@ -698,7 +698,7 @@ const it: Dictionary = {
     proInactive: "Questo account non ha ancora PC Tweaker Pro.",
     upsActive: "Uninstaller Pro — attivo",
     upsInactive: "Uninstaller Pro — non attivo",
-    upsGoPro: "Passa a Pro — 13,99 € / anno",
+    upsGoPro: "Passa a Pro — 9,99 € / anno",
     upsGoProLoyalty: "Passa a Pro — 4,99 € / anno (prezzo fedeltà PC Tweaker Pro)",
     upsCheckoutHint: "Il pagamento si apre nel browser. Al termine torna qui e aggiorna.",
     upsRefresh: "Ho completato il pagamento — aggiorna",
@@ -710,7 +710,13 @@ const it: Dictionary = {
     proGateSignIn: "Accedi prima dal menu account, poi sblocca Pro.",
     loyaltyLocked: "Accedi con il tuo account PC Tweaker Pro per sbloccare il prezzo fedeltà.",
     checkFailed: "Impossibile verificare l'account in questo momento. Riprova tra poco.",
-    registerHint: "Non hai un account? Creane uno su pctweaker.app.",
+    createAccount: "Crea account",
+    firstNameLabel: "Nome",
+    lastNameLabel: "Cognome",
+    birthDateLabel: "Data di nascita",
+    verifyEmail: "Controlla la posta per verificare il tuo indirizzo email.",
+    verifyEmailFailed:
+      "Account creato, ma non è stato possibile inviare l'email di verifica. Contatta l'assistenza.",
   },
   updater: {
     title: (version) => `Aggiornamento ${version} pronto`,
@@ -927,12 +933,8 @@ const fr: Dictionary = {
   menu: {
     open: "Compte et réglages",
     account: "Compte",
-    signIn: "Se connecter / S'inscrire sur pctweaker.app",
-    signInHint:
-      "Un seul compte pour toute la suite PC Tweaker. L'inscription se fait sur pctweaker.app et vaut aussi ici.",
     plans: "Uninstaller Pro",
-    planMonthly: "3,99 € / mois",
-    planAnnual: "13,99 € / an",
+    planAnnual: "9,99 € / an",
     loyaltyTitle: "Prix fidélité de la suite",
     loyaltyPrice: "4,99 € / an",
     loyaltyHint:
@@ -950,7 +952,7 @@ const fr: Dictionary = {
     proInactive: "Ce compte n'a pas encore PC Tweaker Pro.",
     upsActive: "Uninstaller Pro — actif",
     upsInactive: "Uninstaller Pro — non actif",
-    upsGoPro: "Passer Pro — 13,99 € / an",
+    upsGoPro: "Passer Pro — 9,99 € / an",
     upsGoProLoyalty: "Passer Pro — 4,99 € / an (tarif fidélité PC Tweaker Pro)",
     upsCheckoutHint:
       "Le paiement s'ouvre dans votre navigateur. Revenez ici ensuite et actualisez.",
@@ -964,7 +966,13 @@ const fr: Dictionary = {
     loyaltyLocked:
       "Connectez-vous avec votre compte PC Tweaker Pro pour débloquer le prix fidélité.",
     checkFailed: "Impossible de vérifier le compte pour le moment. Réessayez bientôt.",
-    registerHint: "Pas encore de compte ? Créez-en un sur pctweaker.app.",
+    createAccount: "Créer un compte",
+    firstNameLabel: "Prénom",
+    lastNameLabel: "Nom",
+    birthDateLabel: "Date de naissance",
+    verifyEmail: "Consultez votre boîte mail pour vérifier votre adresse.",
+    verifyEmailFailed:
+      "Compte créé, mais l'e-mail de vérification n'a pas pu être envoyé. Contactez l'assistance.",
   },
   updater: {
     title: (version) => `Mise à jour ${version} prête`,
@@ -1179,12 +1187,8 @@ const es: Dictionary = {
   menu: {
     open: "Cuenta y ajustes",
     account: "Cuenta",
-    signIn: "Inicia sesión / Regístrate en pctweaker.app",
-    signInHint:
-      "Una sola cuenta para toda la suite PC Tweaker. El registro se hace en pctweaker.app y también vale aquí.",
     plans: "Uninstaller Pro",
-    planMonthly: "3,99 € / mes",
-    planAnnual: "13,99 € / año",
+    planAnnual: "9,99 € / año",
     loyaltyTitle: "Precio de fidelidad de la suite",
     loyaltyPrice: "4,99 € / año",
     loyaltyHint:
@@ -1202,7 +1206,7 @@ const es: Dictionary = {
     proInactive: "Esta cuenta aún no tiene PC Tweaker Pro.",
     upsActive: "Uninstaller Pro — activo",
     upsInactive: "Uninstaller Pro — no activo",
-    upsGoPro: "Hazte Pro — 13,99 € / año",
+    upsGoPro: "Hazte Pro — 9,99 € / año",
     upsGoProLoyalty: "Hazte Pro — 4,99 € / año (precio fidelidad PC Tweaker Pro)",
     upsCheckoutHint: "El pago se abre en tu navegador. Vuelve aquí después y actualiza.",
     upsRefresh: "He completado el pago — actualizar",
@@ -1215,7 +1219,13 @@ const es: Dictionary = {
     loyaltyLocked:
       "Inicia sesión con tu cuenta PC Tweaker Pro para desbloquear el precio de fidelidad.",
     checkFailed: "No se pudo verificar la cuenta en este momento. Inténtalo de nuevo en breve.",
-    registerHint: "¿Aún no tienes cuenta? Créala en pctweaker.app.",
+    createAccount: "Crear cuenta",
+    firstNameLabel: "Nombre",
+    lastNameLabel: "Apellido",
+    birthDateLabel: "Fecha de nacimiento",
+    verifyEmail: "Revisa tu correo para verificar tu dirección.",
+    verifyEmailFailed:
+      "Cuenta creada, pero no se pudo enviar el correo de verificación. Contacta con soporte.",
   },
   updater: {
     title: (version) => `Actualización ${version} lista`,
@@ -1436,12 +1446,8 @@ const de: Dictionary = {
   menu: {
     open: "Konto & Einstellungen",
     account: "Konto",
-    signIn: "Anmelden / Registrieren auf pctweaker.app",
-    signInHint:
-      "Ein Konto für die ganze PC-Tweaker-Suite. Die Registrierung erfolgt auf pctweaker.app und gilt auch hier.",
     plans: "Uninstaller Pro",
-    planMonthly: "3,99 € / Monat",
-    planAnnual: "13,99 € / Jahr",
+    planAnnual: "9,99 € / Jahr",
     loyaltyTitle: "Suite-Treuepreis",
     loyaltyPrice: "4,99 € / Jahr",
     loyaltyHint:
@@ -1459,7 +1465,7 @@ const de: Dictionary = {
     proInactive: "Dieses Konto hat noch kein PC Tweaker Pro.",
     upsActive: "Uninstaller Pro — aktiv",
     upsInactive: "Uninstaller Pro — nicht aktiv",
-    upsGoPro: "Pro werden — 13,99 € / Jahr",
+    upsGoPro: "Pro werden — 9,99 € / Jahr",
     upsGoProLoyalty: "Pro werden — 4,99 € / Jahr (PC-Tweaker-Pro-Treuepreis)",
     upsCheckoutHint:
       "Die Zahlung öffnet sich im Browser. Danach hierher zurückkehren und aktualisieren.",
@@ -1473,7 +1479,13 @@ const de: Dictionary = {
     loyaltyLocked:
       "Melde dich mit deinem PC-Tweaker-Pro-Konto an, um den Treuepreis freizuschalten.",
     checkFailed: "Konto konnte gerade nicht überprüft werden. Versuche es gleich noch einmal.",
-    registerHint: "Noch kein Konto? Erstelle eines auf pctweaker.app.",
+    createAccount: "Konto erstellen",
+    firstNameLabel: "Vorname",
+    lastNameLabel: "Nachname",
+    birthDateLabel: "Geburtsdatum",
+    verifyEmail: "Prüfe dein Postfach, um deine E-Mail-Adresse zu bestätigen.",
+    verifyEmailFailed:
+      "Konto erstellt, aber die Bestätigungs-E-Mail konnte nicht gesendet werden. Kontaktiere den Support.",
   },
   updater: {
     title: (version) => `Update ${version} ist bereit`,

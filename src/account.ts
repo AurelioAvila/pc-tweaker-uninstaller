@@ -5,9 +5,7 @@
  * installed. Installed-on-this-PC is a hint shown as a badge; it proves
  * nothing about the account, and nothing here treats it as if it did.
  *
- * Registration deliberately does NOT happen in this app: the site
- * (pctweaker.app) owns account creation, and this app only signs in with an
- * existing suite account.
+ * New users can register against the same suite backend before checkout.
  */
 
 import { invoke } from "@tauri-apps/api/core";
@@ -74,6 +72,31 @@ export async function login(email: string, password: string): Promise<AccountSta
   const data = (await res.json()) as { token: string };
   storeSession(data.token, email);
   return fetchAccount();
+}
+
+export async function register(
+  email: string,
+  password: string,
+  firstName: string,
+  lastName: string,
+  dateOfBirth: string,
+): Promise<{ account: AccountState; verificationEmailSent: boolean }> {
+  const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, firstName, lastName, dateOfBirth }),
+  });
+  const data = (await res.json().catch(() => ({}))) as {
+    token?: string;
+    verificationEmailSent?: boolean;
+    error?: string;
+  };
+  if (!res.ok || !data.token) throw new Error(data.error || `HTTP ${String(res.status)}`);
+  storeSession(data.token, email.trim().toLowerCase());
+  return {
+    account: await fetchAccount(),
+    verificationEmailSent: data.verificationEmailSent === true,
+  };
 }
 
 /**
