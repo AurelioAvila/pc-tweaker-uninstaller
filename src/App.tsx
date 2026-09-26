@@ -13,6 +13,7 @@ import {
   fetchAccount,
   fetchUninstallerEntitlement,
   login,
+  register,
   logout,
   startUninstallerCheckout,
   type AccountState,
@@ -431,6 +432,11 @@ export default function App() {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [registerMode, setRegisterMode] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [registrationNotice, setRegistrationNotice] = useState<string | null>(null);
   const isProConfirmed = account.status === "signed-in" && account.isPro;
 
   const refreshAccount = useCallback(() => {
@@ -454,18 +460,38 @@ export default function App() {
 
   const submitLogin = useCallback(() => {
     setLoginError(null);
+    setRegistrationNotice(null);
     setAccount({ status: "checking", email: loginEmail });
-    login(loginEmail, loginPassword)
-      .then((next) => {
+    const request = registerMode
+      ? register(loginEmail, loginPassword, firstName, lastName, dateOfBirth)
+      : login(loginEmail, loginPassword).then((account) => ({
+          account,
+          verificationEmailSent: false,
+        }));
+    request
+      .then(({ account: next, verificationEmailSent }) => {
         setAccount(next);
         setLoginPassword("");
+        if (registerMode) {
+          setRegistrationNotice(
+            verificationEmailSent ? text.menu.verifyEmail : text.menu.verifyEmailFailed,
+          );
+        }
         if (next.status === "signed-in") refreshEntitlement();
       })
       .catch((error: unknown) => {
         setAccount({ status: "anonymous" });
         setLoginError(typeof error === "string" ? error : (error as Error).message);
       });
-  }, [loginEmail, loginPassword, refreshEntitlement]);
+  }, [
+    loginEmail,
+    loginPassword,
+    registerMode,
+    firstName,
+    lastName,
+    dateOfBirth,
+    refreshEntitlement,
+  ]);
 
   const signOut = useCallback(() => {
     logout();
@@ -859,6 +885,7 @@ export default function App() {
                   <p className={account.isPro ? "menu-hint menu-hint-ok" : "menu-hint"}>
                     {account.isPro ? text.menu.proActive : text.menu.proInactive}
                   </p>
+                  {registrationNotice && <p className="menu-hint">{registrationNotice}</p>}
                   {/* Uninstaller Pro: read from /api/entitlements, purchased
                       via Stripe Checkout in the system browser. The backend
                       picks the loyalty price server-side; the label here only
@@ -918,6 +945,8 @@ export default function App() {
                   <input
                     type="email"
                     className="search"
+                    required
+                    aria-label={text.menu.emailLabel}
                     placeholder={text.menu.emailLabel}
                     value={loginEmail}
                     autoComplete="email"
@@ -928,33 +957,82 @@ export default function App() {
                   <input
                     type="password"
                     className="search"
+                    required
                     style={{ marginTop: 6 }}
                     placeholder={text.menu.passwordLabel}
+                    aria-label={text.menu.passwordLabel}
                     value={loginPassword}
-                    autoComplete="current-password"
+                    minLength={registerMode ? 8 : undefined}
+                    autoComplete={registerMode ? "new-password" : "current-password"}
                     onChange={(e) => {
                       setLoginPassword(e.target.value);
                     }}
                   />
+                  {registerMode && (
+                    <>
+                      <input
+                        className="search"
+                        style={{ marginTop: 6 }}
+                        required
+                        aria-label={text.menu.firstNameLabel}
+                        placeholder={text.menu.firstNameLabel}
+                        autoComplete="given-name"
+                        value={firstName}
+                        onChange={(e) => {
+                          setFirstName(e.target.value);
+                        }}
+                      />
+                      <input
+                        className="search"
+                        style={{ marginTop: 6 }}
+                        required
+                        aria-label={text.menu.lastNameLabel}
+                        placeholder={text.menu.lastNameLabel}
+                        autoComplete="family-name"
+                        value={lastName}
+                        onChange={(e) => {
+                          setLastName(e.target.value);
+                        }}
+                      />
+                      <label className="menu-hint" htmlFor="uninstaller-birth-date">
+                        {text.menu.birthDateLabel}
+                      </label>
+                      <input
+                        id="uninstaller-birth-date"
+                        className="search"
+                        type="date"
+                        required
+                        autoComplete="bday"
+                        value={dateOfBirth}
+                        onChange={(e) => {
+                          setDateOfBirth(e.target.value);
+                        }}
+                      />
+                    </>
+                  )}
                   <button
                     type="submit"
                     className="button small full"
                     style={{ marginTop: 8 }}
                     disabled={account.status === "checking"}
                   >
-                    {account.status === "checking" ? text.menu.signingIn : text.menu.signInButton}
+                    {account.status === "checking"
+                      ? text.menu.signingIn
+                      : registerMode
+                        ? text.menu.createAccount
+                        : text.menu.signInButton}
                   </button>
                   {account.status === "error" && <p className="detail-notice">{account.message}</p>}
                   {loginError !== null && <p className="detail-notice">{loginError}</p>}
-                  <p className="menu-hint">{text.menu.registerHint}</p>
                   <button
                     type="button"
                     className="button-ghost small full"
                     onClick={() => {
-                      openLink("account");
+                      setRegisterMode((current) => !current);
+                      setLoginError(null);
                     }}
                   >
-                    {text.menu.signIn}
+                    {registerMode ? text.menu.signInButton : text.menu.createAccount}
                   </button>
                 </form>
               )}
@@ -988,9 +1066,6 @@ export default function App() {
                   <p className="menu-hint">{text.menu.loyaltyLocked}</p>
                 )
               )}
-              <div className="plan-row">
-                <span>{text.menu.planMonthly}</span>
-              </div>
               <div className="plan-row">
                 <span>{text.menu.planAnnual}</span>
               </div>
