@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import {
   LOCALES,
@@ -19,12 +19,15 @@ import {
   type AccountState,
   type UninstallerEntitlement,
 } from "./account";
-import { UpdateBanner } from "./updater";
+import { UpdateBanner, useAppUpdater } from "./updater";
 import { comparePrograms, isRecent, readView, SORT_KEYS, type SortKey } from "./inventory";
 import { inventoryCopy } from "./inventory-copy";
 import { ProgramIcon } from "./program-icon";
 import appLogo from "../src-tauri/icons/128x128.png";
 import "./App.css";
+import "./workspace.css";
+import { UiIcon } from "./ui-icon";
+import { workspaceCopy } from "./workspace-copy";
 
 /** Mirror of the Rust `ProgramInfo` shape (src-tauri/src/programs.rs). Every
  *  string here originates in the registry and is untrusted display data —
@@ -350,6 +353,25 @@ export default function App() {
   const [inventoryExport, setInventoryExport] = useState<string | null>(null);
   const [inventoryExportBusy, setInventoryExportBusy] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuTrigger = useRef<HTMLButtonElement>(null);
+  const [lastScan, setLastScan] = useState<Date | null>(null);
+  const words = workspaceCopy[lang];
+  const updater = useAppUpdater();
+  useEffect(() => {
+    if (!menuOpen) return;
+    menuRef.current?.focus();
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        menuTrigger.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("keydown", close);
+    };
+  }, [menuOpen]);
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
@@ -511,6 +533,7 @@ export default function App() {
       invoke<StoreApp[]>("list_store_apps").catch(() => [] as StoreApp[]),
     ])
       .then(([programs, storeApps]) => {
+        setLastScan(new Date());
         setState({
           phase: "ready",
           programs: [...programs, ...storeApps.map(storeAppAsProgram)],
@@ -836,10 +859,12 @@ export default function App() {
             </button>
           )}
           <button type="button" className="button-ghost small" onClick={openLedger}>
+            <UiIcon name="history" />
             {text.ledger.open}
           </button>
           <button
             type="button"
+            ref={menuTrigger}
             className="menu-trigger"
             aria-label={text.menu.open}
             aria-expanded={menuOpen}
@@ -870,265 +895,375 @@ export default function App() {
               setMenuOpen(false);
             }}
           />
-          <div className="menu-panel" role="dialog" aria-label={text.menu.open}>
-            <section className="menu-section">
-              <h3>{text.menu.account}</h3>
-
-              {account.status === "signed-in" && (
-                <>
-                  <div className="plan-row">
-                    <span>{account.email}</span>
-                  </div>
-                  {/* The ONLY place Pro status is asserted: read straight from
+          <div
+            ref={menuRef}
+            tabIndex={-1}
+            className="menu-panel"
+            role="dialog"
+            aria-label={text.menu.open}
+          >
+            <div className="profile-heading">
+              <span className="profile-avatar">
+                <UiIcon name="user" />
+              </span>
+              <div>
+                <strong>
+                  {account.status === "signed-in" ? account.email : text.menu.account}
+                </strong>
+                <p>{words.accountHint}</p>
+              </div>
+              <button
+                className="icon-button"
+                aria-label={words.close}
+                onClick={() => {
+                  setMenuOpen(false);
+                  menuTrigger.current?.focus();
+                }}
+              >
+                <UiIcon name="close" />
+              </button>
+            </div>
+            <details className="menu-section">
+              <summary>
+                <UiIcon name="user" />
+                {text.menu.account}
+                <UiIcon name="chevron" />
+              </summary>
+              <div className="menu-section-body">
+                {account.status === "signed-in" && (
+                  <>
+                    <div className="plan-row">
+                      <span>{account.email}</span>
+                    </div>
+                    {/* The ONLY place Pro status is asserted: read straight from
                       the account just verified against the backend, never
                       from local PC Tweaker detection. */}
-                  <p className={account.isPro ? "menu-hint menu-hint-ok" : "menu-hint"}>
-                    {account.isPro ? text.menu.proActive : text.menu.proInactive}
-                  </p>
-                  {registrationNotice && <p className="menu-hint">{registrationNotice}</p>}
-                  {/* Uninstaller Pro: read from /api/entitlements, purchased
+                    <p className={account.isPro ? "menu-hint menu-hint-ok" : "menu-hint"}>
+                      {account.isPro ? text.menu.proActive : text.menu.proInactive}
+                    </p>
+                    {registrationNotice && <p className="menu-hint">{registrationNotice}</p>}
+                    {/* Uninstaller Pro: read from /api/entitlements, purchased
                       via Stripe Checkout in the system browser. The backend
                       picks the loyalty price server-side; the label here only
                       mirrors what it will charge. */}
-                  <p className={uninstallerPro?.active ? "menu-hint menu-hint-ok" : "menu-hint"}>
-                    {uninstallerPro?.active ? text.menu.upsActive : text.menu.upsInactive}
-                  </p>
-                  {uninstallerPro?.expiresAt && (
-                    <p className="menu-hint menu-hint-ok">
-                      Pro until {new Date(uninstallerPro.expiresAt).toLocaleDateString()}
+                    <p className={uninstallerPro?.active ? "menu-hint menu-hint-ok" : "menu-hint"}>
+                      {uninstallerPro?.active ? text.menu.upsActive : text.menu.upsInactive}
                     </p>
-                  )}
-                  {!uninstallerPro?.active && (
-                    <>
-                      <button
-                        type="button"
-                        className="button-ghost small full"
-                        disabled={checkoutBusy}
-                        onClick={beginProCheckout}
-                      >
-                        {account.isPro ? text.menu.upsGoProLoyalty : text.menu.upsGoPro}
-                      </button>
-                      {checkoutStarted && (
-                        <>
-                          <p className="menu-hint">{text.menu.upsCheckoutHint}</p>
-                          <button
-                            type="button"
-                            className="button-ghost small full"
-                            onClick={refreshEntitlement}
-                          >
-                            {text.menu.upsRefresh}
-                          </button>
-                        </>
-                      )}
-                      {checkoutError && <p className="menu-hint">{text.menu.upsError}</p>}
-                    </>
-                  )}
+                    {uninstallerPro?.expiresAt && (
+                      <p className="menu-hint menu-hint-ok">
+                        {words.until} {new Date(uninstallerPro.expiresAt).toLocaleDateString()}
+                      </p>
+                    )}
+                    {!uninstallerPro?.active && (
+                      <>
+                        <button
+                          type="button"
+                          className="button-ghost small full"
+                          disabled={checkoutBusy}
+                          onClick={beginProCheckout}
+                        >
+                          {account.isPro ? text.menu.upsGoProLoyalty : text.menu.upsGoPro}
+                        </button>
+                        {checkoutStarted && (
+                          <>
+                            <p className="menu-hint">{text.menu.upsCheckoutHint}</p>
+                            <button
+                              type="button"
+                              className="button-ghost small full"
+                              onClick={refreshEntitlement}
+                            >
+                              {text.menu.upsRefresh}
+                            </button>
+                          </>
+                        )}
+                        {checkoutError && <p className="menu-hint">{text.menu.upsError}</p>}
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      className="button-ghost small full"
+                      onClick={() => {
+                        signOut();
+                      }}
+                    >
+                      {text.menu.signOut}
+                    </button>
+                  </>
+                )}
+
+                {account.status !== "signed-in" && (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      submitLogin();
+                    }}
+                  >
+                    <input
+                      type="email"
+                      className="search"
+                      required
+                      aria-label={text.menu.emailLabel}
+                      placeholder={text.menu.emailLabel}
+                      value={loginEmail}
+                      autoComplete="email"
+                      onChange={(e) => {
+                        setLoginEmail(e.target.value);
+                      }}
+                    />
+                    <input
+                      type="password"
+                      className="search"
+                      required
+                      style={{ marginTop: 6 }}
+                      placeholder={text.menu.passwordLabel}
+                      aria-label={text.menu.passwordLabel}
+                      value={loginPassword}
+                      minLength={registerMode ? 8 : undefined}
+                      autoComplete={registerMode ? "new-password" : "current-password"}
+                      onChange={(e) => {
+                        setLoginPassword(e.target.value);
+                      }}
+                    />
+                    {registerMode && (
+                      <>
+                        <input
+                          className="search"
+                          style={{ marginTop: 6 }}
+                          required
+                          aria-label={text.menu.firstNameLabel}
+                          placeholder={text.menu.firstNameLabel}
+                          autoComplete="given-name"
+                          value={firstName}
+                          onChange={(e) => {
+                            setFirstName(e.target.value);
+                          }}
+                        />
+                        <input
+                          className="search"
+                          style={{ marginTop: 6 }}
+                          required
+                          aria-label={text.menu.lastNameLabel}
+                          placeholder={text.menu.lastNameLabel}
+                          autoComplete="family-name"
+                          value={lastName}
+                          onChange={(e) => {
+                            setLastName(e.target.value);
+                          }}
+                        />
+                        <label className="menu-hint" htmlFor="uninstaller-birth-date">
+                          {text.menu.birthDateLabel}
+                        </label>
+                        <input
+                          id="uninstaller-birth-date"
+                          className="search"
+                          type="date"
+                          required
+                          autoComplete="bday"
+                          value={dateOfBirth}
+                          onChange={(e) => {
+                            setDateOfBirth(e.target.value);
+                          }}
+                        />
+                      </>
+                    )}
+                    <button
+                      type="submit"
+                      className="button small full"
+                      style={{ marginTop: 8 }}
+                      disabled={account.status === "checking"}
+                    >
+                      {account.status === "checking"
+                        ? text.menu.signingIn
+                        : registerMode
+                          ? text.menu.createAccount
+                          : text.menu.signInButton}
+                    </button>
+                    {account.status === "error" && (
+                      <p className="detail-notice">{account.message}</p>
+                    )}
+                    {loginError !== null && <p className="detail-notice">{loginError}</p>}
+                    <button
+                      type="button"
+                      className="button-ghost small full"
+                      onClick={() => {
+                        setRegisterMode((current) => !current);
+                        setLoginError(null);
+                      }}
+                    >
+                      {registerMode ? text.menu.signInButton : text.menu.createAccount}
+                    </button>
+                  </form>
+                )}
+
+                {suiteDetected && (
                   <button
                     type="button"
                     className="button-ghost small full"
-                    onClick={() => {
-                      signOut();
-                    }}
-                  >
-                    {text.menu.signOut}
-                  </button>
-                </>
-              )}
-
-              {account.status !== "signed-in" && (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    submitLogin();
-                  }}
-                >
-                  <input
-                    type="email"
-                    className="search"
-                    required
-                    aria-label={text.menu.emailLabel}
-                    placeholder={text.menu.emailLabel}
-                    value={loginEmail}
-                    autoComplete="email"
-                    onChange={(e) => {
-                      setLoginEmail(e.target.value);
-                    }}
-                  />
-                  <input
-                    type="password"
-                    className="search"
-                    required
-                    style={{ marginTop: 6 }}
-                    placeholder={text.menu.passwordLabel}
-                    aria-label={text.menu.passwordLabel}
-                    value={loginPassword}
-                    minLength={registerMode ? 8 : undefined}
-                    autoComplete={registerMode ? "new-password" : "current-password"}
-                    onChange={(e) => {
-                      setLoginPassword(e.target.value);
-                    }}
-                  />
-                  {registerMode && (
-                    <>
-                      <input
-                        className="search"
-                        style={{ marginTop: 6 }}
-                        required
-                        aria-label={text.menu.firstNameLabel}
-                        placeholder={text.menu.firstNameLabel}
-                        autoComplete="given-name"
-                        value={firstName}
-                        onChange={(e) => {
-                          setFirstName(e.target.value);
-                        }}
-                      />
-                      <input
-                        className="search"
-                        style={{ marginTop: 6 }}
-                        required
-                        aria-label={text.menu.lastNameLabel}
-                        placeholder={text.menu.lastNameLabel}
-                        autoComplete="family-name"
-                        value={lastName}
-                        onChange={(e) => {
-                          setLastName(e.target.value);
-                        }}
-                      />
-                      <label className="menu-hint" htmlFor="uninstaller-birth-date">
-                        {text.menu.birthDateLabel}
-                      </label>
-                      <input
-                        id="uninstaller-birth-date"
-                        className="search"
-                        type="date"
-                        required
-                        autoComplete="bday"
-                        value={dateOfBirth}
-                        onChange={(e) => {
-                          setDateOfBirth(e.target.value);
-                        }}
-                      />
-                    </>
-                  )}
-                  <button
-                    type="submit"
-                    className="button small full"
                     style={{ marginTop: 8 }}
-                    disabled={account.status === "checking"}
+                    onClick={openPcTweaker}
                   >
-                    {account.status === "checking"
-                      ? text.menu.signingIn
-                      : registerMode
-                        ? text.menu.createAccount
-                        : text.menu.signInButton}
+                    {text.menu.openPcTweaker}
                   </button>
-                  {account.status === "error" && <p className="detail-notice">{account.message}</p>}
-                  {loginError !== null && <p className="detail-notice">{loginError}</p>}
-                  <button
-                    type="button"
-                    className="button-ghost small full"
-                    onClick={() => {
-                      setRegisterMode((current) => !current);
-                      setLoginError(null);
-                    }}
-                  >
-                    {registerMode ? text.menu.signInButton : text.menu.createAccount}
-                  </button>
-                </form>
-              )}
+                )}
+              </div>
+            </details>
 
-              {suiteDetected && (
+            <details className="menu-section">
+              <summary>
+                <UiIcon name="shield" />
+                {text.menu.plans}
+                <UiIcon name="chevron" />
+              </summary>
+              <div className="menu-section-body">
+                {/* Loyalty pricing requires a VERIFIED Pro account, not merely
+                  PC Tweaker being present on this PC. isProConfirmed is the
+                  one gate every price/perk in this section reads. */}
+                {isProConfirmed ? (
+                  <div className="plan-row plan-loyalty">
+                    <span>
+                      <strong>{text.menu.loyaltyTitle}</strong>
+                      <em>{text.menu.loyaltyPrice}</em>
+                    </span>
+                  </div>
+                ) : (
+                  account.status !== "signed-in" && (
+                    <p className="menu-hint">{text.menu.loyaltyLocked}</p>
+                  )
+                )}
+                <div className="plan-row">
+                  <span>{text.menu.planAnnual}</span>
+                </div>
+                <p className="menu-hint">{text.menu.loyaltyHint}</p>
                 <button
                   type="button"
                   className="button-ghost small full"
-                  style={{ marginTop: 8 }}
-                  onClick={openPcTweaker}
+                  onClick={() => {
+                    openLink("pricing");
+                  }}
                 >
-                  {text.menu.openPcTweaker}
+                  {text.menu.choosePlans}
                 </button>
-              )}
-            </section>
+              </div>
+            </details>
 
-            <section className="menu-section">
-              <h3>{text.menu.plans}</h3>
-              {/* Loyalty pricing requires a VERIFIED Pro account, not merely
-                  PC Tweaker being present on this PC. isProConfirmed is the
-                  one gate every price/perk in this section reads. */}
-              {isProConfirmed ? (
-                <div className="plan-row plan-loyalty">
-                  <span>
-                    <strong>{text.menu.loyaltyTitle}</strong>
-                    <em>{text.menu.loyaltyPrice}</em>
-                  </span>
+            <details className="menu-section">
+              <summary>
+                <UiIcon name="globe" />
+                {text.menu.language}
+                <span className="preference-value">
+                  {LOCALES.find((l) => l.code === lang)?.native}
+                </span>
+                <UiIcon name="chevron" />
+              </summary>
+              <div className="menu-section-body">
+                <div className="menu-chips">
+                  {LOCALES.map((l) => (
+                    <button
+                      key={l.code}
+                      type="button"
+                      className={`chip chip-button${lang === l.code ? " chip-active" : ""}`}
+                      aria-pressed={lang === l.code}
+                      onClick={() => {
+                        chooseLang(l.code);
+                      }}
+                    >
+                      {l.native}
+                    </button>
+                  ))}
                 </div>
-              ) : (
-                account.status !== "signed-in" && (
-                  <p className="menu-hint">{text.menu.loyaltyLocked}</p>
-                )
-              )}
-              <div className="plan-row">
-                <span>{text.menu.planAnnual}</span>
               </div>
-              <p className="menu-hint">{text.menu.loyaltyHint}</p>
+            </details>
+
+            <details className="menu-section">
+              <summary>
+                <UiIcon name="palette" />
+                {text.menu.theme}
+                <span className="preference-value">
+                  {THEMES.find((t) => t.code === theme)?.label}
+                </span>
+                <UiIcon name="chevron" />
+              </summary>
+              <div className="menu-section-body">
+                <div className="menu-swatches">
+                  {THEMES.map((t) => (
+                    <button
+                      key={t.code}
+                      type="button"
+                      className={`theme-option${theme === t.code ? " theme-option-active" : ""}`}
+                      title={t.label}
+                      aria-label={t.label}
+                      aria-pressed={theme === t.code}
+                      onClick={() => {
+                        setTheme(t.code);
+                      }}
+                    >
+                      <span className="theme-dot" style={{ background: t.vars.accent }} />
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </details>
+            <div className="profile-update">
               <button
-                type="button"
-                className="button-ghost small full"
-                onClick={() => {
-                  openLink("pricing");
-                }}
+                className="button-ghost full"
+                disabled={updater.checking || updater.phase !== "offer"}
+                onClick={() => void updater.check(true)}
               >
-                {text.menu.choosePlans}
+                <UiIcon name="refresh" className={updater.checking ? "spinning" : ""} />
+                {updater.checking ? words.checking : words.checkUpdates}
               </button>
-            </section>
-
-            <section className="menu-section">
-              <h3>{text.menu.language}</h3>
-              <div className="menu-chips">
-                {LOCALES.map((l) => (
-                  <button
-                    key={l.code}
-                    type="button"
-                    className={`chip chip-button${lang === l.code ? " chip-active" : ""}`}
-                    aria-pressed={lang === l.code}
-                    onClick={() => {
-                      chooseLang(l.code);
-                    }}
-                  >
-                    {l.native}
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            <section className="menu-section">
-              <h3>{text.menu.theme}</h3>
-              <div className="menu-swatches">
-                {THEMES.map((t) => (
-                  <button
-                    key={t.code}
-                    type="button"
-                    className={`swatch${theme === t.code ? " swatch-active" : ""}`}
-                    title={t.label}
-                    aria-label={t.label}
-                    aria-pressed={theme === t.code}
-                    style={{ background: t.vars.accent }}
-                    onClick={() => {
-                      setTheme(t.code);
-                    }}
-                  />
-                ))}
-              </div>
-            </section>
+              <p role="status">
+                {updater.checkStatus === "current"
+                  ? words.upToDate
+                  : updater.checkStatus === "error"
+                    ? words.checkFailed
+                    : version
+                      ? `v${version}`
+                      : ""}
+              </p>
+            </div>
           </div>
         </>
       )}
 
-      <main className="content">
+      <main className="content" inert={updater.phase !== "offer"}>
+        <div className="workspace-heading">
+          <div>
+            <h2>{words.title}</h2>
+            <p>{words.subtitle}</p>
+          </div>
+          <div className="inventory-refresh">
+            <button
+              className="button-ghost"
+              disabled={state.phase === "loading" || flow.step !== "idle"}
+              onClick={load}
+            >
+              <UiIcon name="refresh" className={state.phase === "loading" ? "spinning" : ""} />
+              {words.refresh}
+            </button>
+            {lastScan && (
+              <span>
+                {words.lastScan}{" "}
+                {lastScan.toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" })}
+              </span>
+            )}
+          </div>
+        </div>
         {state.phase === "loading" && (
-          <p className="status" role="status">
-            <span className="spinner" aria-hidden="true" />
-            {text.programs.loading}
-          </p>
+          <div className="inventory-loading" role="status">
+            <p>
+              <span className="spinner" aria-hidden="true" />
+              {text.programs.loading}
+            </p>
+            {[0, 1, 2, 3, 4].map((index) => (
+              <div className="skeleton-row" key={index} aria-hidden="true">
+                <span />
+                <div />
+                <div />
+              </div>
+            ))}
+          </div>
         )}
 
         {state.phase === "error" && (
@@ -1143,6 +1278,53 @@ export default function App() {
 
         {state.phase === "ready" && (
           <>
+            <div className="inventory-summary">
+              <button
+                className={chip === "all" ? "selected" : ""}
+                onClick={() => {
+                  setChip("all");
+                }}
+                aria-pressed={chip === "all"}
+              >
+                <UiIcon name="apps" />
+                <span>
+                  {words.installed}
+                  <strong>{visible.length}</strong>
+                </span>
+              </button>
+              <button
+                className={chip === "large" ? "selected" : ""}
+                onClick={() => {
+                  setChip("large");
+                }}
+                aria-pressed={chip === "large"}
+              >
+                <UiIcon name="drive" />
+                <span>
+                  {words.large}
+                  <strong>
+                    {visible.filter((p) => (p.estimatedSizeKb ?? 0) >= LARGE_KB).length}
+                  </strong>
+                  <small>{words.largeHint}</small>
+                </span>
+              </button>
+              <button
+                className={chip === "recent" ? "selected" : ""}
+                onClick={() => {
+                  setChip("recent");
+                }}
+                aria-pressed={chip === "recent"}
+              >
+                <UiIcon name="clock" />
+                <span>
+                  {words.recent}
+                  <strong>
+                    {visible.filter((p) => isRecent(p.installDate, new Date())).length}
+                  </strong>
+                  <small>{words.recentHint}</small>
+                </span>
+              </button>
+            </div>
             <div className="toolbar">
               <input
                 type="search"
@@ -1155,25 +1337,6 @@ export default function App() {
                 }}
               />
               <div className="chip-group" role="group" aria-label={text.programs.filterAll}>
-                {(
-                  [
-                    ["all", text.programs.filterAll],
-                    ["large", text.programs.filterLarge],
-                    ["recent", text.programs.filterRecent],
-                  ] as const
-                ).map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    className={`chip chip-button${chip === value ? " chip-active" : ""}`}
-                    aria-pressed={chip === value}
-                    onClick={() => {
-                      setChip(value);
-                    }}
-                  >
-                    {label}
-                  </button>
-                ))}
                 <button
                   type="button"
                   className={`chip chip-button${showHidden ? " chip-active" : ""}`}
@@ -1196,131 +1359,138 @@ export default function App() {
               )}
             </div>
 
-            <section className="inventory-controls" aria-label={copy.sort}>
-              <label>
-                {copy.sort}
-                <select
-                  value={sortKey}
-                  onChange={(e) => {
-                    const key = e.target.value as SortKey;
-                    setSortKey(key);
-                    setSortAsc(key !== "size" && key !== "date");
-                  }}
-                >
-                  {SORT_KEYS.map((key) => (
-                    <option key={key} value={key}>
-                      {
+            <details className="advanced-controls">
+              <summary>
+                <UiIcon name="filters" />
+                {words.filters}
+                <UiIcon name="chevron" />
+              </summary>
+              <section className="inventory-controls" aria-label={copy.sort}>
+                <label>
+                  {copy.sort}
+                  <select
+                    value={sortKey}
+                    onChange={(e) => {
+                      const key = e.target.value as SortKey;
+                      setSortKey(key);
+                      setSortAsc(key !== "size" && key !== "date");
+                    }}
+                  >
+                    {SORT_KEYS.map((key) => (
+                      <option key={key} value={key}>
                         {
-                          name: text.programs.columnProgram,
-                          size: text.programs.columnSize,
-                          date: text.programs.columnInstalled,
-                          publisher: text.programs.columnPublisher,
-                          source: copy.source,
-                        }[key]
-                      }
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button
-                type="button"
-                className="button-ghost inventory-direction"
-                onClick={() => {
-                  setSortAsc((v) => !v);
-                }}
-              >
-                <span aria-hidden="true">{sortAsc ? "↑" : "↓"}</span>{" "}
-                {sortAsc ? copy.ascending : copy.descending}
-              </button>
-              <label>
-                {copy.source}
-                <select
-                  value={sourceFilter}
-                  onChange={(e) => {
-                    setSourceFilter(e.target.value);
+                          {
+                            name: text.programs.columnProgram,
+                            size: text.programs.columnSize,
+                            date: text.programs.columnInstalled,
+                            publisher: text.programs.columnPublisher,
+                            source: copy.source,
+                          }[key]
+                        }
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  className="button-ghost inventory-direction"
+                  onClick={() => {
+                    setSortAsc((v) => !v);
                   }}
                 >
-                  <option value="all">{copy.all}</option>
-                  {(["machine64", "machine32", "user", "store"] as const).map((source) => (
-                    <option key={source} value={source}>
-                      {sourceLabel(source)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                {copy.confidence}
-                <select
-                  value={confidenceFilter}
-                  onChange={(e) => {
-                    setConfidenceFilter(e.target.value);
+                  <span aria-hidden="true">{sortAsc ? "↑" : "↓"}</span>{" "}
+                  {sortAsc ? copy.ascending : copy.descending}
+                </button>
+                <label>
+                  {copy.source}
+                  <select
+                    value={sourceFilter}
+                    onChange={(e) => {
+                      setSourceFilter(e.target.value);
+                    }}
+                  >
+                    <option value="all">{copy.all}</option>
+                    {(["machine64", "machine32", "user", "store"] as const).map((source) => (
+                      <option key={source} value={source}>
+                        {sourceLabel(source)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  {copy.confidence}
+                  <select
+                    value={confidenceFilter}
+                    onChange={(e) => {
+                      setConfidenceFilter(e.target.value);
+                    }}
+                  >
+                    <option value="all">{copy.all}</option>
+                    <option value="safe">{text.confidence.labelSafe}</option>
+                    <option value="review">{text.confidence.labelReview}</option>
+                    <option value="keep">{text.confidence.labelKeep}</option>
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  className="chip chip-button"
+                  aria-pressed={compact}
+                  onClick={() => {
+                    setCompact((v) => !v);
                   }}
                 >
-                  <option value="all">{copy.all}</option>
-                  <option value="safe">{text.confidence.labelSafe}</option>
-                  <option value="review">{text.confidence.labelReview}</option>
-                  <option value="keep">{text.confidence.labelKeep}</option>
-                </select>
-              </label>
-              <button
-                type="button"
-                className="chip chip-button"
-                aria-pressed={compact}
-                onClick={() => {
-                  setCompact((v) => !v);
-                }}
-              >
-                {copy.compact}
-              </button>
-              <button
-                type="button"
-                className="button-ghost"
-                onClick={() => {
-                  setQuery("");
-                  setChip("all");
-                  setSourceFilter("all");
-                  setConfidenceFilter("all");
-                  setSortKey("name");
-                  setSortAsc(true);
-                  setCompact(false);
-                  setShowHidden(false);
-                }}
-              >
-                {copy.reset}
-              </button>
-              <button
-                type="button"
-                className="button-ghost"
-                disabled={inventoryExportBusy || filtered.length === 0}
-                onClick={() => {
-                  setInventoryExportBusy(true);
-                  void invoke<string>("export_inventory", {
-                    keys: filtered.map((p) => `${p.source}:${p.id}`),
-                  })
-                    .then(setInventoryExport)
-                    .catch(() => {
-                      setInventoryExport(text.errors.generic);
+                  {copy.compact}
+                </button>
+                <button
+                  type="button"
+                  className="button-ghost"
+                  onClick={() => {
+                    setQuery("");
+                    setChip("all");
+                    setSourceFilter("all");
+                    setConfidenceFilter("all");
+                    setSortKey("name");
+                    setSortAsc(true);
+                    setCompact(false);
+                    setShowHidden(false);
+                  }}
+                >
+                  {copy.reset}
+                </button>
+                <button
+                  type="button"
+                  className="button-ghost"
+                  disabled={inventoryExportBusy || filtered.length === 0}
+                  onClick={() => {
+                    setInventoryExportBusy(true);
+                    void invoke<string>("export_inventory", {
+                      keys: filtered.map((p) => `${p.source}:${p.id}`),
                     })
-                    .finally(() => {
-                      setInventoryExportBusy(false);
-                    });
-                }}
-              >
-                {copy.export}
-              </button>
-              {inventoryExport && (
-                <p className="inventory-hint" role="status">
-                  {inventoryExport}
+                      .then(setInventoryExport)
+                      .catch(() => {
+                        setInventoryExport(text.errors.generic);
+                      })
+                      .finally(() => {
+                        setInventoryExportBusy(false);
+                      });
+                  }}
+                >
+                  {copy.export}
+                </button>
+                {inventoryExport && (
+                  <p className="inventory-hint" role="status">
+                    {inventoryExport}
+                  </p>
+                )}
+                <p className="inventory-hint">
+                  {copy.hint}{" "}
+                  <strong>
+                    {copy.unknown}:{" "}
+                    {filtered.filter((p) => !p.estimatedSizeKb || p.estimatedSizeKb < 0).length}
+                  </strong>
                 </p>
-              )}
-              <p className="inventory-hint">
-                {copy.hint}{" "}
-                <strong>
-                  {copy.unknown}:{" "}
-                  {filtered.filter((p) => !p.estimatedSizeKb || p.estimatedSizeKb < 0).length}
-                </strong>
-              </p>
-            </section>
+              </section>
+            </details>
 
             {state.programs.length === 0 && (
               <section className="empty">
@@ -1494,6 +1664,10 @@ export default function App() {
                                 {p.name}
                               </span>
                               <span className="publisher">{p.publisher ?? " "}</span>
+                              <span className="row-detail-hint">
+                                <UiIcon name="chevron" />
+                                {words.viewDetails}
+                              </span>
                             </span>
                           </span>
                           <span role="cell" className="dim">
@@ -1683,7 +1857,7 @@ export default function App() {
         </div>
       </footer>
 
-      <UpdateBanner />
+      <UpdateBanner updater={updater} busy={flow.step !== "idle"} words={words} />
 
       {ledgerOpen && (
         <div
