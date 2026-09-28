@@ -59,7 +59,7 @@ $nsisDirectory = Join-Path $root 'nsis-app'
 Run-Installer $oldExe[0].FullName @('/S',"/D=$nsisDirectory")
 Run-Installer $newExe[0].FullName @('/S',"/D=$nsisDirectory")
 Assert-Payload $nsisDirectory
-$uninstaller = @(Get-ChildItem -LiteralPath $nsisDirectory -Filter '*uninstall*.exe')
+$uninstaller = @(Get-ChildItem -LiteralPath $nsisDirectory -Filter 'uninstall.exe')
 if ($uninstaller.Count -ne 1) { throw 'NSIS uninstaller missing' }
 Assert-Signed $uninstaller[0].FullName
 Run-Installer $uninstaller[0].FullName @('/S',"_?=$nsisDirectory")
