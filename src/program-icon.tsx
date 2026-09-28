@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { UiIcon } from "./ui-icon";
 import { invoke } from "@tauri-apps/api/core";
 
 export function ProgramIcon({ source, id, name }: { source: string; id: string; name: string }) {
@@ -26,7 +27,12 @@ export function ProgramIcon({ source, id, name }: { source: string; id: string; 
     };
   }, [source, id]);
   return (
-    <span ref={ref} className="program-icon" aria-hidden="true">
+    <span
+      ref={ref}
+      className={`program-icon ${icon ? "has-native-icon" : "fallback-icon"}`}
+      title={name}
+      aria-hidden="true"
+    >
       {icon ? (
         <img
           src={icon}
@@ -36,7 +42,7 @@ export function ProgramIcon({ source, id, name }: { source: string; id: string; 
           }}
         />
       ) : (
-        <span>{name.slice(0, 1).toUpperCase()}</span>
+        <UiIcon name={source === "store" ? "apps" : "package"} />
       )}
     </span>
   );

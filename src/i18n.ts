@@ -230,7 +230,7 @@ export type Dictionary = {
 const en: Dictionary = {
   app: {
     title: "PC Tweaker Uninstaller",
-    tagline: "Removal Intelligence for Windows - remove software with clarity, not guesswork.",
+    tagline: "Review installed software. Remove with confidence.",
     suiteDetected: "PC Tweaker detected - suite member",
     suiteDetectedHint:
       "PC Tweaker is installed on this PC. Sign in with your PC Tweaker Pro account to unlock the loyalty price.",
@@ -481,7 +481,7 @@ const en: Dictionary = {
 const it: Dictionary = {
   app: {
     title: "PC Tweaker Uninstaller",
-    tagline: "Removal Intelligence per Windows: rimuovi il software con chiarezza, non a intuito.",
+    tagline: "Controlla i programmi installati. Scegli cosa rimuovere.",
     suiteDetected: "PC Tweaker rilevato - membro della suite",
     suiteDetectedHint:
       "PC Tweaker è installato su questo PC. Accedi con il tuo account PC Tweaker Pro per sbloccare il prezzo fedeltà.",
@@ -735,8 +735,7 @@ const it: Dictionary = {
 const fr: Dictionary = {
   app: {
     title: "PC Tweaker Uninstaller",
-    tagline:
-      "Removal Intelligence pour Windows : supprimez vos logiciels avec clarté, pas au hasard.",
+    tagline: "Examinez vos logiciels. Choisissez quoi désinstaller.",
     suiteDetected: "PC Tweaker détecté - membre de la suite",
     suiteDetectedHint:
       "PC Tweaker est installé sur ce PC. Connectez-vous avec votre compte PC Tweaker Pro pour débloquer le prix fidélité.",
@@ -991,7 +990,7 @@ const fr: Dictionary = {
 const es: Dictionary = {
   app: {
     title: "PC Tweaker Uninstaller",
-    tagline: "Removal Intelligence para Windows: elimina software con claridad, no a ciegas.",
+    tagline: "Revisa tus programas. Elige qué desinstalar.",
     suiteDetected: "PC Tweaker detectado - miembro de la suite",
     suiteDetectedHint:
       "PC Tweaker está instalado en este PC. Inicia sesión con tu cuenta PC Tweaker Pro para desbloquear el precio de fidelidad.",
@@ -1244,8 +1243,7 @@ const es: Dictionary = {
 const de: Dictionary = {
   app: {
     title: "PC Tweaker Uninstaller",
-    tagline:
-      "Removal Intelligence für Windows: Software mit Klarheit entfernen, nicht auf gut Glück.",
+    tagline: "Installierte Programme prüfen. Bewusst deinstallieren.",
     suiteDetected: "PC Tweaker erkannt - Suite-Mitglied",
     suiteDetectedHint:
       "PC Tweaker ist auf diesem PC installiert. Melde dich mit deinem PC-Tweaker-Pro-Konto an, um den Treuepreis freizuschalten.",
