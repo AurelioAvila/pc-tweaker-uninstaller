@@ -7,7 +7,12 @@ on:
   push:
     branches: ["**"]
   pull_request:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Draft release tag for isolated installer verification"
+        required: false
+        type: string
 
 # Least privilege: this workflow only runs checks, it never writes.
 permissions:
@@ -15,6 +20,7 @@ permissions:
 
 jobs:
   checks:
+    if: ${{ !inputs.release_tag }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
@@ -75,3 +81,26 @@ jobs:
       - name: Rust tests
         working-directory: src-tauri
         run: cargo test
+
+  installers:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag }}
+    # GitHub exposes draft releases only to callers with repository write
+    # access. Scope this permission to the manually dispatched installer job;
+    # ordinary push and pull-request checks remain read-only.
+    permissions:
+      contents: write
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        format: [nsis, msi]
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Verify signed installers and upgrade from 0.11.3
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          INSTALLER_FORMAT: ${{ matrix.format }}
+        run: ./scripts/verify-installers.ps1
