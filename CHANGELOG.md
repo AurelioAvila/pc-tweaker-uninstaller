@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.0
+
+PC Tweaker Uninstaller 0.12.0 is a routine daily maintenance update.
+
 ## v0.11.3 - 2026-09-26
 
 PC Tweaker Uninstaller 0.11.3 is a routine maintenance update.
