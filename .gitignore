@@ -31,3 +31,7 @@ latest.json
 !.vscode/extensions.json
 .idea
 .DS_Store
+
+# Local UI preview and screenshots
+.local-preview/
+ui-evidence/
