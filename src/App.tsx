@@ -54,6 +54,8 @@ interface ProgramInfo {
   hidden: boolean;
   confidence: Confidence;
   relations: ProgramRelations;
+  /** The entry's own uninstaller no longer exists on disk. */
+  broken: boolean;
 }
 
 /** Mirror of `Relations` (src-tauri/src/relations.rs). */
@@ -99,6 +101,7 @@ function storeAppAsProgram(app: StoreApp): ProgramInfo {
     hidden: app.hidden,
     confidence: app.confidence,
     relations: { dependents: [], installedVia: null, publisherSiblings: 0 },
+    broken: false,
   };
 }
 
@@ -170,6 +173,9 @@ type FlowState =
   | { step: "storeConfirm"; program: ProgramInfo }
   | { step: "storeRunning"; program: ProgramInfo }
   | { step: "storeDone"; program: ProgramInfo }
+  | { step: "forgetConfirm"; program: ProgramInfo }
+  | { step: "forgetRunning"; program: ProgramInfo }
+  | { step: "forgetDone"; program: ProgramInfo; report: UninstallReport }
   | { step: "batchConfirm"; programs: ProgramInfo[] }
   | { step: "batchRunning"; programs: ProgramInfo[]; index: number; results: BatchItemResult[] }
   | { step: "batchDone"; results: BatchItemResult[] };
@@ -185,6 +191,7 @@ interface BatchItemResult {
 function isBatchable(p: ProgramInfo): boolean {
   return (
     (p.uninstall === "msi" || p.uninstall === "executable") &&
+    !p.broken &&
     p.confidence.level !== "keep" &&
     !isFamilyApp(p)
   );
@@ -674,6 +681,28 @@ export default function App() {
       invoke("remove_store_app", { packageFullName: program.id })
         .then(() => {
           setFlow({ step: "storeDone", program });
+          load();
+        })
+        .catch((error: unknown) => {
+          setFlow({
+            step: "execError",
+            program,
+            message: typeof error === "string" ? error : text.errors.generic,
+          });
+          load();
+        });
+    },
+    [load],
+  );
+
+  // A broken entry: its uninstaller is gone, so only the entry itself can be
+  // removed. The backend re-checks that the uninstaller is really missing.
+  const confirmForget = useCallback(
+    (program: ProgramInfo) => {
+      setFlow({ step: "forgetRunning", program });
+      invoke<UninstallReport>("forget_broken_entry", { source: program.source, id: program.id })
+        .then((report) => {
+          setFlow({ step: "forgetDone", program, report });
           load();
         })
         .catch((error: unknown) => {
@@ -1711,6 +1740,14 @@ export default function App() {
                                 {text.programs.badgeUser}
                               </span>
                             )}
+                            {p.broken && (
+                              <span
+                                className="badge badge-invalid"
+                                title={text.programs.badgeMissingHint}
+                              >
+                                {text.programs.badgeMissing}
+                              </span>
+                            )}
                             <span
                               className={`badge badge-${p.uninstall}`}
                               title={badgeHint(p.uninstall)}
@@ -1951,7 +1988,10 @@ export default function App() {
           className="overlay"
           role="presentation"
           onClick={
-            flow.step === "planning" || flow.step === "running" || flow.step === "storeRunning"
+            flow.step === "planning" ||
+            flow.step === "running" ||
+            flow.step === "storeRunning" ||
+            flow.step === "forgetRunning"
               ? undefined
               : closeFlow
           }
@@ -1975,7 +2015,21 @@ export default function App() {
               <>
                 <h2>{text.uninstall.planFailedTitle}</h2>
                 <p className="dialog-body">{flow.message}</p>
+                {flow.program.broken && (
+                  <p className="dialog-body subtle">{text.uninstall.forgetOffer}</p>
+                )}
                 <div className="dialog-actions">
+                  {flow.program.broken && (
+                    <button
+                      type="button"
+                      className="button primary"
+                      onClick={() => {
+                        setFlow({ step: "forgetConfirm", program: flow.program });
+                      }}
+                    >
+                      {text.uninstall.forgetAction}
+                    </button>
+                  )}
                   <button type="button" className="button" onClick={closeFlow}>
                     {text.uninstall.close}
                   </button>
@@ -2101,6 +2155,84 @@ export default function App() {
               </p>
             )}
 
+            {flow.step === "forgetConfirm" && (
+              <>
+                <h2>{text.uninstall.forgetConfirmTitle(flow.program.name)}</h2>
+                <p className="dialog-body">{text.uninstall.forgetConfirmBody}</p>
+                <ul className="dialog-notes">
+                  {flow.program.source !== "user" && <li>{text.uninstall.elevationNote}</li>}
+                  {flow.program.source !== "user" && <li>{text.uninstall.restorePointNote}</li>}
+                  <li>{text.uninstall.forgetLedgerNote}</li>
+                </ul>
+                {!uninstallerPro?.active && (
+                  <p className="dialog-body reboot">
+                    {text.uninstall.forgetProGate}
+                    {account.status !== "signed-in" && ` ${text.menu.proGateSignIn}`}
+                  </p>
+                )}
+                <div className="dialog-actions">
+                  {uninstallerPro?.active && (
+                    <button
+                      type="button"
+                      className="button primary"
+                      onClick={() => {
+                        confirmForget(flow.program);
+                      }}
+                    >
+                      {text.uninstall.forgetAction}
+                    </button>
+                  )}
+                  {!uninstallerPro?.active && account.status === "signed-in" && (
+                    <button
+                      type="button"
+                      className="button primary"
+                      disabled={checkoutBusy}
+                      onClick={beginProCheckout}
+                    >
+                      {account.isPro ? text.menu.upsGoProLoyalty : text.menu.upsGoPro}
+                    </button>
+                  )}
+                  <button type="button" className="button" onClick={closeFlow}>
+                    {text.uninstall.cancel}
+                  </button>
+                </div>
+              </>
+            )}
+            {flow.step === "forgetRunning" && (
+              <p className="status" role="status">
+                <span className="spinner" aria-hidden="true" />
+                {text.uninstall.forgetRunning}
+              </p>
+            )}
+            {flow.step === "forgetDone" && (
+              <>
+                <h2>
+                  {flow.report.success
+                    ? text.uninstall.forgetDoneTitle
+                    : text.uninstall.reportFailureTitle}
+                </h2>
+                <p className="dialog-body">{flow.report.message}</p>
+                <ul className="dialog-notes">
+                  <li>{restorePointLine(flow.report.restorePoint)}</li>
+                </ul>
+                <div className="dialog-actions">
+                  {flow.report.success && (
+                    <button
+                      type="button"
+                      className="button primary"
+                      onClick={() => {
+                        beginResidueScan(flow.program);
+                      }}
+                    >
+                      {text.uninstall.residueScan}
+                    </button>
+                  )}
+                  <button type="button" className="button" onClick={closeFlow}>
+                    {text.uninstall.close}
+                  </button>
+                </div>
+              </>
+            )}
             {flow.step === "storeDone" && (
               <>
                 <h2>{text.uninstall.reportSuccessTitle}</h2>

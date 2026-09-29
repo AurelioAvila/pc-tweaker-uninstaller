@@ -437,10 +437,11 @@ fn record_receipt(
         estimated_size_kb,
         verified_freed_kb,
         message: report.message.clone(),
+        removed_entry: None,
     });
 }
 
-fn write_report(report: &UninstallReport) -> Result<(), String> {
+pub fn write_report(report: &UninstallReport) -> Result<(), String> {
     let path = report_path()?;
     if let Some(dir) = path.parent() {
         std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
@@ -543,12 +544,26 @@ const NEEDS_ELEVATION_MARKER: &str = "__needs_elevation__";
 /// The elevated flow: clear any stale report, relaunch self elevated and
 /// headless, then read back the report the child wrote.
 fn run_via_elevation(source: &str, id: &str) -> Result<UninstallReport, String> {
+    run_elevated_flag("--elevated-uninstall", source, id)
+}
+
+/// Serializes every registry-changing action this app runs; the elevated
+/// child's report file is shared, so two at once would read each other's.
+pub fn lock_exec() -> Result<std::sync::MutexGuard<'static, ()>, String> {
+    EXEC_LOCK
+        .try_lock()
+        .map_err(|_| "Another uninstall is already running. Wait for it to finish.".to_string())
+}
+
+/// Relaunches this executable elevated for one headless action and reads
+/// the report it leaves behind.
+pub fn run_elevated_flag(flag: &str, source: &str, id: &str) -> Result<UninstallReport, String> {
     if let Ok(path) = report_path() {
         // Best effort: a stale report must never be mistaken for this run's.
         let _ = std::fs::remove_file(path);
     }
     crate::applog::line(&format!("elevating for {source}:{id}"));
-    crate::elevation::run_elevated_args(&["--elevated-uninstall", source, id]).map_err(|e| {
+    crate::elevation::run_elevated_args(&[flag, source, id]).map_err(|e| {
         crate::applog::line(&format!("elevation failed for {source}:{id}: {e}"));
         format!("The uninstall did not run: {e}. No changes were made by this app.")
     })?;
@@ -556,9 +571,7 @@ fn run_via_elevation(source: &str, id: &str) -> Result<UninstallReport, String> 
 }
 
 fn execute_sync(source: &str, id: &str) -> Result<UninstallReport, String> {
-    let _guard = EXEC_LOCK
-        .try_lock()
-        .map_err(|_| "Another uninstall is already running. Wait for it to finish.".to_string())?;
+    let _guard = lock_exec()?;
 
     // Re-derive everything fresh; the previewed plan is display-only.
     let plan = build_plan(source, id)?;
