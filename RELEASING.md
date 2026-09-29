@@ -27,7 +27,7 @@ application build/upload workflow or configured Authenticode signing command.
    executable paths if needed. Run:
 
    ```powershell
-   node scripts/make-latest-json.mjs RELEASE-NOTES-<version>.md
+   node scripts/make-latest-json.mjs release-notes/RELEASE-NOTES-<version>.md
    ```
 
    This requires one current x64 NSIS installer, one current MSI, the main
