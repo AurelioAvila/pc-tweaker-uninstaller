@@ -1,5 +1,5 @@
 /**
- * Themes: the same tema≠identità contract as PC Tweaker — a theme swaps a
+ * Themes: the same "theme is not identity" contract as PC Tweaker — a theme swaps a
  * small set of raw values (backgrounds, glow, accent pair); every component
  * reads only the CSS variables, so identity survives any palette.
  */
