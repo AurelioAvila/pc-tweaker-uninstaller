@@ -35,6 +35,20 @@ pub struct RemovalReceipt {
     #[serde(default)]
     pub verified_freed_kb: Option<u64>,
     pub message: String,
+    /// For a removed broken entry: the registry values it held, so it could
+    /// be recreated by hand. Absent for ordinary uninstalls.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub removed_entry: Option<RemovedEntry>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct RemovedEntry {
+    pub key: String,
+    pub publisher: Option<String>,
+    pub version: Option<String>,
+    pub install_location: Option<String>,
+    pub uninstall_string: Option<String>,
 }
 
 fn ledger_path() -> Result<PathBuf, String> {
@@ -124,6 +138,7 @@ mod tests {
             estimated_size_kb: Some(1024),
             verified_freed_kb: None,
             message: "Uninstalled successfully.".into(),
+            removed_entry: None,
         }
     }
 
