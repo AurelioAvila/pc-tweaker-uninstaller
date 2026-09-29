@@ -347,7 +347,7 @@ const en: Dictionary = {
     sizeUnknown: "Not recorded",
     confidenceLabel: "Confidence",
     notRemovedNote:
-      "Not removed automatically: leftover files, folders and registry entries. Residue scanning arrives in a later update and will always ask first.",
+      "Not removed automatically: leftover files, folders and registry entries. You can scan for them right after the uninstall, and nothing is deleted without asking.",
     elevationNote: "Windows will ask for administrator approval (UAC) first.",
     restorePointNote: "A System Restore point will be attempted before anything runs.",
     confirm: "Uninstall",
@@ -600,7 +600,7 @@ const it: Dictionary = {
     sizeUnknown: "Non registrato",
     confidenceLabel: "Affidabilità",
     notRemovedNote:
-      "Non rimosso automaticamente: file, cartelle e voci di registro residue. La scansione dei residui arriverà in un prossimo aggiornamento e chiederà sempre prima.",
+      "Non rimosso automaticamente: file, cartelle e voci di registro residue. Puoi cercarli subito dopo la disinstallazione e nulla viene eliminato senza chiedere.",
     elevationNote: "Windows chiederà prima l'approvazione da amministratore (UAC).",
     restorePointNote: "Prima dell'esecuzione verrà tentato un punto di ripristino di sistema.",
     confirm: "Disinstalla",
@@ -854,7 +854,7 @@ const fr: Dictionary = {
     sizeUnknown: "Non enregistré",
     confidenceLabel: "Confiance",
     notRemovedNote:
-      "Non supprimé automatiquement : fichiers, dossiers et entrées de registre résiduels. L'analyse des résidus arrivera dans une prochaine mise à jour et demandera toujours d'abord.",
+      "Non supprimé automatiquement : fichiers, dossiers et entrées de registre résiduels. Vous pouvez les rechercher juste après la désinstallation, et rien n'est supprimé sans demander.",
     elevationNote: "Windows demandera d'abord l'approbation administrateur (UAC).",
     restorePointNote: "Un point de restauration système sera tenté avant toute exécution.",
     confirm: "Désinstaller",
@@ -1108,7 +1108,7 @@ const es: Dictionary = {
     sizeUnknown: "No registrado",
     confidenceLabel: "Confianza",
     notRemovedNote:
-      "No se elimina automáticamente: archivos, carpetas y entradas de registro residuales. El análisis de residuos llegará en una próxima actualización y siempre preguntará primero.",
+      "No se elimina automáticamente: archivos, carpetas y entradas de registro residuales. Puedes buscarlos justo después de desinstalar y no se elimina nada sin preguntar.",
     elevationNote: "Windows pedirá primero la aprobación de administrador (UAC).",
     restorePointNote: "Se intentará crear un punto de restauración antes de ejecutar nada.",
     confirm: "Desinstalar",
@@ -1364,7 +1364,7 @@ const de: Dictionary = {
     sizeUnknown: "Nicht erfasst",
     confidenceLabel: "Einschätzung",
     notRemovedNote:
-      "Nicht automatisch entfernt: übrig gebliebene Dateien, Ordner und Registrierungseinträge. Die Rückstands-Analyse kommt in einem späteren Update und fragt immer zuerst.",
+      "Nicht automatisch entfernt: übrig gebliebene Dateien, Ordner und Registrierungseinträge. Du kannst direkt nach der Deinstallation danach suchen, und nichts wird ohne Rückfrage gelöscht.",
     elevationNote: "Windows fragt zuerst nach Administrator-Bestätigung (UAC).",
     restorePointNote: "Vor der Ausführung wird ein Systemwiederherstellungspunkt versucht.",
     confirm: "Deinstallieren",
