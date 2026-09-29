@@ -63,6 +63,8 @@ export type Dictionary = {
     readonly badgeManualOnlyHint: string;
     readonly badgeNoneHint: string;
     readonly badgeInvalidHint: string;
+    readonly badgeMissing: string;
+    readonly badgeMissingHint: string;
     readonly badgeStore: string;
     readonly badgeStoreHint: string;
     readonly badgeUser: string;
@@ -126,6 +128,14 @@ export type Dictionary = {
     readonly close: string;
     readonly planning: string;
     readonly planFailedTitle: string;
+    readonly forgetOffer: string;
+    readonly forgetAction: string;
+    readonly forgetConfirmTitle: (name: string) => string;
+    readonly forgetConfirmBody: string;
+    readonly forgetLedgerNote: string;
+    readonly forgetProGate: string;
+    readonly forgetRunning: string;
+    readonly forgetDoneTitle: string;
     readonly running: (name: string) => string;
     readonly runningNote: string;
     readonly runningSlowNote: string;
@@ -265,6 +275,9 @@ const en: Dictionary = {
       "This program's uninstall command runs a script interpreter, so for safety it must be run manually.",
     badgeNoneHint: "This registry entry declares no uninstall command.",
     badgeInvalidHint: "This program's uninstall command could not be understood.",
+    badgeMissing: "Uninstaller missing",
+    badgeMissingHint:
+      "The uninstaller this entry points to no longer exists on disk. The entry can be removed from the list.",
     badgeStore: "Store",
     badgeStoreHint:
       "Installed as an MSIX package. Removal is handled by Windows and leaves nothing behind.",
@@ -355,6 +368,16 @@ const en: Dictionary = {
     close: "Close",
     planning: "Checking what would run...",
     planFailedTitle: "Cannot uninstall automatically",
+    forgetOffer:
+      "The program's uninstaller no longer exists, so it can never run. You can remove the entry from Installed programs instead, then clean up what was left behind.",
+    forgetAction: "Remove broken entry",
+    forgetConfirmTitle: (name) => `Remove the entry for ${name}?`,
+    forgetConfirmBody:
+      "Only the entry in Installed programs is removed. Nothing is run and no files are deleted; you can scan for leftovers next, and everything you clean goes to the Recycle Bin.",
+    forgetLedgerNote: "The removed registry values are kept in the Removal Ledger.",
+    forgetProGate: "Removing broken entries is part of Uninstaller Pro.",
+    forgetRunning: "Removing the entry...",
+    forgetDoneTitle: "Entry removed",
     running: (name) => `Uninstalling ${name}...`,
     runningNote:
       "The program's uninstaller is running. This window stays responsive; some uninstallers open their own windows.",
@@ -516,6 +539,9 @@ const it: Dictionary = {
       "Il comando di disinstallazione usa un interprete di script: per sicurezza va eseguito manualmente.",
     badgeNoneHint: "Questa voce di registro non dichiara alcun comando di disinstallazione.",
     badgeInvalidHint: "Il comando di disinstallazione di questo programma non è comprensibile.",
+    badgeMissing: "Disinstallatore mancante",
+    badgeMissingHint:
+      "Il disinstallatore indicato da questa voce non esiste più sul disco. La voce può essere rimossa dall'elenco.",
     badgeStore: "Store",
     badgeStoreHint:
       "Installata come pacchetto MSIX. La rimozione la gestisce Windows e non lascia residui.",
@@ -608,6 +634,16 @@ const it: Dictionary = {
     close: "Chiudi",
     planning: "Verifica di cosa verrebbe eseguito...",
     planFailedTitle: "Disinstallazione automatica non possibile",
+    forgetOffer:
+      "Il disinstallatore del programma non esiste più, quindi non potrà mai essere eseguito. Puoi invece rimuovere la voce da Programmi installati e poi pulire ciò che è rimasto.",
+    forgetAction: "Rimuovi voce non valida",
+    forgetConfirmTitle: (name) => `Rimuovere la voce di ${name}?`,
+    forgetConfirmBody:
+      "Viene rimossa solo la voce in Programmi installati. Non viene eseguito nulla e nessun file viene eliminato; subito dopo puoi cercare i residui, e tutto ciò che pulisci finisce nel Cestino.",
+    forgetLedgerNote: "I valori del registro rimossi restano salvati nel Registro rimozioni.",
+    forgetProGate: "La rimozione delle voci non valide fa parte di Uninstaller Pro.",
+    forgetRunning: "Rimozione della voce in corso...",
+    forgetDoneTitle: "Voce rimossa",
     running: (name) => `Disinstallazione di ${name}...`,
     runningNote:
       "L'uninstaller del programma è in esecuzione. Questa finestra resta reattiva; alcuni uninstaller aprono finestre proprie.",
@@ -770,6 +806,9 @@ const fr: Dictionary = {
       "La commande de désinstallation passe par un interpréteur de scripts : par sécurité, elle doit être lancée manuellement.",
     badgeNoneHint: "Cette entrée de registre ne déclare aucune commande de désinstallation.",
     badgeInvalidHint: "La commande de désinstallation de ce programme est incompréhensible.",
+    badgeMissing: "Désinstalleur absent",
+    badgeMissingHint:
+      "Le désinstalleur indiqué par cette entrée n'existe plus sur le disque. L'entrée peut être retirée de la liste.",
     badgeStore: "Store",
     badgeStoreHint:
       "Installée comme paquet MSIX. La suppression est gérée par Windows et ne laisse aucun résidu.",
@@ -862,6 +901,17 @@ const fr: Dictionary = {
     close: "Fermer",
     planning: "Vérification de ce qui serait exécuté...",
     planFailedTitle: "Désinstallation automatique impossible",
+    forgetOffer:
+      "Le désinstalleur du programme n'existe plus : il ne pourra jamais s'exécuter. Vous pouvez à la place retirer l'entrée des programmes installés, puis nettoyer ce qui reste.",
+    forgetAction: "Retirer l'entrée cassée",
+    forgetConfirmTitle: (name) => `Retirer l'entrée de ${name} ?`,
+    forgetConfirmBody:
+      "Seule l'entrée des programmes installés est retirée. Rien n'est exécuté et aucun fichier n'est supprimé ; vous pourrez ensuite rechercher les restes, et tout ce que vous nettoyez va dans la Corbeille.",
+    forgetLedgerNote:
+      "Les valeurs de registre retirées sont conservées dans le Registre des suppressions.",
+    forgetProGate: "Le retrait des entrées cassées fait partie d'Uninstaller Pro.",
+    forgetRunning: "Retrait de l'entrée...",
+    forgetDoneTitle: "Entrée retirée",
     running: (name) => `Désinstallation de ${name}...`,
     runningNote:
       "Le désinstalleur du programme est en cours. Cette fenêtre reste réactive ; certains désinstalleurs ouvrent leurs propres fenêtres.",
@@ -1025,6 +1075,9 @@ const es: Dictionary = {
       "El comando de desinstalación usa un intérprete de scripts: por seguridad debe ejecutarse manualmente.",
     badgeNoneHint: "Esta entrada del registro no declara ningún comando de desinstalación.",
     badgeInvalidHint: "El comando de desinstalación de este programa no se pudo entender.",
+    badgeMissing: "Falta el desinstalador",
+    badgeMissingHint:
+      "El desinstalador al que apunta esta entrada ya no existe en el disco. La entrada se puede quitar de la lista.",
     badgeStore: "Store",
     badgeStoreHint:
       "Instalada como paquete MSIX. Windows gestiona la eliminación y no deja restos.",
@@ -1116,6 +1169,17 @@ const es: Dictionary = {
     close: "Cerrar",
     planning: "Comprobando qué se ejecutaría...",
     planFailedTitle: "No se puede desinstalar automáticamente",
+    forgetOffer:
+      "El desinstalador del programa ya no existe, así que nunca podrá ejecutarse. En su lugar puedes quitar la entrada de Programas instalados y después limpiar lo que quedó.",
+    forgetAction: "Quitar entrada rota",
+    forgetConfirmTitle: (name) => `¿Quitar la entrada de ${name}?`,
+    forgetConfirmBody:
+      "Solo se quita la entrada de Programas instalados. No se ejecuta nada ni se elimina ningún archivo; después puedes buscar restos, y todo lo que limpies va a la Papelera.",
+    forgetLedgerNote:
+      "Los valores del registro quitados se conservan en el Registro de eliminaciones.",
+    forgetProGate: "Quitar entradas rotas forma parte de Uninstaller Pro.",
+    forgetRunning: "Quitando la entrada...",
+    forgetDoneTitle: "Entrada quitada",
     running: (name) => `Desinstalando ${name}...`,
     runningNote:
       "El desinstalador del programa se está ejecutando. Esta ventana sigue respondiendo; algunos desinstaladores abren sus propias ventanas.",
@@ -1278,6 +1342,9 @@ const de: Dictionary = {
       "Der Deinstallationsbefehl nutzt einen Skript-Interpreter und muss aus Sicherheitsgründen manuell ausgeführt werden.",
     badgeNoneHint: "Dieser Registrierungseintrag deklariert keinen Deinstallationsbefehl.",
     badgeInvalidHint: "Der Deinstallationsbefehl dieses Programms war unverständlich.",
+    badgeMissing: "Uninstaller fehlt",
+    badgeMissingHint:
+      "Der Uninstaller, auf den dieser Eintrag verweist, existiert nicht mehr auf dem Datenträger. Der Eintrag kann aus der Liste entfernt werden.",
     badgeStore: "Store",
     badgeStoreHint:
       "Als MSIX-Paket installiert. Windows übernimmt die Entfernung und hinterlässt nichts.",
@@ -1372,6 +1439,17 @@ const de: Dictionary = {
     close: "Schließen",
     planning: "Es wird geprüft, was ausgeführt würde...",
     planFailedTitle: "Automatische Deinstallation nicht möglich",
+    forgetOffer:
+      "Der Uninstaller des Programms existiert nicht mehr und kann daher nie ausgeführt werden. Stattdessen können Sie den Eintrag aus den installierten Programmen entfernen und anschließend die Reste bereinigen.",
+    forgetAction: "Defekten Eintrag entfernen",
+    forgetConfirmTitle: (name) => `Eintrag für ${name} entfernen?`,
+    forgetConfirmBody:
+      "Nur der Eintrag in den installierten Programmen wird entfernt. Es wird nichts ausgeführt und keine Datei gelöscht; danach können Sie nach Resten suchen, und alles Bereinigte landet im Papierkorb.",
+    forgetLedgerNote:
+      "Die entfernten Registrierungswerte bleiben im Entfernungsprotokoll gespeichert.",
+    forgetProGate: "Das Entfernen defekter Einträge gehört zu Uninstaller Pro.",
+    forgetRunning: "Eintrag wird entfernt...",
+    forgetDoneTitle: "Eintrag entfernt",
     running: (name) => `${name} wird deinstalliert...`,
     runningNote:
       "Der Uninstaller des Programms läuft. Dieses Fenster bleibt bedienbar; manche Uninstaller öffnen eigene Fenster.",
