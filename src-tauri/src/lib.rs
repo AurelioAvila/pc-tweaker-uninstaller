@@ -10,6 +10,7 @@ pub mod actions;
 pub mod applog;
 pub mod confidence;
 pub mod elevation;
+pub mod forget;
 pub mod inventory_export;
 pub mod ledger;
 pub mod license;
@@ -59,6 +60,7 @@ pub fn run() {
             store_apps::remove_store_app,
             uninstall_exec::plan_uninstall,
             uninstall_exec::execute_uninstall,
+            forget::forget_broken_entry,
             residue::scan_residue,
             residue::clean_residue,
             ledger::list_removal_ledger,
