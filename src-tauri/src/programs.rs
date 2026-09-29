@@ -47,6 +47,9 @@ pub struct ProgramInfo {
     /// Removal Confidence Score: Safe / Review / Keep plus reason codes.
     /// Evidence-based, never presented as certainty (see confidence.rs).
     pub confidence: crate::confidence::Confidence,
+    /// The entry's own uninstaller no longer exists on disk, so it can never
+    /// run. Such entries can be removed from the list instead (see forget.rs).
+    pub broken: bool,
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq)]
@@ -159,6 +162,31 @@ pub fn summarize_uninstall(entry: &RawEntry) -> UninstallSummary {
     }
 }
 
+/// True when every uninstall command the entry declares is a plain executable
+/// that no longer exists. Windows Installer entries, commands that are only
+/// run by hand and unreadable strings never count: only an uninstaller that
+/// is provably gone does. `exists` is injected so the rule is testable.
+pub fn uninstaller_missing(entry: &RawEntry, exists: impl Fn(&str) -> bool) -> bool {
+    let candidates = [
+        entry.quiet_uninstall_string.as_deref(),
+        entry.uninstall_string.as_deref(),
+    ];
+    let mut saw_executable = false;
+    for candidate in candidates.into_iter().flatten() {
+        match uninstall_command::parse(candidate) {
+            Ok(Classification::Executable { path, .. }) => {
+                if exists(&path) {
+                    return false;
+                }
+                saw_executable = true;
+            }
+            Ok(Classification::Msi { .. }) | Ok(Classification::ManualOnly { .. }) => return false,
+            Err(_) => {}
+        }
+    }
+    saw_executable
+}
+
 /// An entry can be shown at all only if it has something to call itself.
 pub fn has_display_name(entry: &RawEntry) -> bool {
     entry
@@ -171,8 +199,10 @@ pub fn has_display_name(entry: &RawEntry) -> bool {
 pub fn to_program_info(entry: RawEntry, source: &'static str, hidden: bool) -> ProgramInfo {
     let uninstall = summarize_uninstall(&entry);
     let confidence = crate::confidence::assess(&entry, hidden, &uninstall);
+    let broken = uninstaller_missing(&entry, |path| std::path::Path::new(path).is_file());
     ProgramInfo {
         confidence,
+        broken,
         id: entry.key_name,
         source,
         name: entry.display_name.unwrap_or_default(),
@@ -368,6 +398,35 @@ pub fn list_programs() -> Result<Vec<ProgramInfo>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn an_uninstaller_that_is_gone_marks_the_entry_broken() {
+        let mut entry = named("Old Game");
+        entry.uninstall_string = Some(r#""C:\Games\Old\unins000.exe""#.into());
+        assert!(uninstaller_missing(&entry, |_| false));
+        assert!(!uninstaller_missing(&entry, |_| true));
+    }
+
+    #[test]
+    fn a_present_quiet_uninstaller_keeps_the_entry_working() {
+        let mut entry = named("Tool");
+        entry.uninstall_string = Some(r#""C:\Gone\unins.exe""#.into());
+        entry.quiet_uninstall_string = Some(r#""C:\Here\unins.exe" /S"#.into());
+        assert!(!uninstaller_missing(&entry, |p| p.contains("Here")));
+    }
+
+    #[test]
+    fn msi_manual_and_missing_commands_are_never_broken() {
+        let mut msi = named("Runtime");
+        msi.uninstall_string = Some("MsiExec.exe /X{12345678-1234-1234-1234-123456789012}".into());
+        assert!(!uninstaller_missing(&msi, |_| false));
+
+        let mut manual = named("Script");
+        manual.uninstall_string = Some("cmd.exe /c remove.bat".into());
+        assert!(!uninstaller_missing(&manual, |_| false));
+
+        assert!(!uninstaller_missing(&named("Nothing"), |_| false));
+    }
 
     fn named(name: &str) -> RawEntry {
         RawEntry {
