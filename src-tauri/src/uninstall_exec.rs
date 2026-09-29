@@ -76,6 +76,57 @@ fn needs_elevation(source: &str) -> bool {
     source != "user"
 }
 
+/// Per-user entries live in HKCU, which any program running as this user can
+/// write. Elevating such an entry would let that program borrow this app's
+/// signed UAC prompt to start whatever it registered. A per-user uninstaller
+/// is therefore run elevated only when its executable sits in a folder a
+/// standard user cannot write to.
+fn elevation_permitted(source: &str, kind: &PlanKind, command: &[String]) -> bool {
+    if source != "user" {
+        return true;
+    }
+    match kind {
+        PlanKind::Msi => false,
+        PlanKind::Executable => command
+            .first()
+            .is_some_and(|exe| is_under_protected_root(exe, &protected_roots())),
+    }
+}
+
+fn protected_roots() -> Vec<String> {
+    [
+        "ProgramFiles",
+        "ProgramFiles(x86)",
+        "ProgramW6432",
+        "SystemRoot",
+    ]
+    .iter()
+    .filter_map(|var| std::env::var(var).ok())
+    .filter(|root| !root.trim().is_empty())
+    .collect()
+}
+
+/// Case-insensitive prefix test on a component boundary. Any `..` component
+/// is refused outright, so a path cannot start inside a root and climb out.
+pub fn is_under_protected_root(path: &str, roots: &[String]) -> bool {
+    let normalized = path.replace('/', "\\");
+    if normalized.split('\\').any(|part| part == "..") {
+        return false;
+    }
+    let lower = normalized.to_lowercase();
+    roots.iter().any(|root| {
+        let root = root.trim_end_matches('\\').to_lowercase();
+        lower.len() > root.len() + 1
+            && lower.starts_with(&root)
+            && lower.as_bytes()[root.len()] == b'\\'
+    })
+}
+
+const PER_USER_ELEVATION_REFUSED: &str =
+    "This program was installed for your account only, and its \
+    uninstaller asks for administrator rights from a folder your account can change. It was not \
+    started with elevation. If you trust it, run its uninstaller from Windows Settings.";
+
 // ---- Plan (dry run) --------------------------------------------------------
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
@@ -523,7 +574,13 @@ fn execute_sync(source: &str, id: &str) -> Result<UninstallReport, String> {
     };
     match run_and_report(plan.program_name, plan.kind, plan.command, skipped) {
         Err(marker) if marker == NEEDS_ELEVATION_MARKER => {
-            // The target's manifest demands admin: one UAC consent, retry.
+            // The target's manifest demands admin: one UAC consent, retry,
+            // unless the entry could have been planted without admin rights.
+            let plan = build_plan(source, id)?;
+            if !elevation_permitted(source, &plan.kind, &plan.command) {
+                crate::applog::line(&format!("per-user elevation refused for {source}:{id}"));
+                return Err(PER_USER_ELEVATION_REFUSED.to_string());
+            }
             run_via_elevation(source, id)
         }
         other => other,
@@ -536,8 +593,23 @@ fn execute_sync(source: &str, id: &str) -> Result<UninstallReport, String> {
 /// The process exit code only says "a report was produced" — the uninstall's
 /// own outcome lives inside the report.
 pub fn run_elevated_child(source: &str, id: &str) -> i32 {
+    // Checked before anything writes there, including the refusal report.
+    match fixed_data_dir() {
+        Ok(dir) => {
+            if let Err(e) = crate::elevation::ensure_plain_app_data_dir(&dir) {
+                eprintln!("{e}");
+                return 1;
+            }
+        }
+        Err(_) => return 1,
+    }
     let report = (|| -> Result<UninstallReport, String> {
         let plan = build_plan(source, id)?;
+        // Re-checked here: the child is a plain CLI entry point and must not
+        // trust that its caller was this app.
+        if !elevation_permitted(source, &plan.kind, &plan.command) {
+            return Err(PER_USER_ELEVATION_REFUSED.to_string());
+        }
         let restore = restore_point::create_restore_point();
         run_and_report(plan.program_name, plan.kind, plan.command, restore)
     })();
@@ -620,6 +692,66 @@ pub async fn execute_uninstall(source: String, id: String) -> Result<UninstallRe
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn roots() -> Vec<String> {
+        vec![r"C:\Program Files".to_string(), r"C:\Windows\".to_string()]
+    }
+
+    #[test]
+    fn protected_root_accepts_paths_inside_it() {
+        assert!(is_under_protected_root(
+            r"C:\Program Files\Vendor\uninst.exe",
+            &roots()
+        ));
+        assert!(is_under_protected_root(
+            r"c:\program files\vendor\uninst.exe",
+            &roots()
+        ));
+        assert!(is_under_protected_root(
+            r"C:\Windows\System32\msiexec.exe",
+            &roots()
+        ));
+    }
+
+    #[test]
+    fn protected_root_refuses_lookalikes_and_escapes() {
+        assert!(!is_under_protected_root(
+            r"C:\Program Files Evil\uninst.exe",
+            &roots()
+        ));
+        assert!(!is_under_protected_root(r"C:\Program Files", &roots()));
+        assert!(!is_under_protected_root(
+            r"C:\Program Files\..\Users\me\x.exe",
+            &roots()
+        ));
+        assert!(!is_under_protected_root(
+            r"C:\Users\me\AppData\Local\x\uninst.exe",
+            &roots()
+        ));
+    }
+
+    #[test]
+    fn machine_entries_may_always_elevate() {
+        let cmd = vec![r"D:\Anywhere\uninst.exe".to_string()];
+        assert!(elevation_permitted(
+            "machine64",
+            &PlanKind::Executable,
+            &cmd
+        ));
+        assert!(elevation_permitted(
+            "machine32",
+            &PlanKind::Executable,
+            &cmd
+        ));
+    }
+
+    #[test]
+    fn per_user_entries_outside_protected_folders_never_elevate() {
+        let cmd = vec![r"C:\Users\me\AppData\Local\Evil\uninst.exe".to_string()];
+        assert!(!elevation_permitted("user", &PlanKind::Executable, &cmd));
+        assert!(!elevation_permitted("user", &PlanKind::Msi, &[]));
+        assert!(!elevation_permitted("user", &PlanKind::Executable, &[]));
+    }
 
     fn entry_with(uninstall: Option<&str>, quiet: Option<&str>) -> RawEntry {
         RawEntry {
