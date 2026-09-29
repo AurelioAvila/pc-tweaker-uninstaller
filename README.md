@@ -43,15 +43,32 @@ nor WinGet guarantees the absence of SmartScreen warnings.
 See the [signing inventory and verification guide](https://github.com/AurelioAvila/.github/blob/master/CODE_SIGNING.md).
 Use official downloads and investigate security warnings before proceeding.
 
-Uninstall Windows programs cleanly — with a safety net. Part of the
-PC Tweaker ecosystem: one account with product-specific entitlements.
+## What it does
 
-**Removal Intelligence**: every program carries an evidence-based Removal
-Confidence Score (Safe / Review / Keep) with its reasons spelled out; every
-uninstall shows a Removal Brief (method, privileges, size, confidence)
-before anything runs; every removal leaves a local, exportable receipt in
-the Removal Ledger with verified space reclaimed. 5 languages, 8 themes,
-one suite account shared with PC Tweaker.
+Uninstall Windows programs cleanly, with a safety net. Every removal is explained before it runs and recorded after it finishes.
+
+| | |
+| --- | --- |
+| **Removal Confidence Score** | Every program is rated Safe, Review or Keep, with the reasons spelled out. System components and runtimes other software depends on are flagged before you touch them. |
+| **Removal Brief** | Before anything runs you see the exact command, the method (Windows Installer or the program's own uninstaller), the permissions it will ask for and the reported size. |
+| **Related programs** | Programs installed inside another program's folder are named before you remove the parent, so a game library or plugin host does not take other software with it by surprise. |
+| **Restore point first** | A Windows restore point is taken before a machine-wide removal is attempted. |
+| **Leftover scan** | After the uninstall, the program's remaining folders, shortcuts and registry keys are listed. Protected system and personal folders are never offered. |
+| **Removal Ledger** | A local receipt of what was removed, how, with what result and how much space was actually freed. Exportable, and it never leaves your PC. |
+| **Store apps too** | Classic desktop software and Microsoft Store apps in one list, with search, filters, sorting and CSV export. |
+
+5 languages, 8 themes, and one suite account shared with PC Tweaker.
+
+### Free and Pro
+
+| Free | Pro |
+| --- | --- |
+| Unlimited single uninstalls, desktop and Store apps | Everything in Free |
+| Confidence Score and Removal Brief for every program | **Leftover cleanup**: remove the files, folders and registry keys the scan finds. Files go to the Recycle Bin. |
+| Restore point before machine-wide removals | **Safe Batch**: queue several programs and let them run in sequence |
+| Leftover scan and the Removal Ledger | |
+
+See the [official product page](https://pctweaker.app/uninstaller/) for current plans.
 
 ## Architecture
 
