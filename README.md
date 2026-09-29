@@ -33,7 +33,7 @@ Its SHA-256 is `900b411eba7a417eb749fd8be55d4ce3bcfeded86f7fc870b9df7affb81ed571
 This check applies to that specific setup EXE, not every asset or future build.
 Historical version 0.8.2 remains unsigned; use current official downloads.
 
-**WinGet:** the [package submission](https://github.com/microsoft/winget-pkgs/pull/434135)
+**WinGet status (September 30, 2026):** the latest stable release is 0.12.0. The [0.12.0 package submission](https://github.com/microsoft/winget-pkgs/pull/434135)
 is awaiting manual review. Passing automated checks is not catalog approval.
 Use the GitHub release download until the package is accepted.
 
