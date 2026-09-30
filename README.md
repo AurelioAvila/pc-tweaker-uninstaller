@@ -27,9 +27,9 @@ activated on first sign-in to Uninstaller with the same account. This is a
 separate, time-limited entitlement, not a perpetual Uninstaller license.
 
 **[Download latest signed version](../../releases/latest)** for Windows 10/11 x64.
-The [0.11.3 setup EXE](../../releases/tag/v0.11.3) was checked on September 26, 2026:
+The [0.12.0 setup EXE](../../releases/tag/v0.12.0) was checked on September 30, 2026:
 its Authenticode signature identifies **Aurelio Avila** and includes a trusted timestamp.
-Its SHA-256 is `900b411eba7a417eb749fd8be55d4ce3bcfeded86f7fc870b9df7affb81ed571`.
+Its SHA-256 is `0e501272f77d73069a89bf37bbf6eca68bf968eccb7af9329905180b0359641e`.
 This check applies to that specific setup EXE, not every asset or future build.
 Historical version 0.8.2 remains unsigned; use current official downloads.
 
@@ -52,7 +52,7 @@ Uninstall Windows programs cleanly, with a safety net. Every removal is explaine
 | **Removal Confidence Score** | Every program is rated Safe, Review or Keep, with the reasons spelled out. System components and runtimes other software depends on are flagged before you touch them. |
 | **Removal Brief** | Before anything runs you see the exact command, the method (Windows Installer or the program's own uninstaller), the permissions it will ask for and the reported size. |
 | **Related programs** | Programs installed inside another program's folder are named before you remove the parent, so a game library or plugin host does not take other software with it by surprise. |
-| **Restore point first** | A Windows restore point is taken before a machine-wide removal is attempted. |
+| **Restore-point attempt** | Before elevated removals, the app attempts to create a Windows restore point and records the outcome. Creation can fail or be skipped; Windows settings, permissions and throttling affect availability. |
 | **Leftover scan** | After the uninstall, the program's remaining folders, shortcuts and registry keys are listed. Protected system and personal folders are never offered. |
 | **Removal Ledger** | A local receipt of what was removed, how, with what result and how much space was actually freed. Exportable, and it never leaves your PC. |
 | **Store apps too** | Classic desktop software and Microsoft Store apps in one list, with search, filters, sorting and CSV export. |
@@ -65,7 +65,7 @@ Uninstall Windows programs cleanly, with a safety net. Every removal is explaine
 | --- | --- |
 | Unlimited single uninstalls, desktop and Store apps | Everything in Free |
 | Confidence Score and Removal Brief for every program | **Leftover cleanup**: remove the files, folders and registry keys the scan finds. Files go to the Recycle Bin. |
-| Restore point before machine-wide removals | **Safe Batch**: queue several programs and let them run in sequence |
+| Restore-point attempt before elevated removals, with the outcome recorded | **Safe Batch**: queue several programs and let them run in sequence |
 | Leftover scan and the Removal Ledger | |
 
 See the [official product page](https://pctweaker.app/uninstaller/) for current plans.
