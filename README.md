@@ -118,3 +118,8 @@ redistribute it. Use of the compiled application is governed by
   backend host. The embedded key here is the public (verify-only) half.
 - Release builds never enable DevTools (see `src-tauri/Cargo.toml`).
 - CSP allows network access exclusively to the ecosystem backend.
+
+## Support
+
+For support or billing questions, email [uninstaller@pctweaker.app](mailto:uninstaller@pctweaker.app). Include the app version and steps to reproduce the problem. Never send passwords, access tokens, private keys or payment card details, and remove sensitive information from screenshots and logs.
+
