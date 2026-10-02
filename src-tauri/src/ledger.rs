@@ -8,7 +8,9 @@
 
 use serde::{Deserialize, Serialize};
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::sync::Mutex;
+static LEDGER_WRITE: Mutex<()> = Mutex::new(());
 
 const LEDGER_FILE: &str = "removal-ledger.jsonl";
 /// Receipts are small; 500 is years of normal use. Trimmed oldest-first.
@@ -73,6 +75,7 @@ pub fn trim_to_cap(mut entries: Vec<RemovalReceipt>, cap: usize) -> Vec<RemovalR
 }
 
 pub fn append(receipt: &RemovalReceipt) -> Result<(), String> {
+    let _guard = LEDGER_WRITE.lock().map_err(|e| e.to_string())?;
     let path = ledger_path()?;
     if let Some(dir) = path.parent() {
         std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
@@ -94,6 +97,21 @@ pub fn append(receipt: &RemovalReceipt) -> Result<(), String> {
         .map_err(|e| e.to_string())?;
     std::fs::rename(&tmp, &path).map_err(|e| e.to_string())?;
     Ok(())
+}
+
+fn clear_at(path: &Path) -> Result<(), String> {
+    match std::fs::remove_file(path) {
+        Ok(()) => Ok(()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(error.to_string()),
+    }
+}
+
+/// Deletes only the fixed local ledger, never exports or restore points.
+#[tauri::command]
+pub fn clear_removal_ledger() -> Result<(), String> {
+    let _guard = LEDGER_WRITE.lock().map_err(|e| e.to_string())?;
+    clear_at(&ledger_path()?)
 }
 
 /// Newest first, for display.
@@ -124,6 +142,24 @@ pub fn export_removal_ledger() -> Result<String, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn clear_only_removes_ledger_and_is_idempotent() {
+        let dir =
+            std::env::temp_dir().join(format!("uninstaller-ledger-test-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let ledger = dir.join(LEDGER_FILE);
+        let other = dir.join("export.json");
+        std::fs::write(&ledger, "receipt").unwrap();
+        std::fs::write(&other, "keep").unwrap();
+        clear_at(&ledger).unwrap();
+        clear_at(&ledger).unwrap();
+        assert!(!ledger.exists());
+        assert_eq!(std::fs::read_to_string(&other).unwrap(), "keep");
+        assert!(clear_at(&dir).is_err());
+        std::fs::remove_file(other).unwrap();
+        std::fs::remove_dir(dir).unwrap();
+    }
 
     fn receipt(name: &str, ts: u64) -> RemovalReceipt {
         RemovalReceipt {

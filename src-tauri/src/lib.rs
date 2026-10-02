@@ -64,6 +64,7 @@ pub fn run() {
             residue::scan_residue,
             residue::clean_residue,
             ledger::list_removal_ledger,
+            ledger::clear_removal_ledger,
             ledger::export_removal_ledger,
             actions::open_install_folder,
             actions::open_system_restore,

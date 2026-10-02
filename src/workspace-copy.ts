@@ -19,7 +19,13 @@ const en = {
   until: "Pro until",
   close: "Close",
   accountHint: "Account, subscription and preferences",
-  viewDetails: "Review details",
+  viewDetails: "Details",
+  clearHistory: "Clear history",
+  clearHistoryTitle: "Clear removal history?",
+  clearHistoryBody:
+    "Deletes local receipts and recovery details for removed entries. Installed apps, restore points and exports stay unchanged.",
+  cancel: "Cancel",
+  clearingHistory: "Clearing…",
 };
 export const workspaceCopy: Record<Locale, typeof en> = {
   en,
@@ -43,7 +49,13 @@ export const workspaceCopy: Record<Locale, typeof en> = {
     until: "Pro fino al",
     close: "Chiudi",
     accountHint: "Account, abbonamento e preferenze",
-    viewDetails: "Esamina dettagli",
+    viewDetails: "Dettagli",
+    clearHistory: "Svuota cronologia",
+    clearHistoryTitle: "Svuotare la cronologia?",
+    clearHistoryBody:
+      "Elimina ricevute locali e dettagli di recupero delle voci rimosse. App, punti di ripristino ed esportazioni restano invariati.",
+    cancel: "Annulla",
+    clearingHistory: "Cancellazione…",
   },
   fr: {
     title: "Applications installées",
@@ -66,7 +78,13 @@ export const workspaceCopy: Record<Locale, typeof en> = {
     until: "Pro jusqu’au",
     close: "Fermer",
     accountHint: "Compte, abonnement et préférences",
-    viewDetails: "Voir les détails",
+    viewDetails: "Détails",
+    clearHistory: "Effacer l’historique",
+    clearHistoryTitle: "Effacer l’historique ?",
+    clearHistoryBody:
+      "Efface les reçus locaux et détails de récupération. Les applications, points de restauration et exports restent inchangés.",
+    cancel: "Annuler",
+    clearingHistory: "Suppression…",
   },
   es: {
     title: "Aplicaciones instaladas",
@@ -88,7 +106,13 @@ export const workspaceCopy: Record<Locale, typeof en> = {
     until: "Pro hasta",
     close: "Cerrar",
     accountHint: "Cuenta, suscripción y preferencias",
-    viewDetails: "Revisar detalles",
+    viewDetails: "Detalles",
+    clearHistory: "Borrar historial",
+    clearHistoryTitle: "¿Borrar el historial?",
+    clearHistoryBody:
+      "Elimina recibos locales y detalles de recuperación. Las aplicaciones, los puntos de restauración y las exportaciones no cambian.",
+    cancel: "Cancelar",
+    clearingHistory: "Borrando…",
   },
   de: {
     title: "Installierte Apps",
@@ -110,6 +134,12 @@ export const workspaceCopy: Record<Locale, typeof en> = {
     until: "Pro bis",
     close: "Schließen",
     accountHint: "Konto, Abonnement und Einstellungen",
-    viewDetails: "Details prüfen",
+    viewDetails: "Details",
+    clearHistory: "Verlauf löschen",
+    clearHistoryTitle: "Verlauf löschen?",
+    clearHistoryBody:
+      "Löscht lokale Belege und Wiederherstellungsdetails. Apps, Wiederherstellungspunkte und Exporte bleiben unverändert.",
+    cancel: "Abbrechen",
+    clearingHistory: "Wird gelöscht…",
   },
 };
