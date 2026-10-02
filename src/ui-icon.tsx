@@ -1,4 +1,11 @@
 export type IconName =
+  | "trash"
+  | "inspect"
+  | "check"
+  | "lock"
+  | "camera"
+  | "keyboard"
+  | "music"
   | "apps"
   | "drive"
   | "clock"
@@ -14,6 +21,13 @@ export type IconName =
   | "close"
   | "package";
 const paths: Record<IconName, string> = {
+  trash: "M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7",
+  inspect: "M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm5 12 6 6M7 10h6M10 7v6",
+  check: "m5 12 4 4L19 6",
+  lock: "M5 10h14v11H5zM8 10V7a4 4 0 0 1 8 0v3M12 14v3",
+  camera: "M3 7h5l2-3h4l2 3h5v13H3zM12 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8",
+  keyboard: "M3 5h18v14H3zM7 9h.01M11 9h.01M15 9h.01M18 9h.01M7 12h.01M11 12h.01M15 12h.01M7 16h10",
+  music: "M9 18V5l11-2v13M9 18a3 3 0 1 1-3-3h3M20 16a3 3 0 1 1-3-3h3",
   apps: "M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z",
   drive: "M5 4h14l2 11v5H3v-5L5 4ZM3 15h18M7 18h.01M11 18h.01",
   clock: "M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16ZM12 8v5l3 2",

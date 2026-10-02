@@ -389,11 +389,27 @@ export default function App() {
 
   // Removal Ledger overlay.
   const [ledgerOpen, setLedgerOpen] = useState(false);
+  const [clearConfirm, setClearConfirm] = useState(false);
+  const [clearingHistory, setClearingHistory] = useState(false);
+  const clearLedger = async () => {
+    setClearingHistory(true);
+    setExportNote(null);
+    try {
+      await invoke("clear_removal_ledger");
+      setReceipts([]);
+      setClearConfirm(false);
+    } catch (error: unknown) {
+      setExportNote(typeof error === "string" ? error : text.errors.generic);
+    } finally {
+      setClearingHistory(false);
+    }
+  };
   const [receipts, setReceipts] = useState<RemovalReceipt[] | null>(null);
   const [exportNote, setExportNote] = useState<string | null>(null);
   const openLedger = useCallback(() => {
     setExportNote(null);
     setLedgerOpen(true);
+    setClearConfirm(false);
     setReceipts(null);
     invoke<RemovalReceipt[]>("list_removal_ledger")
       .then(setReceipts)
@@ -1693,10 +1709,20 @@ export default function App() {
                                 {p.name}
                               </span>
                               <span className="publisher">{p.publisher ?? " "}</span>
-                              <span className="row-detail-hint">
-                                <UiIcon name="chevron" />
+                              <button
+                                type="button"
+                                className="row-detail-hint"
+                                aria-expanded={expanded}
+                                aria-controls={`details-${rowKey}`}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  toggleExpanded(rowKey);
+                                }}
+                              >
+                                <UiIcon name="inspect" />
                                 {words.viewDetails}
-                              </span>
+                                <UiIcon name="chevron" className="detail-chevron" />
+                              </button>
                             </span>
                           </span>
                           <span role="cell" className="dim">
@@ -1713,7 +1739,15 @@ export default function App() {
                               className={`conf-chip conf-${p.confidence.level}`}
                               title={confidenceTitle(p.confidence)}
                             >
-                              <span className="conf-dot" aria-hidden="true" />
+                              <UiIcon
+                                name={
+                                  p.confidence.level === "safe"
+                                    ? "check"
+                                    : p.confidence.level === "keep"
+                                      ? "shield"
+                                      : "inspect"
+                                }
+                              />
                               {confidenceLabel(p.confidence.level)}
                             </span>
                             {isFamilyApp(p) && (
@@ -1913,7 +1947,10 @@ export default function App() {
               e.stopPropagation();
             }}
           >
-            <h2>{text.ledger.title}</h2>
+            <h2 className="ledger-heading">
+              <UiIcon name="history" />
+              {text.ledger.title}
+            </h2>
             <p className="dialog-body">{text.ledger.subtitle}</p>
 
             {receipts === null && (
@@ -1959,14 +1996,66 @@ export default function App() {
               </ul>
             )}
 
-            {exportNote !== null && <p className="detail-notice">{exportNote}</p>}
-            <div className="dialog-actions">
+            {exportNote !== null && (
+              <p className="detail-notice" role="alert">
+                {exportNote}
+              </p>
+            )}
+            {clearConfirm && (
+              <section className="ledger-confirm" aria-label={words.clearHistoryTitle}>
+                <h3>{words.clearHistoryTitle}</h3>
+                <p>{words.clearHistoryBody}</p>
+                <div className="dialog-actions">
+                  <button
+                    type="button"
+                    className="button-ghost"
+                    disabled={clearingHistory}
+                    onClick={() => {
+                      setClearConfirm(false);
+                    }}
+                  >
+                    {words.cancel}
+                  </button>
+                  <button
+                    type="button"
+                    className="button ledger-delete"
+                    disabled={clearingHistory}
+                    onClick={() => {
+                      void clearLedger();
+                    }}
+                  >
+                    {clearingHistory ? (
+                      <span className="spinner" aria-hidden="true" />
+                    ) : (
+                      <UiIcon name="trash" />
+                    )}
+                    {clearingHistory ? words.clearingHistory : words.clearHistory}
+                  </button>
+                </div>
+              </section>
+            )}
+            <div className="dialog-actions ledger-actions">
+              {receipts !== null && receipts.length > 0 && (
+                <button
+                  type="button"
+                  className="button-ghost ledger-clear"
+                  disabled={clearingHistory || flow.step !== "idle"}
+                  onClick={() => {
+                    setClearConfirm(true);
+                  }}
+                >
+                  <UiIcon name="trash" />
+                  {words.clearHistory}
+                </button>
+              )}
               {receipts !== null && receipts.length > 0 && (
                 <button type="button" className="button-ghost" onClick={exportLedger}>
+                  <UiIcon name="download" />
                   {text.ledger.exportButton}
                 </button>
               )}
               <button type="button" className="button-ghost" onClick={openLogFolder}>
+                <UiIcon name="package" />
                 {text.ledger.logButton}
               </button>
               <button
