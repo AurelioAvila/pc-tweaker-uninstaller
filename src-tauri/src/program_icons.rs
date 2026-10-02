@@ -136,7 +136,21 @@ fn load(source: &str, id: &str) -> Option<String> {
             }
             let uri = p.Logo().ok()?.AbsoluteUri().ok()?.to_string();
             let path = url::Url::parse(&uri).ok()?.to_file_path().ok()?;
-            let path = local_path(path.to_str()?)?;
+            let path = local_path(path.to_str()?).or_else(|| {
+                // Package logos often use resource qualifiers rather than the manifest filename.
+                let stem = path.file_stem()?.to_str()?;
+                let parent = path.parent()?;
+                [
+                    "scale-100",
+                    "scale-200",
+                    "targetsize-48",
+                    "targetsize-48_altform-unplated",
+                ]
+                .iter()
+                .find_map(|qualifier| {
+                    local_path(parent.join(format!("{stem}.{qualifier}.png")).to_str()?)
+                })
+            })?;
             if path.metadata().ok()?.len() > 1_048_576 {
                 return None;
             }
@@ -149,7 +163,14 @@ fn load(source: &str, id: &str) -> Option<String> {
         return None;
     }
     let entry = crate::programs::read_raw_entry(source, id).ok()?;
-    extract(entry.display_icon.as_deref()?)
+    entry.display_icon.as_deref().and_then(extract).or_else(|| {
+        // Read a registered executable's artwork only; never launch it.
+        let raw = entry.uninstall_string.as_deref()?;
+        match crate::uninstall_command::parse(raw) {
+            Ok(crate::uninstall_command::Classification::Executable { path, .. }) => extract(&path),
+            _ => None,
+        }
+    })
 }
 #[cfg(not(windows))]
 fn load(_: &str, _: &str) -> Option<String> {
@@ -182,4 +203,23 @@ pub async fn program_icon(source: String, id: String) -> Option<String> {
         }
     }
     result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn artwork_lookup_rejects_remote_relative_and_stream_paths() {
+        for path in [
+            r"\\server\share\app.exe",
+            "app.exe",
+            r"\\?\C:\app.exe",
+            r"C:\app.exe:stream",
+        ] {
+            assert!(local_path(path).is_none());
+        }
+        let exe = std::env::current_exe().unwrap();
+        assert_eq!(local_path(exe.to_str().unwrap()), Some(exe));
+    }
 }

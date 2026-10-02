@@ -11,16 +11,19 @@ await page.addInitScript(() => {
   const row = (name, size, date, extra = {}) => ({ id:name, name, publisher:'Example publisher', version:'1.2.3', source:'machine64', installDate:date, estimatedSizeKb:size, installLocation:'C:\\Apps\\Example', uninstall:'executable', hidden:false, confidence:{level:'review', reasons:[]}, relations:{dependents:[], installedVia:null, publisherSiblings:0}, ...extra });
   const today = new Date().toISOString().slice(0,10);
   const rows = [row('Creative Studio', 2400000, today), row('Microsoft Visual C++ Redistributable — a deliberately long program name', 42000, '2020-01-01', {confidence:{level:'keep',reasons:[]}}), row('Music player', 320000, today), row('PC Tweaker', 50000, today), row('Unknown size utility', null, null), ...Array.from({length:14}, (_,i)=>row(`Utility ${i+1}`,20000, '2020-01-01'))];
-  window.testState = { mode:'offer', checks:0, installs:0, relaunch:0 };
+  window.testState = { mode:'offer', checks:0, installs:0, relaunch:0, clears:0, clearError:true };
+  let receipts = [{ ts:1780000000, programName:'Example removal', method:'executable', success:true, rebootRequired:false, verifiedFreedKb:1000, estimatedSizeKb:1000, restorePoint:'created', message:'Removed successfully.' }];
   window.__TAURI_INTERNALS__ = {
     transformCallback: callback => { const id=Math.floor(Math.random()*1e9); window[`_${id}`]=callback; return id; },
     unregisterCallback: id => { delete window[`_${id}`]; },
     invoke: async (command, args) => {
       if(command==='list_programs') { await new Promise(r=>setTimeout(r,120)); return rows; }
-      if(command==='list_store_apps' || command==='list_removal_ledger') return [];
+      if(command==='list_store_apps') return [];
+      if(command==='list_removal_ledger') return receipts;
+      if(command==='clear_removal_ledger') { window.testState.clears++; if(window.testState.clearError) throw 'Test write failure'; receipts=[]; return; }
       if(command==='program_icon') return null;
-      if(command==='app_version') return '0.11.3';
-      if(command==='plugin:updater|check') { window.testState.checks++; await new Promise(r=>setTimeout(r,100)); if(window.testState.mode==='error') throw Error('offline'); return window.testState.mode==='current' ? null : {rid:1,currentVersion:'0.11.3',version:'0.12.0',body:'Test release',rawJson:{}}; }
+      if(command==='app_version') return '0.12.0';
+      if(command==='plugin:updater|check') { window.testState.checks++; await new Promise(r=>setTimeout(r,100)); if(window.testState.mode==='error') throw Error('offline'); return window.testState.mode==='current' ? null : {rid:1,currentVersion:'0.12.0',version:'0.12.1',body:'Test release',rawJson:{}}; }
       if(command==='plugin:updater|download_and_install') {
         window.testState.installs++;
         const send = (index,message) => window[`_${args.onEvent.id}`]({index,message});
@@ -52,6 +55,22 @@ try {
     assert.equal(overlaps,false,'Columns must not overlap');
   }
   await page.setViewportSize({width:1120,height:800});
+  await page.locator('.row-detail-hint').first().click();
+  assert.equal(await page.locator('.row').first().getAttribute('aria-expanded'),'true','Details button expands once');
+  await page.getByRole('button',{name:'History',exact:true}).click();
+  await page.locator('.ledger-clear').click();
+  await page.getByRole('button',{name:'Cancel',exact:true}).click();
+  assert.equal(await page.evaluate(()=>window.testState.clears),0,'Cancel never deletes history');
+  await page.locator('.ledger-clear').click();
+  await page.locator('.ledger-delete').click();
+  await page.getByRole('alert').filter({hasText:'Test write failure'}).waitFor();
+  assert.equal(await page.locator('.ledger-row').count(),1,'Failed clear retains receipts');
+  await page.screenshot({path:'ui-evidence/history-confirmation.png'});
+  await page.evaluate(()=>{window.testState.clearError=false;});
+  await page.locator('.ledger-delete').click();
+  await page.locator('.ledger-row').waitFor({state:'detached'});
+  await page.getByRole('button',{name:'Close',exact:true}).click();
+  assert.equal(await page.evaluate(()=>window.testState.clears),2,'Clear only runs after confirmation');
   await page.locator('.inventory-summary button').nth(1).click();
   assert.equal(await page.locator('.row').count(),1,'Large apps shortcut');
   await page.locator('.inventory-summary button').first().click();
@@ -109,4 +128,3 @@ try {
   assert.deepEqual(errors,[]);
   console.log('PASS: inventory, responsive columns, search, filters, profile/locales/keyboard, updater offer/dismiss/manual/progress/failure/current/offline. No real apps or updates modified.');
 } finally { await browser.close(); }
-

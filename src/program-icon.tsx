@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { UiIcon } from "./ui-icon";
+import { UiIcon, type IconName } from "./ui-icon";
 import { invoke } from "@tauri-apps/api/core";
+
+export function fallbackIcon(name: string, source: string): IconName {
+  if (/lock|access|account|auth|blocco|compte|konto/i.test(name)) return "lock";
+  if (/camera|fotocamera|photo/i.test(name)) return "camera";
+  if (/keyboard|tastiera|barcode|barre|clavier/i.test(name)) return "keyboard";
+  if (/music|audio|voice|vocale|sound/i.test(name)) return "music";
+  return source === "store" ? "apps" : "package";
+}
 
 export function ProgramIcon({ source, id, name }: { source: string; id: string; name: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -29,7 +37,7 @@ export function ProgramIcon({ source, id, name }: { source: string; id: string; 
   return (
     <span
       ref={ref}
-      className={`program-icon ${icon ? "has-native-icon" : "fallback-icon"}`}
+      className={`program-icon icon-${fallbackIcon(name, source)} ${icon ? "has-native-icon" : "fallback-icon"}`}
       title={name}
       aria-hidden="true"
     >
@@ -42,7 +50,7 @@ export function ProgramIcon({ source, id, name }: { source: string; id: string; 
           }}
         />
       ) : (
-        <UiIcon name={source === "store" ? "apps" : "package"} />
+        <UiIcon name={fallbackIcon(name, source)} />
       )}
     </span>
   );

@@ -476,24 +476,106 @@ details[open] > summary > .ui-icon:last-child {
   opacity: 0.45;
 }
 .row-detail-hint {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 6px;
   color: var(--fg-dim);
-  font-size: 10px;
-  margin-top: 4px;
+  font: inherit;
+  font-size: 11px;
+  margin: 5px 0 0 -5px;
+  padding: 3px 5px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+}
+.row-detail-hint:hover,
+.expanded .row-detail-hint {
+  color: var(--fg);
+  background: var(--surface);
 }
 .row-detail-hint .ui-icon {
-  width: 11px;
-  height: 11px;
+  width: 14px;
+  height: 14px;
   transition: transform 0.18s;
 }
-.expanded .row-detail-hint .ui-icon {
+.expanded .row-detail-hint .detail-chevron {
   transform: rotate(90deg);
 }
 .conf-chip {
-  padding: 3px 7px;
-  font-size: 10px;
+  padding: 5px 8px;
+  font-size: 11px;
+  border-radius: 6px;
+  gap: 6px;
+}
+.conf-chip .ui-icon {
+  width: 15px;
+  height: 15px;
+}
+.program-icon.icon-lock .ui-icon {
+  color: #e9b974;
+}
+.program-icon.icon-keyboard .ui-icon {
+  color: #67c9dd;
+}
+.program-icon.icon-camera .ui-icon {
+  color: #b7a6ee;
+}
+.program-icon.icon-music .ui-icon {
+  color: #df93bd;
+}
+.ledger-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ledger-heading .ui-icon {
+  color: var(--accent);
+}
+.ledger-actions {
+  flex-wrap: wrap;
+}
+.ledger-actions button {
+  font-size: 12px;
+  padding: 9px 10px;
+}
+.ledger-actions .ledger-clear {
+  margin-right: auto;
+}
+.ledger-confirm {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.ledger-confirm h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+.ledger-confirm p {
+  margin: 0;
+  color: var(--fg-dim);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.ledger-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #b42e48;
+  color: #fff;
+  border: 1px solid #d94c64;
+  border-radius: 7px;
+  padding: 9px 14px;
+  cursor: pointer;
+}
+.ledger-delete:hover:not(:disabled) {
+  background: #a4243d;
+}
+.ledger-delete:disabled {
+  opacity: 0.5;
+  cursor: wait;
 }
 .row {
   padding-top: 9px;
