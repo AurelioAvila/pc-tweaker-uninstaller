@@ -35,3 +35,6 @@ latest.json
 # Local UI preview and screenshots
 .local-preview/
 ui-evidence/
+
+# Internal design and review notes (kept out of the public repository)
+/DESIGN.md
