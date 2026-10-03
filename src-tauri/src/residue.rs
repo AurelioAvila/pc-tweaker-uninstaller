@@ -439,10 +439,22 @@ pub fn clean_residue(
             result.failed.push(raw);
             continue;
         }
-        let size = dir_size_kb(&path).unwrap_or(0);
+        let size = crate::recycle_bin::item_size_kb(&path);
+        if let Some(reason) =
+            crate::recycle_bin::refusal(crate::recycle_bin::limits_for(&path), size)
+        {
+            // Windows would delete it permanently instead of recycling it,
+            // so it stays where it is.
+            crate::applog::line(&format!(
+                "residue not recycled: {} ({reason})",
+                path.to_string_lossy()
+            ));
+            result.failed.push(raw);
+            continue;
+        }
         match trash::delete(&path) {
             Ok(()) => {
-                result.freed_kb += size;
+                result.freed_kb += size.unwrap_or(0);
                 result.removed.push(raw);
             }
             Err(e) => {
