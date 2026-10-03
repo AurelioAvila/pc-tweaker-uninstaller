@@ -1310,7 +1310,7 @@ const de: Dictionary = {
     tagline: "Installierte Programme prüfen. Bewusst deinstallieren.",
     suiteDetected: "PC Tweaker erkannt - Suite-Mitglied",
     suiteDetectedHint:
-      "PC Tweaker ist auf diesem PC installiert. Melde dich mit deinem PC-Tweaker-Pro-Konto an, um den Treuepreis freizuschalten.",
+      "PC Tweaker ist auf diesem PC installiert. Melden Sie sich mit Ihrem PC-Tweaker-Pro-Konto an, um den Treuepreis freizuschalten.",
   },
   programs: {
     searchPlaceholder: "Nach Name oder Hersteller suchen...",
@@ -1323,9 +1323,9 @@ const de: Dictionary = {
     statTotalSize: "auf der Festplatte",
     emptyTitle: "Keine Programme gefunden",
     emptyBody:
-      "In der Windows-Registrierung wurden keine deinstallierbaren Programme gefunden. Das ist ungewöhnlich - wenn du glaubst, dass das ein Fehler ist, melde es bitte.",
+      "In der Windows-Registrierung wurden keine deinstallierbaren Programme gefunden. Das ist ungewöhnlich - wenn Sie glauben, dass das ein Fehler ist, melden Sie es bitte.",
     noMatchesTitle: "Keine Treffer",
-    noMatchesBody: "Kein installiertes Programm entspricht deiner Suche.",
+    noMatchesBody: "Kein installiertes Programm entspricht Ihrer Suche.",
     errorTitle: "Installierte Programme konnten nicht gelesen werden",
     retry: "Erneut versuchen",
     columnProgram: "Programm",
@@ -1352,9 +1352,9 @@ const de: Dictionary = {
     badgeUserHint: "Nur für diesen Benutzer installiert, nicht PC-weit.",
     badgeHidden: "Verborgen",
     badgeHiddenHint:
-      "Windows verbirgt diesen Eintrag normalerweise (Systemkomponente oder Unter-Update). Das Entfernen kann andere Software beeinträchtigen - sei sicher, dass du weißt, was es ist.",
+      "Windows verbirgt diesen Eintrag normalerweise (Systemkomponente oder Unter-Update). Das Entfernen kann andere Software beeinträchtigen - stellen Sie sicher, dass Sie wissen, was es ist.",
     badgeSuite: "Suite",
-    badgeSuiteHint: "Teil deiner PC-Tweaker-Suite.",
+    badgeSuiteHint: "Teil Ihrer PC-Tweaker-Suite.",
     filterAll: "Alle",
     filterLarge: "Groß",
     filterRecent: "Neu",
@@ -1431,7 +1431,7 @@ const de: Dictionary = {
     sizeUnknown: "Nicht erfasst",
     confidenceLabel: "Einschätzung",
     notRemovedNote:
-      "Nicht automatisch entfernt: übrig gebliebene Dateien, Ordner und Registrierungseinträge. Du kannst direkt nach der Deinstallation danach suchen, und nichts wird ohne Rückfrage gelöscht.",
+      "Nicht automatisch entfernt: übrig gebliebene Dateien, Ordner und Registrierungseinträge. Sie können direkt nach der Deinstallation danach suchen, und nichts wird ohne Rückfrage gelöscht.",
     elevationNote: "Windows fragt zuerst nach Administrator-Bestätigung (UAC).",
     restorePointNote: "Vor der Ausführung wird ein Systemwiederherstellungspunkt versucht.",
     confirm: "Deinstallieren",
@@ -1454,7 +1454,7 @@ const de: Dictionary = {
     runningNote:
       "Der Uninstaller des Programms läuft. Dieses Fenster bleibt bedienbar; manche Uninstaller öffnen eigene Fenster.",
     runningSlowNote:
-      "Das dauert langer als ublich. Manche Deinstallationsprogramme offnen ein eigenes Fenster, das hinter diesem liegen kann - sehen Sie in der Taskleiste nach. Es geht nichts verloren, wenn Sie warten.",
+      "Das dauert länger als üblich. Manche Deinstallationsprogramme öffnen ein eigenes Fenster, das hinter diesem liegen kann - sehen Sie in der Taskleiste nach. Es geht nichts verloren, wenn Sie warten.",
     reportSuccessTitle: "Deinstalliert",
     reportFailureTitle: "Deinstallation nicht abgeschlossen",
     rebootNote: "Ein Neustart ist nötig, um die Dateien vollständig zu entfernen.",
@@ -1492,12 +1492,12 @@ const de: Dictionary = {
       "Sie laufen nacheinander, enthaltene Programme vor ihren Containern, mit denselben Prüfungen wie eine einzelne Deinstallation. Geschützte Einträge (Systemkomponenten, gemeinsame Runtimes, Ihre PC-Tweaker-Suite) sind nicht auswählbar.",
     batchNotBatchable: "Geschützt — nicht für Stapelentfernung verfügbar.",
     batchRunningStep: (name, index, total) =>
-      `Deinstalliere ${name} (${String(index)} von ${String(total)})...`,
+      `${name} wird deinstalliert (${String(index)} von ${String(total)})...`,
     batchDoneTitle: "Stapel abgeschlossen",
     batchFailedNote: (count) =>
       `${String(count)} Programm(e) nicht abgeschlossen — Details im Protokoll.`,
     familyNote:
-      "Diese App gehört zu deiner PC-Tweaker-Suite. Du kannst sie entfernen, aber davon abhängige Suite-Funktionen hören auf zu funktionieren.",
+      "Diese App gehört zu Ihrer PC-Tweaker-Suite. Sie können sie entfernen, aber davon abhängige Suite-Funktionen hören auf zu funktionieren.",
     hiddenNote:
       "Windows verbirgt diesen Eintrag normalerweise. Das Entfernen von Systemkomponenten oder Unter-Updates kann andere Software beeinträchtigen.",
   },
@@ -1507,11 +1507,11 @@ const de: Dictionary = {
     subtitle:
       "Eine lokale Quittung für jede Entfernung, die diese App ausgeführt hat - Erfolge wie Fehlschläge. Auf diesem PC gespeichert, nie hochgeladen.",
     empty:
-      "Noch keine Entfernungen aufgezeichnet. Deine erste Deinstallation hinterlässt hier ihre Quittung.",
+      "Noch keine Entfernungen aufgezeichnet. Ihre erste Deinstallation hinterlässt hier ihre Quittung.",
     exportButton: "Als JSON exportieren",
-    logButton: "Protokollordner offnen",
+    logButton: "Protokollordner öffnen",
     logAt: (path) =>
-      `Diagnoseprotokoll: ${path}. Es wird nirgendwohin gesendet; hangen Sie es bei Bedarf an eine Supportnachricht an.`,
+      `Diagnoseprotokoll: ${path}. Es wird nirgendwohin gesendet; hängen Sie es bei Bedarf an eine Supportnachricht an.`,
     exportedTo: (path) => `Exportiert nach ${path}`,
     verifiedFreed: (size) => `${size} freigegeben (verifiziert)`,
     estimatedOnly: (size) => `~${size} (Registrierungs-Schätzung)`,
@@ -1553,15 +1553,15 @@ const de: Dictionary = {
       "Die Stapelentfernung ist eine Uninstaller-Pro-Funktion. Einzelne Deinstallationen bleiben immer kostenlos.",
     proGateSignIn: "Zuerst über das Kontomenü anmelden, dann Pro freischalten.",
     loyaltyLocked:
-      "Melde dich mit deinem PC-Tweaker-Pro-Konto an, um den Treuepreis freizuschalten.",
-    checkFailed: "Konto konnte gerade nicht überprüft werden. Versuche es gleich noch einmal.",
+      "Melden Sie sich mit Ihrem PC-Tweaker-Pro-Konto an, um den Treuepreis freizuschalten.",
+    checkFailed: "Konto konnte gerade nicht überprüft werden. Versuchen Sie es gleich noch einmal.",
     createAccount: "Konto erstellen",
     firstNameLabel: "Vorname",
     lastNameLabel: "Nachname",
     birthDateLabel: "Geburtsdatum",
-    verifyEmail: "Prüfe dein Postfach, um deine E-Mail-Adresse zu bestätigen.",
+    verifyEmail: "Prüfen Sie Ihr Postfach, um Ihre E-Mail-Adresse zu bestätigen.",
     verifyEmailFailed:
-      "Konto erstellt, aber die Bestätigungs-E-Mail konnte nicht gesendet werden. Kontaktiere den Support.",
+      "Konto erstellt, aber die Bestätigungs-E-Mail konnte nicht gesendet werden. Kontaktieren Sie den Support.",
   },
   updater: {
     title: (version) => `Update ${version} ist bereit`,
@@ -1573,7 +1573,7 @@ const de: Dictionary = {
     error: (message) => `Das Update konnte nicht installiert werden: ${message}`,
   },
   errors: {
-    generic: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+    generic: "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
   },
 };
 
