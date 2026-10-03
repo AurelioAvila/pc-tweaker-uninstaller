@@ -16,6 +16,7 @@ pub mod ledger;
 pub mod license;
 pub mod program_icons;
 pub mod programs;
+pub mod recycle_bin;
 pub mod relations;
 pub mod residue;
 pub mod restore_point;
