@@ -48,6 +48,7 @@ windows-sys = { version = "0.59", features = [
   "Win32_UI_Shell",
   "Win32_UI_WindowsAndMessaging",
   "Win32_Graphics_Gdi",
+  "Win32_Storage_FileSystem",
 ] }
 # WinRT PackageManager: the same API Settings > Installed apps uses to list
 # and remove MSIX/Store packages. Deliberately not PowerShell — this app
