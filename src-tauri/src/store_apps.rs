@@ -394,8 +394,22 @@ pub fn list_store_apps() -> Result<Vec<StoreApp>, String> {
     platform::list()
 }
 
+/// The band shown in the list is decided again here, from the packages
+/// Windows reports right now: the webview can send any name, and a package
+/// rated Keep (the shell, shared runtimes) must not be removable through it.
+fn removal_allowed(apps: &[StoreApp], package_full_name: &str) -> Result<(), String> {
+    match apps.iter().find(|app| app.id == package_full_name) {
+        None => Err("That package is not installed.".to_string()),
+        Some(app) if app.confidence.level == ConfidenceLevel::Keep => {
+            Err("This package is part of Windows and stays installed.".to_string())
+        }
+        Some(_) => Ok(()),
+    }
+}
+
 #[tauri::command(async)]
 pub fn remove_store_app(package_full_name: String) -> Result<(), String> {
+    removal_allowed(&platform::list()?, &package_full_name)?;
     let result = platform::remove(&package_full_name);
     crate::applog::line(&match &result {
         Ok(()) => format!("store package removed: {package_full_name}"),
@@ -702,5 +716,39 @@ mod tests {
             assert!(got > previous, "{got} did not follow {previous}");
             previous = got;
         }
+    }
+}
+
+#[cfg(test)]
+mod removal_tests {
+    use super::*;
+
+    fn app(id: &str, level: ConfidenceLevel) -> StoreApp {
+        StoreApp {
+            id: id.into(),
+            name: id.into(),
+            publisher: None,
+            version: "1.0.0.0".into(),
+            install_location: None,
+            install_date: None,
+            confidence: Confidence {
+                level,
+                reasons: Vec::new(),
+            },
+            is_framework: false,
+            is_system: false,
+            hidden: false,
+        }
+    }
+
+    #[test]
+    fn removal_rechecks_the_band_natively() {
+        let apps = [
+            app("Contoso.Game_1.0_x64__abc", ConfidenceLevel::Safe),
+            app("Microsoft.UI.Xaml.2.8_8.0_x64__8we", ConfidenceLevel::Keep),
+        ];
+        assert!(removal_allowed(&apps, "Contoso.Game_1.0_x64__abc").is_ok());
+        assert!(removal_allowed(&apps, "Microsoft.UI.Xaml.2.8_8.0_x64__8we").is_err());
+        assert!(removal_allowed(&apps, "Not.Installed_1.0_x64__zzz").is_err());
     }
 }
