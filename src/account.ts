@@ -146,6 +146,16 @@ export type UninstallerEntitlement = {
   expiresAt?: string | null;
 };
 
+/** Offline or with the API unreachable, the signed licence cached on disk
+ *  still decides: Pro keeps working for as long as that licence is fresh. */
+async function cachedEntitlement(): Promise<UninstallerEntitlement | null> {
+  try {
+    return (await invoke<boolean>("license_status")) ? { active: true, plan: null } : null;
+  } catch {
+    return null;
+  }
+}
+
 /** The per-product entitlement map; only the uninstaller's row matters here.
  *  Informational for the UI — enforcement lives server-side. */
 export async function fetchUninstallerEntitlement(): Promise<UninstallerEntitlement | null> {
@@ -155,7 +165,8 @@ export async function fetchUninstallerEntitlement(): Promise<UninstallerEntitlem
     const license = await fetch(`${API_BASE_URL}/api/license?product=uninstaller`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (!license.ok) return null;
+    if (license.status === 401) return null;
+    if (!license.ok) return await cachedEntitlement();
     const response: unknown = await license.json();
     if (readToken() !== token) return null;
     await invoke("save_license", { response });
@@ -167,7 +178,7 @@ export async function fetchUninstallerEntitlement(): Promise<UninstallerEntitlem
     const res = await fetch(`${API_BASE_URL}/api/entitlements`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (!res.ok) return null;
+    if (!res.ok) return verified ? { active: true, plan: null } : null;
     const data = (await res.json()) as {
       products?: {
         product: string;
@@ -181,7 +192,7 @@ export async function fetchUninstallerEntitlement(): Promise<UninstallerEntitlem
       ? { active: row.active && verified, plan: row.plan, expiresAt: row.expiresAt ?? null }
       : { active: false, plan: null };
   } catch {
-    return null;
+    return await cachedEntitlement();
   }
 }
 

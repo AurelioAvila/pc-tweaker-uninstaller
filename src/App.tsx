@@ -745,9 +745,11 @@ export default function App() {
           step: "residue",
           program,
           residue,
-          // Everything cleanable starts selected; the user deselects, which
-          // is the right default for a cleanup the user explicitly asked for.
-          selected: residue.items.filter((item) => item.deletable).map((item) => item.path),
+          // Files start selected: they go to the Recycle Bin and can be put
+          // back. Registry keys are deleted outright, so the user opts in.
+          selected: residue.items
+            .filter((item) => item.deletable && item.kind !== "registry-user")
+            .map((item) => item.path),
         });
       })
       .catch(() => {

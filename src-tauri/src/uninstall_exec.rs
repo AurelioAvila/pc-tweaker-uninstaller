@@ -87,23 +87,21 @@ fn elevation_permitted(source: &str, kind: &PlanKind, command: &[String]) -> boo
     }
     match kind {
         PlanKind::Msi => false,
+        // Windows' own folder is left out on purpose: its tools are signed
+        // and protected, but a per-user entry can still point one of them at
+        // a script, and elevating that would run the script as administrator.
         PlanKind::Executable => command
             .first()
-            .is_some_and(|exe| is_under_protected_root(exe, &protected_roots())),
+            .is_some_and(|exe| is_under_protected_root(exe, &program_roots())),
     }
 }
 
-fn protected_roots() -> Vec<String> {
-    [
-        "ProgramFiles",
-        "ProgramFiles(x86)",
-        "ProgramW6432",
-        "SystemRoot",
-    ]
-    .iter()
-    .filter_map(|var| std::env::var(var).ok())
-    .filter(|root| !root.trim().is_empty())
-    .collect()
+fn program_roots() -> Vec<String> {
+    ["ProgramFiles", "ProgramFiles(x86)", "ProgramW6432"]
+        .iter()
+        .filter_map(|var| std::env::var(var).ok())
+        .filter(|root| !root.trim().is_empty())
+        .collect()
 }
 
 /// Case-insensitive prefix test on a component boundary. Any `..` component
@@ -764,6 +762,10 @@ mod tests {
         assert!(!elevation_permitted("user", &PlanKind::Executable, &cmd));
         assert!(!elevation_permitted("user", &PlanKind::Msi, &[]));
         assert!(!elevation_permitted("user", &PlanKind::Executable, &[]));
+        if let Ok(root) = std::env::var("SystemRoot") {
+            let tool = vec![format!(r"{root}\System32\diskpart.exe")];
+            assert!(!elevation_permitted("user", &PlanKind::Executable, &tool));
+        }
     }
 
     fn entry_with(uninstall: Option<&str>, quiet: Option<&str>) -> RawEntry {

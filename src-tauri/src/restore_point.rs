@@ -34,6 +34,7 @@ mod imp {
     use windows_sys::Win32::System::LibraryLoader::{GetProcAddress, LoadLibraryW};
 
     const BEGIN_SYSTEM_CHANGE: u32 = 100;
+    const END_SYSTEM_CHANGE: u32 = 101;
     const APPLICATION_UNINSTALL: u32 = 1;
     /// `ERROR_SERVICE_DISABLED`: System Restore is turned off.
     const SERVICE_DISABLED: u32 = 1058;
@@ -106,6 +107,22 @@ mod imp {
         // SAFETY: both pointers reference live, correctly-shaped structs for
         // the duration of the call.
         let ok = unsafe { set_restore_point(&info, &mut status) };
+        if ok != 0 {
+            // The documented pairing: close the change the begin call opened,
+            // by its sequence number, so Windows finalises the restore point.
+            let end = RestorePointInfoW {
+                event_type: END_SYSTEM_CHANGE,
+                restore_pt_type: 0,
+                sequence_number: status.sequence_number,
+                description: [0u16; 256],
+            };
+            let mut end_status = StateMgrStatus {
+                status: 0,
+                sequence_number: 0,
+            };
+            // SAFETY: as above, both structs live for the duration of the call.
+            unsafe { set_restore_point(&end, &mut end_status) };
+        }
         // SAFETY: `module` came from LoadLibraryW above.
         unsafe { FreeLibrary(module) };
 
