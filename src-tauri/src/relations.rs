@@ -42,7 +42,7 @@ pub struct RelEntry {
 /// quotes stripped, trailing separators removed, forward slashes unified.
 /// Returns None for empty or bare-drive paths (`C:\` contains everything —
 /// treating it as a tree would relate the whole machine).
-fn normalized_root(location: Option<&str>) -> Option<String> {
+pub(crate) fn normalized_root(location: Option<&str>) -> Option<String> {
     let raw = location?.trim().trim_matches('"').replace('/', "\\");
     let trimmed = raw.trim_end_matches('\\').to_ascii_lowercase();
     if trimmed.is_empty() || trimmed.matches('\\').count() < 2 {
@@ -52,7 +52,7 @@ fn normalized_root(location: Option<&str>) -> Option<String> {
 }
 
 /// True when `child` is strictly inside `parent`'s tree.
-fn is_inside(child: &str, parent: &str) -> bool {
+pub(crate) fn is_inside(child: &str, parent: &str) -> bool {
     child.len() > parent.len() + 1
         && child.starts_with(parent)
         && child.as_bytes()[parent.len()] == b'\\'

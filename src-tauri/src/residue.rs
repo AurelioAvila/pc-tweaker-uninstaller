@@ -115,22 +115,42 @@ fn strip_version(name: &str) -> String {
     words.join(" ")
 }
 
-/// The normalized tokens a leftover's file/folder name may equal.
-pub fn name_candidates(display_name: &str, publisher: Option<&str>) -> Vec<String> {
-    let mut out = Vec::new();
-    for raw in [
-        Some(strip_version(display_name)),
-        publisher.map(str::to_string),
-    ]
-    .into_iter()
-    .flatten()
-    {
-        let token = normalize(&raw);
-        if token.len() >= 4 && !STOPLIST.contains(&token.as_str()) && !out.contains(&token) {
-            out.push(token);
-        }
+/// The normalized tokens a leftover's file/folder name may equal. Only the
+/// program's own name counts: a publisher folder (`%APPDATA%\JetBrains`,
+/// `HKCU\Software\Logitech`) holds every product from that vendor, so
+/// matching it would offer to delete programs that are still installed.
+pub fn name_candidates(display_name: &str) -> Vec<String> {
+    let token = normalize(&strip_version(display_name));
+    if token.len() >= 4 && !STOPLIST.contains(&token.as_str()) {
+        vec![token]
+    } else {
+        Vec::new()
     }
-    out
+}
+
+/// True when any of `others` (install locations still registered with
+/// Windows) is `location` itself or lies inside it. A shared vendor folder,
+/// or the folder of a program whose uninstall did not finish, must stay.
+/// An unreadable location is treated as shared.
+fn location_hosts_program(location: &str, others: &[Option<String>]) -> bool {
+    let Some(root) = crate::relations::normalized_root(Some(location)) else {
+        return true;
+    };
+    others.iter().any(|other| {
+        crate::relations::normalized_root(other.as_deref())
+            .is_some_and(|other| other == root || crate::relations::is_inside(&other, &root))
+    })
+}
+
+fn install_location_in_use(location: &str) -> bool {
+    match crate::programs::list_programs() {
+        Ok(programs) => {
+            let others: Vec<Option<String>> =
+                programs.into_iter().map(|p| p.install_location).collect();
+            location_hosts_program(location, &others)
+        }
+        Err(_) => true,
+    }
 }
 
 /// True when `file_name` (a bare folder/file name, extension already
@@ -265,7 +285,8 @@ pub fn scan_residue(
     publisher: Option<String>,
     install_location: Option<String>,
 ) -> Result<ResidueReport, String> {
-    let candidates = name_candidates(&name, publisher.as_deref());
+    let _ = &publisher; // kept in the IPC signature; vendor names are not matched
+    let candidates = name_candidates(&name);
     let mut items = Vec::new();
 
     if let Some(location) = install_location.as_deref().filter(|l| !l.trim().is_empty()) {
@@ -371,7 +392,7 @@ fn path_is_cleanable(path: &Path, candidates: &[String], install_location: Optio
     }
     if let Some(location) = install_location {
         let loc = PathBuf::from(location.trim().trim_matches('"'));
-        if loc.components().count() > 2 && path == loc {
+        if loc.components().count() > 2 && path == loc && !install_location_in_use(location) {
             return true;
         }
     }
@@ -389,6 +410,50 @@ fn path_is_cleanable(path: &Path, candidates: &[String], install_location: Optio
         .any(|root| path.parent() == Some(root.as_path()))
 }
 
+/// Saves `key` (an `HKCU\Software\…` path) as a `.reg` file before it is
+/// deleted, so the one step that skips the Recycle Bin can still be undone by
+/// double-clicking the file. Returns false, and the key is kept, if the
+/// export does not complete.
+#[cfg(windows)]
+fn export_registry_key(key: &str, backup_dir: &Path) -> bool {
+    use std::os::windows::process::CommandExt;
+    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+    if crate::elevation::ensure_plain_app_data_dir(backup_dir).is_err()
+        || std::fs::create_dir_all(backup_dir).is_err()
+    {
+        return false;
+    }
+    let stamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    let safe: String = key
+        .rsplit('\\')
+        .next()
+        .unwrap_or("key")
+        .chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '-' {
+                c
+            } else {
+                '_'
+            }
+        })
+        .collect();
+    let file = backup_dir.join(format!("{safe}-{stamp}.reg"));
+    let Ok(system_root) = std::env::var("SystemRoot") else {
+        return false;
+    };
+    std::process::Command::new(Path::new(&system_root).join(r"System32\reg.exe"))
+        .args(["export", key])
+        .arg(&file)
+        .arg("/y")
+        .creation_flags(CREATE_NO_WINDOW)
+        .status()
+        .is_ok_and(|status| status.success())
+        && file.is_file()
+}
+
 /// Moves the selected leftovers to the Recycle Bin (filesystem items) or
 /// deletes them (HKCU registry keys — flagged in the UI as the one
 /// non-recoverable step). Every path is revalidated; unknown paths fail.
@@ -400,13 +465,20 @@ pub fn clean_residue(
     install_location: Option<String>,
     paths: Vec<String>,
 ) -> Result<CleanResult, String> {
+    use tauri::Manager;
+    let backup_dir = app
+        .path()
+        .app_data_dir()
+        .map(|dir| dir.join("registry-backups"))
+        .map_err(|e| e.to_string())?;
     if !crate::license::license_status(app)? {
         return Err("An active Uninstaller Pro license is required for cleanup.".into());
     }
     if paths.len() > 64 {
         return Err("Too many items in one cleanup.".into());
     }
-    let candidates = name_candidates(&name, publisher.as_deref());
+    let _ = &publisher; // kept in the IPC signature; vendor names are not matched
+    let candidates = name_candidates(&name);
     let mut result = CleanResult::default();
 
     for raw in paths {
@@ -417,6 +489,7 @@ pub fn clean_residue(
                 use winreg::RegKey;
                 let valid = !key.contains('\\') && matches_candidates(key, &candidates);
                 let deleted = valid
+                    && export_registry_key(&raw, &backup_dir)
                     && RegKey::predef(HKEY_CURRENT_USER)
                         .open_subkey("Software")
                         .and_then(|s| s.delete_subkey_all(key))
@@ -562,16 +635,42 @@ mod tests {
 
     #[test]
     fn candidates_exclude_short_and_stoplisted_tokens() {
-        assert_eq!(name_candidates("VLC", None), Vec::<String>::new()); // too short
-        assert_eq!(name_candidates("Microsoft", None), Vec::<String>::new());
-        let c = name_candidates("SuperTool 1.2", Some("Acme Corp"));
-        assert!(c.contains(&"supertool".to_string()));
-        assert!(c.contains(&"acmecorp".to_string()));
+        assert_eq!(name_candidates("VLC"), Vec::<String>::new()); // too short
+        assert_eq!(name_candidates("Microsoft"), Vec::<String>::new());
+        let c = name_candidates("SuperTool 1.2");
+        assert_eq!(c, vec!["supertool".to_string()]);
+    }
+
+    #[test]
+    fn a_folder_still_hosting_an_installed_program_is_never_cleanable() {
+        let others = vec![
+            Some(r"C:\Program Files\JetBrains\PyCharm 2026.2".to_string()),
+            Some(r"D:\Games\Other".to_string()),
+            None,
+        ];
+        // A vendor parent folder, a drive-level games folder, and the exact
+        // location of a program that is still registered all stay.
+        assert!(location_hosts_program(
+            r"C:\Program Files\JetBrains",
+            &others
+        ));
+        assert!(location_hosts_program(r"D:\Games", &others));
+        assert!(location_hosts_program(
+            r"C:\Program Files\JetBrains\PyCharm 2026.2\",
+            &others
+        ));
+        // The removed product's own folder, with nothing else inside it, may go.
+        assert!(!location_hosts_program(
+            r"C:\Program Files\JetBrains\IntelliJ IDEA 2026.2",
+            &others
+        ));
+        // A bare drive or unreadable value is never treated as cleanable.
+        assert!(location_hosts_program(r"C:\", &others));
     }
 
     #[test]
     fn matching_is_exact_not_substring() {
-        let c = name_candidates("SuperTool", None);
+        let c = name_candidates("SuperTool");
         assert!(matches_candidates("SuperTool", &c));
         assert!(matches_candidates("super-tool", &c));
         assert!(!matches_candidates("SuperTools", &c));
@@ -581,7 +680,7 @@ mod tests {
 
     #[test]
     fn cleanup_rejects_paths_outside_known_roots() {
-        let c = name_candidates("SuperTool", None);
+        let c = name_candidates("SuperTool");
         assert!(!path_is_cleanable(
             Path::new(r"C:/Windows/System32"),
             &c,
@@ -607,7 +706,7 @@ mod tests {
 
     #[test]
     fn bare_drive_install_locations_are_never_cleanable() {
-        let c = name_candidates("SuperTool", None);
+        let c = name_candidates("SuperTool");
         assert!(!path_is_cleanable(Path::new(r"C:/"), &c, Some(r"C:/")));
     }
 }

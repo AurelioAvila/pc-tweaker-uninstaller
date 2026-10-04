@@ -386,7 +386,8 @@ const en: Dictionary = {
     reportSuccessTitle: "Uninstalled",
     reportFailureTitle: "Uninstall did not complete",
     rebootNote: "A restart is required to finish removing files.",
-    restorePointCreated: "System Restore point: created.",
+    restorePointCreated:
+      "System Restore point: requested from Windows. Windows keeps at most one a day, so a point made in the last 24 hours may be the one to use.",
     restorePointSkipped: (reason) => `System Restore point: skipped - ${reason}`,
     restorePointFailed: (reason) => `System Restore point: not created - ${reason}`,
     exitCodeLabel: "Exit code",
@@ -652,7 +653,8 @@ const it: Dictionary = {
     reportSuccessTitle: "Disinstallato",
     reportFailureTitle: "Disinstallazione non completata",
     rebootNote: "Serve un riavvio per completare la rimozione dei file.",
-    restorePointCreated: "Punto di ripristino: creato.",
+    restorePointCreated:
+      "Punto di ripristino: richiesto a Windows. Windows ne conserva al massimo uno al giorno, quindi potrebbe valere quello delle ultime 24 ore.",
     restorePointSkipped: (reason) => `Punto di ripristino: saltato - ${reason}`,
     restorePointFailed: (reason) => `Punto di ripristino: non creato - ${reason}`,
     exitCodeLabel: "Codice di uscita",
@@ -920,7 +922,8 @@ const fr: Dictionary = {
     reportSuccessTitle: "Désinstallé",
     reportFailureTitle: "Désinstallation non terminée",
     rebootNote: "Un redémarrage est nécessaire pour finir de supprimer les fichiers.",
-    restorePointCreated: "Point de restauration : créé.",
+    restorePointCreated:
+      "Point de restauration : demandé à Windows. Windows n'en garde qu'un par jour ; celui des dernières 24 heures peut être celui à utiliser.",
     restorePointSkipped: (reason) => `Point de restauration : ignoré - ${reason}`,
     restorePointFailed: (reason) => `Point de restauration : non créé - ${reason}`,
     exitCodeLabel: "Code de sortie",
@@ -1188,7 +1191,8 @@ const es: Dictionary = {
     reportSuccessTitle: "Desinstalado",
     reportFailureTitle: "La desinstalación no se completó",
     rebootNote: "Se requiere un reinicio para terminar de eliminar los archivos.",
-    restorePointCreated: "Punto de restauración: creado.",
+    restorePointCreated:
+      "Punto de restauración: solicitado a Windows. Windows conserva como máximo uno al día, así que puede valer el de las últimas 24 horas.",
     restorePointSkipped: (reason) => `Punto de restauración: omitido - ${reason}`,
     restorePointFailed: (reason) => `Punto de restauración: no creado - ${reason}`,
     exitCodeLabel: "Código de salida",
@@ -1458,7 +1462,8 @@ const de: Dictionary = {
     reportSuccessTitle: "Deinstalliert",
     reportFailureTitle: "Deinstallation nicht abgeschlossen",
     rebootNote: "Ein Neustart ist nötig, um die Dateien vollständig zu entfernen.",
-    restorePointCreated: "Wiederherstellungspunkt: erstellt.",
+    restorePointCreated:
+      "Wiederherstellungspunkt: bei Windows angefordert. Windows behält höchstens einen pro Tag, daher kann der Punkt der letzten 24 Stunden der richtige sein.",
     restorePointSkipped: (reason) => `Wiederherstellungspunkt: übersprungen - ${reason}`,
     restorePointFailed: (reason) => `Wiederherstellungspunkt: nicht erstellt - ${reason}`,
     exitCodeLabel: "Exit-Code",
