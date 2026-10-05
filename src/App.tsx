@@ -20,7 +20,14 @@ import {
   type UninstallerEntitlement,
 } from "./account";
 import { UpdateBanner, useAppUpdater } from "./updater";
-import { comparePrograms, isRecent, readView, SORT_KEYS, type SortKey } from "./inventory";
+import {
+  comparePrograms,
+  formatInstallDate,
+  isRecent,
+  readView,
+  SORT_KEYS,
+  type SortKey,
+} from "./inventory";
 import { inventoryCopy } from "./inventory-copy";
 import { ProgramIcon } from "./program-icon";
 import appLogo from "../src-tauri/icons/128x128.png";
@@ -332,6 +339,15 @@ export default function App() {
   const [state, setState] = useState<LoadState>({ phase: "loading" });
   const [query, setQuery] = useState("");
   const [flow, setFlow] = useState<FlowState>({ step: "idle" });
+  /* The leftover scan used to wait behind a button on the success report,
+     so most people closed the dialog and never saw what the uninstaller had
+     left behind. The scan is read-only, so it now runs as soon as the
+     removal succeeds and the report offers the result itself: a count and a
+     size to review, or the reassurance that nothing was left. Cleaning
+     remains the user's explicit step. "error" keeps the manual button. */
+  const [reportResidue, setReportResidue] = useState<ResidueReport | "scanning" | "error" | null>(
+    null,
+  );
   const [chip, setChip] = useState<FilterChip>("all");
   const [showHidden, setShowHidden] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>(() => readView().key);
@@ -405,6 +421,40 @@ export default function App() {
     }
   };
   const [receipts, setReceipts] = useState<RemovalReceipt[] | null>(null);
+  /* What the ledger adds up to: the one number no other uninstaller shows,
+     because no other uninstaller measures it. Read at start and after every
+     removal, so the tile and the report both speak from the receipts. */
+  const [ledgerStats, setLedgerStats] = useState<{
+    freedKb: number;
+    count: number;
+    latest: RemovalReceipt | null;
+  } | null>(null);
+  const refreshLedgerStats = useCallback(() => {
+    invoke<RemovalReceipt[]>("list_removal_ledger")
+      .then((rows) => {
+        const ok = rows.filter((r) => r.success);
+        setLedgerStats({
+          freedKb: ok.reduce((sum, r) => sum + (r.verifiedFreedKb ?? 0), 0),
+          count: ok.length,
+          latest: rows.reduce<RemovalReceipt | null>((a, b) => (a && a.ts > b.ts ? a : b), null),
+        });
+      })
+      .catch(() => {
+        // The tile simply stays hidden when the ledger cannot be read.
+      });
+  }, []);
+  useEffect(() => {
+    refreshLedgerStats();
+  }, [refreshLedgerStats]);
+  useEffect(() => {
+    if (
+      flow.step === "report" ||
+      flow.step === "storeDone" ||
+      flow.step === "batchDone" ||
+      flow.step === "residueDone"
+    )
+      refreshLedgerStats();
+  }, [flow.step, refreshLedgerStats]);
   const [exportNote, setExportNote] = useState<string | null>(null);
   const openLedger = useCallback(() => {
     setExportNote(null);
@@ -805,6 +855,30 @@ export default function App() {
   const closeFlow = useCallback(() => {
     setFlow({ step: "idle" });
   }, []);
+
+  useEffect(() => {
+    if (flow.step !== "report" || !flow.report.success) {
+      setReportResidue(null);
+      return;
+    }
+    let cancelled = false;
+    setReportResidue("scanning");
+    const program = flow.program;
+    invoke<ResidueReport>("scan_residue", {
+      name: program.name,
+      publisher: program.publisher,
+      installLocation: program.installLocation,
+    })
+      .then((residue) => {
+        if (!cancelled) setReportResidue(residue);
+      })
+      .catch(() => {
+        if (!cancelled) setReportResidue("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [flow]);
 
   /* A stuck-looking uninstall is almost never stuck: the program's own
      uninstaller has opened a window behind ours and is waiting for a click
@@ -1371,6 +1445,16 @@ export default function App() {
                   <small>{words.recentHint}</small>
                 </span>
               </button>
+              {ledgerStats !== null && ledgerStats.count > 0 && (
+                <button className="summary-freed" onClick={openLedger}>
+                  <UiIcon name="history" />
+                  <span>
+                    {words.freed}
+                    <strong>{formatSize(ledgerStats.freedKb)}</strong>
+                    <small>{words.freedHint(ledgerStats.count)}</small>
+                  </span>
+                </button>
+              )}
             </div>
             <div className="toolbar">
               <input
@@ -1727,14 +1811,15 @@ export default function App() {
                               </button>
                             </span>
                           </span>
-                          <span role="cell" className="dim">
+                          <span role="cell" className="dim cell-version">
                             {p.version ?? "—"}
+                            <small title={badgeHint(p.uninstall)}>{badgeLabel(p.uninstall)}</small>
                           </span>
                           <span role="cell" className="dim num">
                             {formatSize(p.estimatedSizeKb)}
                           </span>
                           <span role="cell" className="dim">
-                            {p.installDate ?? "—"}
+                            {formatInstallDate(p.installDate, lang)}
                           </span>
                           <span role="cell" className="cell-badges num">
                             <span
@@ -1784,12 +1869,6 @@ export default function App() {
                                 {text.programs.badgeMissing}
                               </span>
                             )}
-                            <span
-                              className={`badge badge-${p.uninstall}`}
-                              title={badgeHint(p.uninstall)}
-                            >
-                              {badgeLabel(p.uninstall)}
-                            </span>
                           </span>
                           <span role="cell" className="cell-action num">
                             {(p.uninstall === "msi" ||
@@ -2369,9 +2448,54 @@ export default function App() {
                       {text.uninstall.exitCodeLabel}: {String(flow.report.exitCode)}
                     </li>
                   )}
+                  {flow.report.success &&
+                    ledgerStats?.latest?.programName === flow.program.name &&
+                    ledgerStats.latest.verifiedFreedKb !== null && (
+                      <li className="freed">
+                        {text.uninstall.freedLine(
+                          (ledgerStats.latest.verifiedFreedKb / 1024).toFixed(1),
+                        )}
+                      </li>
+                    )}
                 </ul>
+                {flow.report.success && reportResidue === "scanning" && (
+                  <p className="status" role="status">
+                    <span className="spinner" aria-hidden="true" />
+                    {text.uninstall.residueChecking}
+                  </p>
+                )}
+                {flow.report.success &&
+                  reportResidue !== null &&
+                  typeof reportResidue === "object" &&
+                  reportResidue.items.length === 0 && (
+                    <p className="dialog-body">{text.uninstall.residueNone}</p>
+                  )}
                 <div className="dialog-actions">
-                  {flow.report.success && (
+                  {flow.report.success &&
+                    typeof reportResidue === "object" &&
+                    reportResidue !== null &&
+                    reportResidue.items.length > 0 && (
+                      <button
+                        type="button"
+                        className="button primary"
+                        onClick={() => {
+                          setFlow({
+                            step: "residue",
+                            program: flow.program,
+                            residue: reportResidue,
+                            selected: reportResidue.items
+                              .filter((item) => item.deletable && item.kind !== "registry-user")
+                              .map((item) => item.path),
+                          });
+                        }}
+                      >
+                        {text.uninstall.residueFound(
+                          reportResidue.items.length,
+                          (reportResidue.totalKb / 1024).toFixed(1),
+                        )}
+                      </button>
+                    )}
+                  {flow.report.success && reportResidue === "error" && (
                     <button
                       type="button"
                       className="button primary"

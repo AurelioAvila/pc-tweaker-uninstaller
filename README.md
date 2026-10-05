@@ -57,7 +57,7 @@ Uninstall Windows programs cleanly, with a safety net. Every removal is explaine
 | **Removal Ledger** | A local receipt of what was removed, how, with what result and how much space was actually freed. Exportable, and it never leaves your PC. |
 | **Store apps too** | Classic desktop software and Microsoft Store apps in one list, with search, filters, sorting and CSV export. |
 
-5 languages, 8 themes, and one suite account shared with PC Tweaker.
+6 languages (English, Italian, French, Spanish, German and Portuguese), 8 themes, and one suite account shared with PC Tweaker.
 
 ### Free and Pro
 

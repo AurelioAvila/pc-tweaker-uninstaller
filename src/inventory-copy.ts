@@ -85,4 +85,18 @@ export const inventoryCopy: Record<Locale, Copy> = {
     unknown: "Apps mit unbekannter Größe",
     hint: "Größen und Datumsangaben stammen von Installationsprogrammen und können unvollständig sein. Datumsangaben können ein Update oder eine Reparatur betreffen. Freigebbarer Speicherplatz ist nicht garantiert. Unbekannte Werte stehen immer am Ende.",
   },
+  pt: {
+    sort: "Ordenar por",
+    ascending: "Crescente",
+    descending: "Decrescente",
+    source: "Origem",
+    confidence: "Orientação de remoção",
+    all: "Todos",
+    compact: "Linhas compactas",
+    reset: "Repor vista",
+    export: "Exportar vista para CSV",
+    estimated: "Tamanho indicado nesta vista",
+    unknown: "Aplicações com tamanho desconhecido",
+    hint: "Os tamanhos e as datas são indicados pelos instaladores e podem estar incompletos. As datas podem refletir uma atualização ou reparação. O tamanho indicado não garante espaço recuperável. Os valores desconhecidos ficam no fim.",
+  },
 };

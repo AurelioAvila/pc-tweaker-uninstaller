@@ -73,7 +73,8 @@ summary:focus-visible,
 }
 .inventory-summary {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 0;
   margin-bottom: 22px;
   border: 1px solid var(--line-strong);
@@ -113,6 +114,12 @@ summary:focus-visible,
 .inventory-summary button:nth-child(3) .ui-icon {
   color: #e9b974;
 }
+.inventory-summary button.summary-freed .ui-icon {
+  color: #7fd39a;
+}
+.inventory-summary button.summary-freed strong {
+  color: #7fd39a;
+}
 .inventory-summary span {
   font-size: 12px;
   display: grid;
@@ -121,11 +128,12 @@ summary:focus-visible,
   align-items: baseline;
 }
 .inventory-summary strong {
-  font-size: 29px;
+  font-size: 27px;
   font-weight: 600;
   color: var(--fg);
   grid-row: 2;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .inventory-summary small {
   grid-row: 2;

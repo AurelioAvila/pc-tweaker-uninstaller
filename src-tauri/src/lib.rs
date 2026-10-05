@@ -8,6 +8,7 @@
 
 pub mod actions;
 pub mod applog;
+mod window_state;
 pub mod confidence;
 pub mod elevation;
 pub mod forget;
@@ -46,6 +47,15 @@ pub fn run() {
     // during setup is exactly the one nobody could see until now.
     applog::init(env!("CARGO_PKG_VERSION"), "gui");
     tauri::Builder::default()
+        .setup(|app| {
+            window_state::restore(app);
+            Ok(())
+        })
+        .on_window_event(|window, event| match event {
+            tauri::WindowEvent::Resized(s) => window_state::remember(window, Some(*s), None),
+            tauri::WindowEvent::Moved(p) => window_state::remember(window, None, Some(*p)),
+            _ => {}
+        })
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())

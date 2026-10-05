@@ -9,6 +9,22 @@ export interface InventoryRow {
   estimatedSizeKb: number | null;
 }
 
+/** "12 Sep 2026" in the UI language. The registry gives YYYYMMDD and Rust
+ *  normalizes it to ISO, which sorts well but reads like a database field. */
+export function formatInstallDate(value: string | null, locale: string): string {
+  const time = dateValue(value);
+  if (time === null) return value ?? "—";
+  // The Portuguese copy is European Portuguese, whose short date ("12/09/2026")
+  // fits the column; the generic "pt" form ("12 de set. de 2026") does not.
+  const tag = locale === "pt" ? "pt-PT" : locale;
+  return new Intl.DateTimeFormat(tag, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(time);
+}
+
 export function dateValue(value: string | null): number | null {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
   const time = Date.parse(`${value}T00:00:00Z`);
