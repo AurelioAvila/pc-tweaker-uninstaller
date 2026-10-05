@@ -8,7 +8,6 @@
 
 pub mod actions;
 pub mod applog;
-mod window_state;
 pub mod confidence;
 pub mod elevation;
 pub mod forget;
@@ -25,6 +24,7 @@ pub mod rollback;
 pub mod store_apps;
 pub mod uninstall_command;
 pub mod uninstall_exec;
+mod window_state;
 
 use std::path::PathBuf;
 use tauri::Manager;

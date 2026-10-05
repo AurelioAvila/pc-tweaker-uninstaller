@@ -37,7 +37,9 @@ pub struct Placement {
 /// on 1366x768 it is 1024x700.
 pub fn default_size(work_w: f64, work_h: f64) -> (f64, f64) {
     let fit = |want: f64, min: f64, max: f64, avail: f64| {
-        want.clamp(min, max).min((avail - MARGIN).max(min.min(avail))).floor()
+        want.clamp(min, max)
+            .min((avail - MARGIN).max(min.min(avail)))
+            .floor()
     };
     (
         fit(work_w * SHARE, MIN.0, MAX.0, work_w),
@@ -75,7 +77,12 @@ fn write(dir: &Path, p: &Placement) {
 fn work_area(scale: f64) -> Option<(f64, f64)> {
     use windows_sys::Win32::Foundation::RECT;
     use windows_sys::Win32::UI::WindowsAndMessaging::{SystemParametersInfoW, SPI_GETWORKAREA};
-    let mut r = RECT { left: 0, top: 0, right: 0, bottom: 0 };
+    let mut r = RECT {
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+    };
     // SAFETY: SPI_GETWORKAREA fills the RECT we own; no other pointers.
     let ok = unsafe { SystemParametersInfoW(SPI_GETWORKAREA, 0, &mut r as *mut RECT as *mut _, 0) };
     if ok == 0 || scale <= 0.0 {
@@ -100,27 +107,28 @@ pub struct Saver {
 
 impl Saver {
     pub fn new(dir: PathBuf) -> Self {
-        Self { dir, last: Mutex::new((None, Instant::now())) }
+        Self {
+            dir,
+            last: Mutex::new((None, Instant::now())),
+        }
     }
 }
 
 /// Called from setup, before the first paint.
 pub fn restore(app: &tauri::App) {
-    let Some(window) = app.get_webview_window("main") else { return };
+    let Some(window) = app.get_webview_window("main") else {
+        return;
+    };
     let dir = match app.path().app_data_dir() {
         Ok(d) => d,
         Err(_) => return,
     };
     let scale = window.scale_factor().unwrap_or(1.0);
     let work = work_area(scale).or_else(|| {
-        window
-            .current_monitor()
-            .ok()
-            .flatten()
-            .map(|m| {
-                let s = m.size().to_logical::<f64>(scale);
-                (s.width, s.height - 48.0)
-            })
+        window.current_monitor().ok().flatten().map(|m| {
+            let s = m.size().to_logical::<f64>(scale);
+            (s.width, s.height - 48.0)
+        })
     });
     let Some((ww, wh)) = work else { return };
 
@@ -139,22 +147,40 @@ pub fn restore(app: &tauri::App) {
 }
 
 /// Called from the window event hook on every move and resize.
-pub fn remember(window: &tauri::Window, size: Option<PhysicalSize<u32>>, pos: Option<PhysicalPosition<i32>>) {
-    if window.label() != "main" || window.is_maximized().unwrap_or(false) || window.is_minimized().unwrap_or(false) {
+pub fn remember(
+    window: &tauri::Window,
+    size: Option<PhysicalSize<u32>>,
+    pos: Option<PhysicalPosition<i32>>,
+) {
+    if window.label() != "main"
+        || window.is_maximized().unwrap_or(false)
+        || window.is_minimized().unwrap_or(false)
+    {
         return;
     }
-    let Some(saver) = window.app_handle().try_state::<Saver>() else { return };
+    let Some(saver) = window.app_handle().try_state::<Saver>() else {
+        return;
+    };
     let scale = window.scale_factor().unwrap_or(1.0);
     let size = size.or_else(|| window.inner_size().ok());
     let pos = pos.or_else(|| window.outer_position().ok());
-    let (Some(size), Some(pos)) = (size, pos) else { return };
+    let (Some(size), Some(pos)) = (size, pos) else {
+        return;
+    };
     let size = size.to_logical::<f64>(scale);
     let pos = pos.to_logical::<f64>(scale);
-    let p = Placement { w: size.width, h: size.height, x: pos.x, y: pos.y };
+    let p = Placement {
+        w: size.width,
+        h: size.height,
+        x: pos.x,
+        y: pos.y,
+    };
     if p.w < 400.0 || p.h < 300.0 {
         return;
     }
-    let Ok(mut last) = saver.last.lock() else { return };
+    let Ok(mut last) = saver.last.lock() else {
+        return;
+    };
     if last.0 == Some(p) || last.1.elapsed() < Duration::from_millis(400) && last.0.is_some() {
         return;
     }
@@ -183,7 +209,12 @@ mod tests {
 
     #[test]
     fn a_placement_off_the_current_screen_is_not_reused() {
-        let on = Placement { w: 1100.0, h: 720.0, x: 200.0, y: 100.0 };
+        let on = Placement {
+            w: 1100.0,
+            h: 720.0,
+            x: 200.0,
+            y: 100.0,
+        };
         let off = Placement { x: 2000.0, ..on };
         assert!(fits(&on, 1920.0, 1032.0));
         assert!(!fits(&off, 1920.0, 1032.0));
@@ -192,7 +223,12 @@ mod tests {
     #[test]
     fn a_placement_survives_the_round_trip() {
         let dir = std::env::temp_dir().join(format!("pct-wp-{}", std::process::id()));
-        let p = Placement { w: 1200.0, h: 760.0, x: 10.0, y: 20.0 };
+        let p = Placement {
+            w: 1200.0,
+            h: 760.0,
+            x: 10.0,
+            y: 20.0,
+        };
         write(&dir, &p);
         assert_eq!(read(&dir), Some(p));
         let _ = std::fs::remove_dir_all(&dir);
