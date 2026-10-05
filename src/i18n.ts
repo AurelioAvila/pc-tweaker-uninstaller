@@ -146,7 +146,10 @@ export type Dictionary = {
     readonly restorePointSkipped: (reason: string) => string;
     readonly restorePointFailed: (reason: string) => string;
     readonly exitCodeLabel: string;
+    readonly freedLine: (mb: string) => string;
     readonly residueScan: string;
+    readonly residueChecking: string;
+    readonly residueFound: (count: number, mb: string) => string;
     readonly residueScanning: string;
     readonly residueTitle: string;
     readonly residueNone: string;
@@ -391,7 +394,10 @@ const en: Dictionary = {
     restorePointSkipped: (reason) => `System Restore point: skipped - ${reason}`,
     restorePointFailed: (reason) => `System Restore point: not created - ${reason}`,
     exitCodeLabel: "Exit code",
+    freedLine: (mb) => `Space freed: ${mb} MB (verified)`,
     residueScan: "Scan for leftovers",
+    residueChecking: "Checking for leftovers…",
+    residueFound: (count, mb) => `Review ${String(count)} leftovers · ${mb} MB`,
     residueScanning: "Scanning for leftovers...",
     residueTitle: "Leftovers found",
     residueNone: "No leftovers found. Clean removal.",
@@ -658,7 +664,10 @@ const it: Dictionary = {
     restorePointSkipped: (reason) => `Punto di ripristino: saltato - ${reason}`,
     restorePointFailed: (reason) => `Punto di ripristino: non creato - ${reason}`,
     exitCodeLabel: "Codice di uscita",
+    freedLine: (mb) => `Spazio liberato: ${mb} MB (verificato)`,
     residueScan: "Cerca residui",
+    residueChecking: "Controllo dei residui…",
+    residueFound: (count, mb) => `Rivedi ${String(count)} residui · ${mb} MB`,
     residueScanning: "Ricerca dei residui...",
     residueTitle: "Residui trovati",
     residueNone: "Nessun residuo trovato. Rimozione pulita.",
@@ -927,7 +936,10 @@ const fr: Dictionary = {
     restorePointSkipped: (reason) => `Point de restauration : ignoré - ${reason}`,
     restorePointFailed: (reason) => `Point de restauration : non créé - ${reason}`,
     exitCodeLabel: "Code de sortie",
+    freedLine: (mb) => `Espace libéré : ${mb} Mo (vérifié)`,
     residueScan: "Rechercher les restes",
+    residueChecking: "Recherche des restes…",
+    residueFound: (count, mb) => `Examiner ${String(count)} restes · ${mb} Mo`,
     residueScanning: "Recherche des restes...",
     residueTitle: "Restes trouvés",
     residueNone: "Aucun reste trouvé. Désinstallation propre.",
@@ -1196,7 +1208,10 @@ const es: Dictionary = {
     restorePointSkipped: (reason) => `Punto de restauración: omitido - ${reason}`,
     restorePointFailed: (reason) => `Punto de restauración: no creado - ${reason}`,
     exitCodeLabel: "Código de salida",
+    freedLine: (mb) => `Espacio liberado: ${mb} MB (verificado)`,
     residueScan: "Buscar restos",
+    residueChecking: "Buscando restos…",
+    residueFound: (count, mb) => `Revisar ${String(count)} restos · ${mb} MB`,
     residueScanning: "Buscando restos...",
     residueTitle: "Restos encontrados",
     residueNone: "No se encontraron restos. Desinstalación limpia.",
@@ -1467,7 +1482,10 @@ const de: Dictionary = {
     restorePointSkipped: (reason) => `Wiederherstellungspunkt: übersprungen - ${reason}`,
     restorePointFailed: (reason) => `Wiederherstellungspunkt: nicht erstellt - ${reason}`,
     exitCodeLabel: "Exit-Code",
+    freedLine: (mb) => `Freigegebener Speicher: ${mb} MB (geprüft)`,
     residueScan: "Nach Resten suchen",
+    residueChecking: "Suche nach Resten…",
+    residueFound: (count, mb) => `${String(count)} Reste prüfen · ${mb} MB`,
     residueScanning: "Suche nach Resten...",
     residueTitle: "Reste gefunden",
     residueNone: "Keine Reste gefunden. Saubere Deinstallation.",
@@ -1582,7 +1600,279 @@ const de: Dictionary = {
   },
 };
 
-export const dictionaries = { en, it, fr, es, de } as const;
+const pt: Dictionary = {
+  app: {
+    title: "PC Tweaker Uninstaller",
+    tagline: "Reveja o software instalado. Remova com confiança.",
+    suiteDetected: "PC Tweaker detetado - membro da suite",
+    suiteDetectedHint:
+      "O PC Tweaker está instalado neste PC. Inicie sessão com a sua conta PC Tweaker Pro para desbloquear o preço de fidelização.",
+  },
+  programs: {
+    searchPlaceholder: "Pesquisar por nome ou editor...",
+    searchLabel: "Pesquisar programas instalados",
+    loading: "A ler os programas instalados...",
+    countSummary: (shown, total) =>
+      shown === total
+        ? `${String(total)} programas`
+        : `${String(shown)} de ${String(total)} programas`,
+    statTotalSize: "no disco",
+    emptyTitle: "Nenhum programa encontrado",
+    emptyBody:
+      "Não foram encontrados programas desinstaláveis no registo do Windows. Isto é invulgar - se acha que está errado, comunique-o.",
+    noMatchesTitle: "Sem resultados",
+    noMatchesBody: "Nenhum programa instalado corresponde à sua pesquisa.",
+    errorTitle: "Não foi possível ler os programas instalados",
+    retry: "Tentar novamente",
+    columnProgram: "Programa",
+    columnVersion: "Versão",
+    columnPublisher: "Editor",
+    columnSize: "Tamanho",
+    columnInstalled: "Instalado",
+    badgeMsi: "MSI",
+    badgeExecutable: "EXE",
+    badgeManualOnly: "Manual",
+    badgeNone: "Sem desinstalador",
+    badgeInvalid: "Entrada danificada",
+    badgeManualOnlyHint:
+      "O comando de desinstalação deste programa executa um interpretador de scripts, por isso, por segurança, tem de ser executado manualmente.",
+    badgeNoneHint: "Esta entrada do registo não declara nenhum comando de desinstalação.",
+    badgeInvalidHint: "Não foi possível interpretar o comando de desinstalação deste programa.",
+    badgeMissing: "Desinstalador em falta",
+    badgeMissingHint:
+      "O desinstalador indicado por esta entrada já não existe no disco. A entrada pode ser removida da lista.",
+    badgeStore: "Store",
+    badgeStoreHint:
+      "Instalado como pacote MSIX. A remoção é feita pelo Windows e não deixa nada para trás.",
+    badgeUser: "Utilizador",
+    badgeUserHint: "Instalado apenas para este utilizador, não para todo o computador.",
+    badgeHidden: "Oculto",
+    badgeHiddenHint:
+      "O Windows oculta normalmente esta entrada (componente de sistema ou atualização dependente). Removê-la pode afetar outro software - certifique-se de que sabe o que é.",
+    badgeSuite: "Suite",
+    badgeSuiteHint: "Faz parte da sua suite PC Tweaker.",
+    filterAll: "Todos",
+    filterLarge: "Grandes",
+    filterRecent: "Recentes",
+    showHidden: "Mostrar ocultos",
+    detailSource: "Âmbito",
+    detailKey: "Entrada do registo",
+    detailPackageName: "Nome do pacote",
+    detailLocation: "Pasta de instalação",
+    detailNoLocation: "Não registada",
+    openFolder: "Abrir pasta",
+    sourceMachine64: "Este PC (64 bits)",
+    sourceMachine32: "Este PC (32 bits)",
+    sourceUser: "Apenas este utilizador",
+    sourceStore: "Microsoft Store (MSIX)",
+  },
+  confidence: {
+    labelSafe: "Seguro remover",
+    labelReview: "Rever antes de remover",
+    labelKeep: "Manter - relacionado com o sistema",
+    disclaimer: "Com base nas provas visíveis - uma orientação, não uma certeza.",
+    reasons: {
+      hiddenSystem:
+        "O próprio Windows oculta esta entrada (componente de sistema ou atualização dependente).",
+      sharedRuntime: "Runtime partilhado: outros programas dependem provavelmente dele.",
+      driverComponent: "Pacote de controlador ou chipset: removê-lo pode afetar o hardware.",
+      sharedLauncher: "Iniciador/loja: o software instalado através dele deixaria de funcionar.",
+      noPublisher: "Nenhum editor registado - não é possível verificar a origem.",
+      brokenUninstaller:
+        "O comando de desinstalação está danificado e não pode ser executado automaticamente.",
+      manualUninstaller: "O desinstalador tem de ser executado manualmente (baseado em scripts).",
+      noUninstaller: "Não declara qualquer comando de desinstalação.",
+      namedPublisher: "Está registado um editor identificado.",
+      standardUninstaller: "Tem um desinstalador MSI/EXE padrão.",
+      storeFramework: "Pacote de runtime partilhado: outras aplicações assentam nele.",
+      storeOsComponent: "Faz parte da interface do Windows, não é uma aplicação.",
+      storeResourcePackage:
+        "Um pacote de recursos (idioma ou elementos gráficos), não uma aplicação.",
+      storeNoDisplayName:
+        "O Windows não atribui nome visível a este pacote - é um componente interno.",
+      storeSystemSigned: "Assinado como parte do Windows - pode ter vindo com o sistema.",
+      storeNoPublisher: "Nenhum editor registado - não é possível verificar a origem.",
+      storeFromStore: "Assinado pela Microsoft Store.",
+      storeCleanRemoval:
+        "Pacote MSIX: a remoção não deixa nada para trás e pode ser reinstalado a partir da Store.",
+    },
+  },
+  footer: {
+    family: "Faz parte da família PC Tweaker",
+    pcTweaker: "PC Tweaker",
+    redaxa: "Redaxa",
+    privacy: "Privacidade",
+    restoreInfo:
+      "Os pontos de restauro são criados e guardados pelo Windows na unidade do sistema (Proteção do Sistema).",
+    openRestore: "Gerir pontos de restauro",
+  },
+  uninstall: {
+    action: "Desinstalar",
+    confirmTitle: (name) => `Desinstalar ${name}?`,
+    confirmBody:
+      "Será executado exatamente o comando abaixo - nada mais. Foi reconstruído a partir do registo do Windows e será verificado de novo no momento da execução.",
+    commandLabel: "Comando",
+    storeConfirmBody:
+      "O Windows remove este pacote para o utilizador atual. Não fica nada para limpar e pode reinstalá-lo a partir da Microsoft Store quando quiser.",
+    storeRemoving: "A remover o pacote...",
+    storeRemoved: (name: string) => `${name} foi removido.`,
+    methodLabel: "Método",
+    methodMsi: "Windows Installer (silencioso)",
+    methodExe: "O desinstalador do próprio programa",
+    privilegesLabel: "Privilégios",
+    privilegesAdmin: "Administrador (um pedido do UAC)",
+    privilegesUser: "Utilizador atual",
+    sizeLabel: "Espaço estimado a recuperar",
+    sizeUnknown: "Não registado",
+    confidenceLabel: "Confiança",
+    notRemovedNote:
+      "Não é removido automaticamente: ficheiros, pastas e entradas de registo residuais. Pode procurá-los logo após a desinstalação, e nada é apagado sem perguntar.",
+    elevationNote: "O Windows pedirá primeiro a aprovação de administrador (UAC).",
+    restorePointNote: "Será tentado um ponto de Restauro do Sistema antes de qualquer execução.",
+    confirm: "Desinstalar",
+    cancel: "Cancelar",
+    close: "Fechar",
+    planning: "A verificar o que seria executado...",
+    planFailedTitle: "Não é possível desinstalar automaticamente",
+    forgetOffer:
+      "O desinstalador do programa já não existe, por isso nunca poderá ser executado. Em alternativa, pode remover a entrada dos Programas instalados e depois limpar o que ficou para trás.",
+    forgetAction: "Remover entrada danificada",
+    forgetConfirmTitle: (name) => `Remover a entrada de ${name}?`,
+    forgetConfirmBody:
+      "Só é removida a entrada nos Programas instalados. Nada é executado e nenhum ficheiro é apagado; a seguir pode procurar resíduos, e tudo o que limpar vai para a Reciclagem.",
+    forgetLedgerNote: "Os valores de registo removidos ficam guardados no Registo de remoções.",
+    forgetProGate: "Remover entradas danificadas faz parte do Uninstaller Pro.",
+    forgetRunning: "A remover a entrada...",
+    forgetDoneTitle: "Entrada removida",
+    running: (name) => `A desinstalar ${name}...`,
+    runningNote:
+      "O desinstalador do programa está em execução. Esta janela continua a responder; alguns desinstaladores abrem as suas próprias janelas.",
+    runningSlowNote:
+      "Está a demorar mais do que o habitual. Alguns desinstaladores abrem uma janela própria, que pode estar por trás desta - verifique a barra de tarefas. Não perde nada se esperar.",
+    reportSuccessTitle: "Desinstalado",
+    reportFailureTitle: "A desinstalação não foi concluída",
+    rebootNote: "É necessário reiniciar para terminar a remoção dos ficheiros.",
+    restorePointCreated:
+      "Ponto de Restauro do Sistema: pedido ao Windows. O Windows mantém no máximo um por dia, por isso um ponto criado nas últimas 24 horas pode ser o que vai usar.",
+    restorePointSkipped: (reason) => `Ponto de Restauro do Sistema: ignorado - ${reason}`,
+    restorePointFailed: (reason) => `Ponto de Restauro do Sistema: não criado - ${reason}`,
+    exitCodeLabel: "Código de saída",
+    freedLine: (mb) => `Espaço libertado: ${mb} MB (verificado)`,
+    residueScan: "Procurar resíduos",
+    residueChecking: "A verificar resíduos…",
+    residueFound: (count, mb) => `Rever ${String(count)} resíduos · ${mb} MB`,
+    residueScanning: "A procurar resíduos...",
+    residueTitle: "Resíduos encontrados",
+    residueNone: "Nenhum resíduo encontrado. Remoção limpa.",
+    residueIntro: (count, mb) =>
+      `${String(count)} item(ns) deixado(s) para trás, cerca de ${mb} MB. Tudo o que selecionar vai para a Reciclagem, por isso continua recuperável.`,
+    residueClean: "Mover selecionados para a Reciclagem",
+    residueRegistryNote:
+      "As chaves de registo do utilizador são apagadas diretamente (não recuperáveis); as chaves de todo o computador são apresentadas apenas como referência.",
+    residueDone: (count, mb) => `${String(count)} item(ns) limpo(s), cerca de ${mb} MB libertados.`,
+    residueFailed: (count) => `Não foi possível remover ${String(count)} item(ns).`,
+    residueKinds: {
+      "install-dir": "Pasta de instalação",
+      "app-data": "Dados da aplicação",
+      shortcut: "Atalho",
+      "registry-user": "Registo (utilizador)",
+      "registry-machine": "Registo (computador)",
+    },
+    relDependentsWarning: (names) =>
+      `Remover isto também remove os programas instalados dentro da sua pasta: ${names}.`,
+    relInstalledVia: (name) => `Instalado através de ${name} — considere removê-lo a partir daí.`,
+    relSiblings: (count) => `Estão instalados mais ${String(count)} programa(s) deste editor.`,
+    batchBar: (count, size) => `Desinstalar ${String(count)} selecionados · ${size}`,
+    batchClear: "Limpar seleção",
+    batchConfirmTitle: (count) => `Remover ${String(count)} programas?`,
+    batchConfirmBody:
+      "São executados um de cada vez, os programas contidos antes dos que os contêm, com as mesmas verificações de uma desinstalação individual. As entradas protegidas (componentes de sistema, runtimes partilhados, a sua suite PC Tweaker) não podem ser selecionadas.",
+    batchNotBatchable: "Protegido — não disponível para remoção em lote.",
+    batchRunningStep: (name, index, total) =>
+      `A desinstalar ${name} (${String(index)} de ${String(total)})...`,
+    batchDoneTitle: "Lote concluído",
+    batchFailedNote: (count) =>
+      `${String(count)} programa(s) não foram concluídos — consulte o registo para mais detalhes.`,
+    familyNote:
+      "Esta aplicação faz parte da sua suite PC Tweaker. Pode removê-la, mas as funcionalidades da suite que dependem dela deixarão de funcionar.",
+    hiddenNote:
+      "O Windows oculta normalmente esta entrada. Remover componentes de sistema ou atualizações dependentes pode afetar outro software.",
+  },
+  ledger: {
+    open: "Histórico",
+    title: "Registo de remoções",
+    subtitle:
+      "Um recibo local de cada remoção feita por esta aplicação - com ou sem sucesso. Guardado neste PC, nunca enviado.",
+    empty: "Ainda não há remoções registadas. A sua primeira desinstalação deixará aqui o recibo.",
+    exportButton: "Exportar JSON",
+    logButton: "Abrir pasta de registos",
+    logAt: (path) =>
+      `Registo de diagnóstico: ${path}. Nada é enviado; anexe-o a um e-mail de suporte se precisar.`,
+    exportedTo: (path) => `Exportado para ${path}`,
+    verifiedFreed: (size) => `${size} libertados (verificado)`,
+    estimatedOnly: (size) => `~${size} (estimativa do registo)`,
+    rebootFlag: "reinício necessário",
+    failedFlag: "falhou",
+    restorePointLabel: "Ponto de restauro",
+  },
+  menu: {
+    open: "Conta e definições",
+    account: "Conta",
+    plans: "Uninstaller Pro",
+    planAnnual: "9,99 € / ano",
+    loyaltyTitle: "Preço de fidelização da suite",
+    loyaltyPrice: "4,99 € / ano",
+    loyaltyHint: "Já tem um plano PC Tweaker? O Uninstaller Pro custa 4,99 €/ano na mesma conta.",
+    choosePlans: "Ver planos em pctweaker.app",
+    language: "Idioma",
+    theme: "Tema",
+    openPcTweaker: "Abrir o PC Tweaker",
+    emailLabel: "E-mail",
+    passwordLabel: "Palavra-passe",
+    signInButton: "Iniciar sessão",
+    signingIn: "A iniciar sessão...",
+    signOut: "Terminar sessão",
+    proActive: "PC Tweaker Pro - ativo nesta conta",
+    proInactive: "Esta conta ainda não tem o PC Tweaker Pro.",
+    upsActive: "Uninstaller Pro — ativo",
+    upsInactive: "Uninstaller Pro — inativo",
+    upsGoPro: "Passar a Pro — 9,99 € / ano",
+    upsGoProLoyalty: "Passar a Pro — 4,99 € / ano (preço de fidelização PC Tweaker Pro)",
+    upsCheckoutHint: "O pagamento abre no seu navegador. Volte aqui depois e atualize.",
+    upsRefresh: "Concluí o pagamento — atualizar",
+    upsError: "Não foi possível iniciar o pagamento. Tente novamente.",
+    proGateResidue:
+      "Limpar resíduos é uma funcionalidade do Uninstaller Pro. A análise acima é gratuita — remover o que encontrou requer o Pro.",
+    proGateBatch:
+      "A remoção em lote é uma funcionalidade do Uninstaller Pro. As desinstalações individuais continuam gratuitas, sempre.",
+    proGateSignIn: "Inicie sessão no menu da conta primeiro e depois desbloqueie o Pro.",
+    loyaltyLocked:
+      "Inicie sessão com a sua conta PC Tweaker Pro para desbloquear o preço de fidelização.",
+    checkFailed:
+      "Não foi possível verificar a sua conta neste momento. Tente novamente daqui a pouco.",
+    createAccount: "Criar conta",
+    firstNameLabel: "Nome",
+    lastNameLabel: "Apelido",
+    birthDateLabel: "Data de nascimento",
+    verifyEmail: "Verifique a sua caixa de entrada para confirmar o endereço de e-mail.",
+    verifyEmailFailed:
+      "Conta criada, mas não foi possível enviar o e-mail de verificação. Contacte o suporte.",
+  },
+  updater: {
+    title: (version) => `A atualização ${version} está pronta`,
+    body: "Está disponível uma nova versão assinada. Instala-se em segundos e a aplicação reinicia sozinha.",
+    install: "Instalar agora",
+    later: "Mais tarde",
+    downloading: (percent) => `A transferir… ${String(percent)}%`,
+    installing: "A instalar…",
+    error: (message) => `Não foi possível instalar a atualização: ${message}`,
+  },
+  errors: {
+    generic: "Algo correu mal. Tente novamente.",
+  },
+};
+
+export const dictionaries = { en, it, fr, es, de, pt } as const;
 export type Locale = keyof typeof dictionaries;
 
 export const LOCALES: { code: Locale; native: string }[] = [
@@ -1591,6 +1881,7 @@ export const LOCALES: { code: Locale; native: string }[] = [
   { code: "fr", native: "Français" },
   { code: "es", native: "Español" },
   { code: "de", native: "Deutsch" },
+  { code: "pt", native: "Português" },
 ];
 
 const LANG_KEY = "pcu-lang";

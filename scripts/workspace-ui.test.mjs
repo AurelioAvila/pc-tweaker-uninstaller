@@ -88,6 +88,8 @@ try {
   await page.locator('.menu-section > summary').nth(2).click();
   await page.getByRole('button',{name:'Italiano',exact:true}).click();
   assert.equal(await page.locator('.workspace-heading h2').textContent(),'App installate');
+  await page.getByRole('button',{name:'Português',exact:true}).click();
+  assert.equal(await page.locator('.workspace-heading h2').textContent(),'Aplicações instaladas');
   await page.getByRole('button',{name:'English',exact:true}).click();
   await page.locator('.menu-section > summary').nth(3).click();
   const themeButtons=page.locator('.theme-option');

@@ -529,6 +529,17 @@ body {
   justify-self: end;
 }
 
+.cell-version {
+  display: grid;
+  gap: 2px;
+}
+.cell-version small {
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  opacity: 0.8;
+}
 .cell-badges {
   display: flex;
   flex-wrap: wrap;
@@ -1244,15 +1255,22 @@ body {
 }
 
 /* Safe Batch */
+/* Docked above the footer instead of pushed in above the table, so ticking
+   a box no longer shoves the whole list down by a row. */
 .batch-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 62px;
+  z-index: 20;
+  transform: translateX(-50%);
   display: flex;
   gap: 10px;
   align-items: center;
-  margin: 0 0 10px;
   padding: 10px 12px;
-  border: 1px solid var(--line, #2a2f3a);
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--accent, #7dd3fc) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent, #7dd3fc) 35%, var(--line, #2a2f3a));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent, #7dd3fc) 10%, var(--bg-raised, #16131f));
+  box-shadow: 0 14px 34px -14px #000000c0;
 }
 .batch-check {
   width: 15px;

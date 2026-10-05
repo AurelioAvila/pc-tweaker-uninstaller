@@ -5,14 +5,14 @@
  */
 
 export type ThemeCode =
+  | "graphite_ember"
   | "violet"
   | "teal_depths"
   | "crimson_steel"
   | "ocean_blue"
   | "forest_emerald"
   | "royal_gold"
-  | "slate_mono"
-  | "coral_sunset";
+  | "slate_mono";
 
 export interface Theme {
   code: ThemeCode;
@@ -28,6 +28,20 @@ export interface Theme {
 }
 
 export const THEMES: Theme[] = [
+  {
+    // The family default since PC Tweaker 1.16: a near-neutral grey so the
+    // inventory carries the colour, and one warm accent kept for actions.
+    code: "graphite_ember",
+    label: "Graphite Ember",
+    vars: {
+      bg: "#121217",
+      bgRaised: "#1c1c22",
+      surface: "#202027",
+      glow: "#2a2a32",
+      accent: "#ff6a3d",
+      accent2: "#ff8a5b",
+    },
+  },
   {
     code: "violet",
     label: "Violet",
@@ -112,30 +126,28 @@ export const THEMES: Theme[] = [
       accent2: "#cbd5e1",
     },
   },
-  {
-    code: "coral_sunset",
-    label: "Coral Sunset",
-    vars: {
-      bg: "#120b08",
-      bgRaised: "#1c110c",
-      surface: "#20140e",
-      glow: "#2c1a12",
-      accent: "#fb923c",
-      accent2: "#f97316",
-    },
-  },
 ];
 
 const THEME_KEY = "pcu-theme";
 
+/** Bumped when a new default should reach everyone once, including people
+ *  who had picked a theme before it existed. They can switch back after. */
+const THEME_RESET_KEY = "pcu-theme-reset";
+const THEME_RESET_VERSION = "graphite_ember";
+
 export function initialTheme(): ThemeCode {
   try {
+    if (localStorage.getItem(THEME_RESET_KEY) !== THEME_RESET_VERSION) {
+      localStorage.setItem(THEME_RESET_KEY, THEME_RESET_VERSION);
+      localStorage.removeItem(THEME_KEY);
+      return "graphite_ember";
+    }
     const stored = localStorage.getItem(THEME_KEY);
     if (stored !== null && THEMES.some((t) => t.code === stored)) return stored as ThemeCode;
   } catch {
     // Default stands.
   }
-  return "violet";
+  return "graphite_ember";
 }
 
 /** Writes the theme's raw values onto :root and persists the choice. */
