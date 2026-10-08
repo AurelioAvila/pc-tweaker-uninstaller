@@ -16,6 +16,8 @@
   <a href="https://github.com/AurelioAvila/pc-tweaker-uninstaller/releases/latest"><img src="https://img.shields.io/github/v/release/AurelioAvila/pc-tweaker-uninstaller?display_name=tag&style=for-the-badge&color=7C3AED" alt="Latest release"></a>
 </p>
 
+<p align="center"><img src="docs/screenshots/uninstaller-0.12.4.png" width="85%" alt="PC Tweaker Uninstaller 0.12.4 Installed apps view with inventory summary and refresh control"></p>
+
 ## Download
 
 **[Official product page](https://pctweaker.app/uninstaller/)** — release status
