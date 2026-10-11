@@ -58,6 +58,9 @@ jobs:
       - name: Inventory sorting and date regression tests
         run: node --test scripts/inventory.test.mjs
 
+      - name: Plans page price regression tests
+        run: node --test scripts/plans-price.test.mjs
+
       - name: Accent contrast
         run: npm run check:contrast
 

@@ -19,7 +19,14 @@ const EMAIL_KEY = "pcu-email";
 export type AccountState =
   | { status: "anonymous" }
   | { status: "checking"; email: string }
-  | { status: "signed-in"; email: string; isPro: boolean; emailVerified: boolean }
+  | {
+      status: "signed-in";
+      email: string;
+      isPro: boolean;
+      emailVerified: boolean;
+      /** A Stripe customer exists, so "Manage subscription" has something to open. */
+      hasBilling: boolean;
+    }
   | { status: "error"; email: string; message: string };
 
 export function readStoredEmail(): string | null {
@@ -120,12 +127,18 @@ export async function fetchAccount(): Promise<AccountState> {
     if (!res.ok) {
       return { status: "error", email, message: `HTTP ${String(res.status)}` };
     }
-    const data = (await res.json()) as { email: string; isPro: boolean; emailVerified: boolean };
+    const data = (await res.json()) as {
+      email: string;
+      isPro: boolean;
+      emailVerified: boolean;
+      hasBilling?: boolean;
+    };
     return {
       status: "signed-in",
       email: data.email,
       isPro: data.isPro,
       emailVerified: data.emailVerified,
+      hasBilling: data.hasBilling === true,
     };
   } catch {
     // Offline: keep the user signed in locally rather than bouncing them to
@@ -206,6 +219,21 @@ export async function startUninstallerCheckout(): Promise<string> {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify({ product: "uninstaller", plan: "annual" }),
+  });
+  const body = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+  if (!res.ok || !body.url) throw new Error(body.error || `HTTP ${String(res.status)}`);
+  return body.url;
+}
+
+/** Opens Stripe's hosted billing portal (cancel, card, invoices) for the
+ *  signed-in account: the same POST /api/portal PC Tweaker uses. Returns the
+ *  URL to open in the system browser. */
+export async function startBillingPortal(): Promise<string> {
+  const token = readToken();
+  if (!token || !API_BASE_URL) throw new Error("Sign in first.");
+  const res = await fetch(`${API_BASE_URL}/api/portal`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
   });
   const body = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
   if (!res.ok || !body.url) throw new Error(body.error || `HTTP ${String(res.status)}`);

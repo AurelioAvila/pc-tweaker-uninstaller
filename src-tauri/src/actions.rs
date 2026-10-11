@@ -168,15 +168,41 @@ mod tests {
         assert_eq!(exe_from_display_icon(r"C:\Apps\app.ico"), None);
         assert_eq!(exe_from_display_icon(""), None);
     }
+
+    #[test]
+    fn only_stripe_checkout_and_billing_pages_open() {
+        assert!(is_stripe_page(
+            "https://checkout.stripe.com/c/pay/cs_live_abc"
+        ));
+        assert!(is_stripe_page(
+            "https://billing.stripe.com/p/session/live_abc"
+        ));
+        assert!(!is_stripe_page(
+            "https://billing.stripe.com.example/p/session"
+        ));
+        assert!(!is_stripe_page("http://billing.stripe.com/p/session"));
+        assert!(!is_stripe_page("https://dashboard.stripe.com/"));
+        assert!(!is_stripe_page(
+            "https://example.com/?https://checkout.stripe.com/"
+        ));
+    }
 }
 
-/// Opens a Stripe Checkout URL in the system browser. The webview supplies
-/// the URL (it came from OUR backend's /api/checkout response), but trust
-/// still isn't extended to arbitrary destinations: only Stripe's checkout
-/// origin passes. Anything else fails loudly.
+/// Stripe's hosted pages this app may open: Checkout, and the billing portal
+/// behind "Manage subscription" (our backend's /api/portal). The trailing
+/// slash pins the host, so `checkout.stripe.com.example` never passes.
+fn is_stripe_page(url: &str) -> bool {
+    url.starts_with("https://checkout.stripe.com/")
+        || url.starts_with("https://billing.stripe.com/")
+}
+
+/// Opens a Stripe Checkout or billing-portal URL in the system browser. The
+/// webview supplies the URL (it came from OUR backend's /api/checkout or
+/// /api/portal response), but trust still isn't extended to arbitrary
+/// destinations: only those two Stripe origins pass. Anything else fails loudly.
 #[tauri::command]
 pub fn open_checkout_url(app: tauri::AppHandle, url: String) -> Result<(), String> {
-    if !url.starts_with("https://checkout.stripe.com/") {
+    if !is_stripe_page(&url) {
         return Err("Refusing to open a non-Stripe checkout URL.".to_string());
     }
     app.opener()

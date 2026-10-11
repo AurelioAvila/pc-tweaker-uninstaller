@@ -20,6 +20,8 @@ import {
   type UninstallerEntitlement,
 } from "./account";
 import { UpdateBanner, useAppUpdater } from "./updater";
+import { PlansPage } from "./plans-page";
+import { plansCopy } from "./plans-copy";
 import {
   comparePrograms,
   formatInstallDate,
@@ -378,6 +380,12 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuTrigger = useRef<HTMLButtonElement>(null);
+  /* Plans & pricing is a page of its own; the inventory stays mounted
+     (hidden) behind it, so search, filters and scroll survive the visit. */
+  const [view, setView] = useState<"apps" | "plans">("apps");
+  const accountSection = useRef<HTMLDetailsElement>(null);
+  const emailField = useRef<HTMLInputElement>(null);
+  const [focusAccount, setFocusAccount] = useState(false);
   const [lastScan, setLastScan] = useState<Date | null>(null);
   const words = workspaceCopy[lang];
   const updater = useAppUpdater();
@@ -395,6 +403,14 @@ export default function App() {
       document.removeEventListener("keydown", close);
     };
   }, [menuOpen]);
+  // Sign in / Create account on the Plans page open the existing account
+  // panel at its form, so there is one sign-in flow in the app, not two.
+  useEffect(() => {
+    if (!menuOpen || !focusAccount) return;
+    setFocusAccount(false);
+    if (accountSection.current) accountSection.current.open = true;
+    emailField.current?.focus();
+  }, [menuOpen, focusAccount]);
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
@@ -511,6 +527,7 @@ export default function App() {
 
   const beginProCheckout = useCallback(() => {
     setCheckoutBusy(true);
+    setCheckoutError(false);
     startUninstallerCheckout()
       .then((url) => invoke("open_checkout_url", { url }))
       .then(() => {
@@ -587,6 +604,13 @@ export default function App() {
     dateOfBirth,
     refreshEntitlement,
   ]);
+
+  const openAccount = useCallback((mode: "signIn" | "register") => {
+    setRegisterMode(mode === "register");
+    setLoginError(null);
+    setFocusAccount(true);
+    setMenuOpen(true);
+  }, []);
 
   const signOut = useCallback(() => {
     logout();
@@ -979,9 +1003,25 @@ export default function App() {
               {text.app.suiteDetected}
             </button>
           )}
-          <button type="button" className="button-ghost small" onClick={openLedger}>
+          <button
+            type="button"
+            className={`button-ghost small nav-plans${view === "plans" ? " nav-plans-active" : ""}`}
+            aria-current={view === "plans" ? "page" : undefined}
+            onClick={() => {
+              setView("plans");
+            }}
+          >
+            <UiIcon name={uninstallerPro?.active ? "crown" : "gem"} />
+            {plansCopy[lang].nav}
+          </button>
+          <button
+            type="button"
+            className="button-ghost small"
+            title={text.ledger.open}
+            onClick={openLedger}
+          >
             <UiIcon name="history" />
-            {text.ledger.open}
+            <span className="topbar-label">{text.ledger.open}</span>
           </button>
           <button
             type="button"
@@ -1044,7 +1084,7 @@ export default function App() {
                 <UiIcon name="close" />
               </button>
             </div>
-            <details className="menu-section">
+            <details className="menu-section" ref={accountSection}>
               <summary>
                 <UiIcon name="user" />
                 {text.menu.account}
@@ -1120,6 +1160,7 @@ export default function App() {
                     }}
                   >
                     <input
+                      ref={emailField}
                       type="email"
                       className="search"
                       required
@@ -1259,10 +1300,11 @@ export default function App() {
                   type="button"
                   className="button-ghost small full"
                   onClick={() => {
-                    openLink("pricing");
+                    setMenuOpen(false);
+                    setView("plans");
                   }}
                 >
-                  {text.menu.choosePlans}
+                  {plansCopy[lang].nav}
                 </button>
               </div>
             </details>
@@ -1348,7 +1390,31 @@ export default function App() {
         </>
       )}
 
-      <main className="content" inert={updater.phase !== "offer"}>
+      {view === "plans" && (
+        <main className="content" inert={updater.phase !== "offer"}>
+          <PlansPage
+            lang={lang}
+            account={account}
+            entitlement={uninstallerPro}
+            checkout={{
+              busy: checkoutBusy,
+              started: checkoutStarted,
+              failed: checkoutError,
+              begin: beginProCheckout,
+              refresh: refreshEntitlement,
+            }}
+            onBack={() => {
+              setView("apps");
+            }}
+            onOpenAccount={openAccount}
+            onRefreshAccount={refreshAccount}
+            onOpenPrivacy={() => {
+              openLink("privacy");
+            }}
+          />
+        </main>
+      )}
+      <main className="content" hidden={view === "plans"} inert={updater.phase !== "offer"}>
         <div className="workspace-heading">
           <div>
             <h2>{words.title}</h2>
