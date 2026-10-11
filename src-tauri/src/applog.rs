@@ -20,7 +20,7 @@
 //! firehose with levels and filters.
 
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 const LOG_FILE: &str = "uninstaller.log";
 
@@ -46,16 +46,23 @@ fn stamp() -> u64 {
 /// reason an uninstall fails, and a user whose APPDATA is unwritable has a
 /// bigger problem than a missing log line.
 pub fn line(message: &str) {
-    let Ok(path) = log_path() else { return };
+    if let Ok(path) = log_path() {
+        line_at(&path, message);
+    }
+}
+
+/// The write itself, on an explicit path, so the tests below exercise it in a
+/// temporary folder instead of appending markers to the user's real log.
+fn line_at(path: &Path, message: &str) {
     if let Some(dir) = path.parent() {
         if std::fs::create_dir_all(dir).is_err() {
             return;
         }
     }
-    if std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0) >= MAX_BYTES {
+    if std::fs::metadata(path).map(|m| m.len()).unwrap_or(0) >= MAX_BYTES {
         // Replaces the previous generation. Ignored on failure: a rotation
         // that cannot happen is not a reason to stop recording.
-        let _ = std::fs::rename(&path, path.with_extension("log.1"));
+        let _ = std::fs::rename(path, path.with_extension("log.1"));
     }
     // One line, single-quoted nothing, no structure: this is read by a person
     // in Notepad, not parsed.
@@ -63,7 +70,7 @@ pub fn line(message: &str) {
     let _ = std::fs::OpenOptions::new()
         .create(true)
         .append(true)
-        .open(&path)
+        .open(path)
         .and_then(|mut f| f.write_all(entry.as_bytes()));
 }
 
@@ -114,15 +121,27 @@ pub fn open_log_folder(app: tauri::AppHandle) -> Result<String, String> {
 mod tests {
     use super::*;
 
+    /// A fresh folder per test: the tests exercise the real write path
+    /// without ever touching the user's own log in APPDATA.
+    fn temp_log(tag: &str) -> PathBuf {
+        std::env::temp_dir()
+            .join(format!("pcu-applog-test-{tag}-{}", std::process::id()))
+            .join(LOG_FILE)
+    }
+
     /// A line has to survive the round trip and carry a stamp, otherwise the
     /// file is a wall of text with no way to line it up against a removal
     /// receipt. Reading the file back is the only honest check, since every
     /// write path here deliberately swallows its errors.
     #[test]
     fn a_logged_line_reaches_the_file_with_a_timestamp() {
-        let Ok(path) = log_path() else { return };
-        line("test marker for a_logged_line_reaches_the_file_with_a_timestamp");
+        let path = temp_log("stamp");
+        line_at(
+            &path,
+            "test marker for a_logged_line_reaches_the_file_with_a_timestamp",
+        );
         let body = std::fs::read_to_string(&path).unwrap_or_default();
+        let _ = std::fs::remove_dir_all(path.parent().unwrap());
         let recorded = body
             .lines()
             .rev()
@@ -141,9 +160,10 @@ mod tests {
     /// an error string carrying a multi-line message from Windows.
     #[test]
     fn a_multi_line_message_stays_on_one_line() {
-        let Ok(path) = log_path() else { return };
-        line("multi marker\nsecond half of the same event");
+        let path = temp_log("multi");
+        line_at(&path, "multi marker\nsecond half of the same event");
         let body = std::fs::read_to_string(&path).unwrap_or_default();
+        let _ = std::fs::remove_dir_all(path.parent().unwrap());
         assert!(
             body.lines()
                 .any(|l| l.contains("multi marker") && l.contains("second half of the same event")),

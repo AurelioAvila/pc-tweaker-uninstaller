@@ -19,7 +19,10 @@ export type IconName =
   | "palette"
   | "globe"
   | "close"
-  | "package";
+  | "package"
+  | "gem"
+  | "crown"
+  | "arrowLeft";
 const paths: Record<IconName, string> = {
   trash: "M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7",
   inspect: "M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm5 12 6 6M7 10h6M10 7v6",
@@ -43,6 +46,9 @@ const paths: Record<IconName, string> = {
   globe: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM3 12h18M12 3c-5 5-5 13 0 18 5-5 5-13 0-18Z",
   close: "m6 6 12 12M18 6 6 18",
   package: "m12 3 9 5v9l-9 5-9-5V8l9-5ZM3 8l9 5 9-5M12 13v9M7 5.8l10 5.5",
+  gem: "M6 4h12l4 5-10 11L2 9l4-5ZM2 9h20M9.5 4 8 9l4 11 4-11-1.5-5",
+  crown: "m3 7 4.5 4.5L12 5l4.5 6.5L21 7l-2 11H5L3 7Z",
+  arrowLeft: "M19 12H5m6-6-6 6 6 6",
 };
 export function UiIcon({ name, className = "" }: { name: IconName; className?: string }) {
   return (
