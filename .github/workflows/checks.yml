@@ -61,6 +61,9 @@ jobs:
       - name: Plans page price regression tests
         run: node --test scripts/plans-price.test.mjs
 
+      - name: Default language regression tests
+        run: node --test scripts/i18n-default.test.mjs
+
       - name: Accent contrast
         run: npm run check:contrast
 
