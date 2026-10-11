@@ -1868,7 +1868,7 @@ const LANG_KEY = "pcu-lang";
 function initialLocale(): Locale {
   try {
     const stored = localStorage.getItem(LANG_KEY);
-    if (stored !== null && stored in dictionaries) return stored as Locale;
+    if (stored !== null && Object.hasOwn(dictionaries, stored)) return stored as Locale;
   } catch {
     // localStorage unavailable: default stands.
   }
