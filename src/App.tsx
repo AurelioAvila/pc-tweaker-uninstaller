@@ -20,7 +20,7 @@ import {
   type UninstallerEntitlement,
 } from "./account";
 import { UpdateBanner, useAppUpdater } from "./updater";
-import { PlansPage } from "./plans-page";
+import { PlansPage, ProPriceSummary } from "./plans-page";
 import { plansCopy } from "./plans-copy";
 import {
   comparePrograms,
@@ -383,6 +383,7 @@ export default function App() {
   /* Plans & pricing is a page of its own; the inventory stays mounted
      (hidden) behind it, so search, filters and scroll survive the visit. */
   const [view, setView] = useState<"apps" | "plans">("apps");
+  const navPlans = useRef<HTMLButtonElement>(null);
   const accountSection = useRef<HTMLDetailsElement>(null);
   const emailField = useRef<HTMLInputElement>(null);
   const [focusAccount, setFocusAccount] = useState(false);
@@ -1005,6 +1006,7 @@ export default function App() {
           )}
           <button
             type="button"
+            ref={navPlans}
             className={`button-ghost small nav-plans${view === "plans" ? " nav-plans-active" : ""}`}
             aria-current={view === "plans" ? "page" : undefined}
             onClick={() => {
@@ -1280,21 +1282,14 @@ export default function App() {
                 {/* Loyalty pricing requires a VERIFIED Pro account, not merely
                   PC Tweaker being present on this PC. isProConfirmed is the
                   one gate every price/perk in this section reads. */}
-                {isProConfirmed ? (
-                  <div className="plan-row plan-loyalty">
-                    <span>
-                      <strong>{text.menu.loyaltyTitle}</strong>
-                      <em>{text.menu.loyaltyPrice}</em>
-                    </span>
-                  </div>
-                ) : (
-                  account.status !== "signed-in" && (
-                    <p className="menu-hint">{text.menu.loyaltyLocked}</p>
-                  )
+                {account.status !== "signed-in" && (
+                  <p className="menu-hint">{text.menu.loyaltyLocked}</p>
                 )}
-                <div className="plan-row">
-                  <span>{text.menu.planAnnual}</span>
-                </div>
+                <ProPriceSummary
+                  lang={lang}
+                  loyalty={isProConfirmed}
+                  proActive={uninstallerPro?.active === true}
+                />
                 <p className="menu-hint">{text.menu.loyaltyHint}</p>
                 <button
                   type="button"
@@ -1405,6 +1400,7 @@ export default function App() {
             }}
             onBack={() => {
               setView("apps");
+              navPlans.current?.focus();
             }}
             onOpenAccount={openAccount}
             onRefreshAccount={refreshAccount}

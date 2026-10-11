@@ -192,9 +192,7 @@ export type Dictionary = {
     readonly open: string;
     readonly account: string;
     readonly plans: string;
-    readonly planAnnual: string;
     readonly loyaltyTitle: string;
-    readonly loyaltyPrice: string;
     readonly loyaltyHint: string;
     readonly language: string;
     readonly theme: string;
@@ -455,9 +453,7 @@ const en: Dictionary = {
     open: "Account & settings",
     account: "Account",
     plans: "Uninstaller Pro",
-    planAnnual: "€9.99 / year",
     loyaltyTitle: "Suite loyalty price",
-    loyaltyPrice: "€4.99 / year",
     loyaltyHint:
       "Already subscribed to any PC Tweaker plan? Uninstaller Pro costs €4.99/year on the same account.",
     language: "Language",
@@ -725,9 +721,7 @@ const it: Dictionary = {
     open: "Account e impostazioni",
     account: "Account",
     plans: "Uninstaller Pro",
-    planAnnual: "9,99 € / anno",
     loyaltyTitle: "Prezzo fedeltà suite",
-    loyaltyPrice: "4,99 € / anno",
     loyaltyHint:
       "Sei già abbonato a un piano PC Tweaker? Uninstaller Pro costa 4,99 €/anno sullo stesso account.",
     language: "Lingua",
@@ -995,9 +989,7 @@ const fr: Dictionary = {
     open: "Compte et réglages",
     account: "Compte",
     plans: "Uninstaller Pro",
-    planAnnual: "9,99 € / an",
     loyaltyTitle: "Prix fidélité de la suite",
-    loyaltyPrice: "4,99 € / an",
     loyaltyHint:
       "Déjà abonné à un plan PC Tweaker ? Uninstaller Pro coûte 4,99 €/an sur le même compte.",
     language: "Langue",
@@ -1266,9 +1258,7 @@ const es: Dictionary = {
     open: "Cuenta y ajustes",
     account: "Cuenta",
     plans: "Uninstaller Pro",
-    planAnnual: "9,99 € / año",
     loyaltyTitle: "Precio de fidelidad de la suite",
-    loyaltyPrice: "4,99 € / año",
     loyaltyHint:
       "¿Ya estás suscrito a algún plan de PC Tweaker? Uninstaller Pro cuesta 4,99 €/año en la misma cuenta.",
     language: "Idioma",
@@ -1541,9 +1531,7 @@ const de: Dictionary = {
     open: "Konto & Einstellungen",
     account: "Konto",
     plans: "Uninstaller Pro",
-    planAnnual: "9,99 € / Jahr",
     loyaltyTitle: "Suite-Treuepreis",
-    loyaltyPrice: "4,99 € / Jahr",
     loyaltyHint:
       "Bereits ein PC-Tweaker-Abo? Uninstaller Pro kostet 4,99 €/Jahr auf demselben Konto.",
     language: "Sprache",
@@ -1813,9 +1801,7 @@ const pt: Dictionary = {
     open: "Conta e definições",
     account: "Conta",
     plans: "Uninstaller Pro",
-    planAnnual: "9,99 € / ano",
     loyaltyTitle: "Preço de fidelização da suite",
-    loyaltyPrice: "4,99 € / ano",
     loyaltyHint: "Já tem um plano PC Tweaker? O Uninstaller Pro custa 4,99 €/ano na mesma conta.",
     language: "Idioma",
     theme: "Tema",

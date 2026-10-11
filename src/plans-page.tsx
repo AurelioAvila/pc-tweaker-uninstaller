@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { startBillingPortal, type AccountState, type UninstallerEntitlement } from "./account";
-import type { Locale } from "./i18n";
+import { text, type Locale } from "./i18n";
 import { HalloweenOfferBanner } from "./halloween-offer";
 import { plansCopy } from "./plans-copy";
 import { LOYALTY_CENTS, money as formatMoney, proPrice } from "./plans-price";
@@ -423,5 +423,47 @@ export function PlansPage({
         </div>
       </div>
     </section>
+  );
+}
+
+/** The account menu's one-line price, from the same offer and rules as the
+ *  page, so the menu never shows €9.99 while the page shows the offer. Its
+ *  own component, so the countdown hook re-renders this line, not the app. */
+export function ProPriceSummary({
+  lang,
+  loyalty,
+  proActive,
+}: {
+  lang: Locale;
+  loyalty: boolean;
+  proActive: boolean;
+}) {
+  const copy = plansCopy[lang];
+  const locale = lang === "pt" ? "pt-PT" : lang;
+  const promo = usePromo();
+  const { shown, price } = proPrice(loyalty, proActive, promo.offer("uninstaller", "annual"));
+  return (
+    <>
+      <div className={loyalty ? "plan-row plan-loyalty" : "plan-row"}>
+        <span>
+          {loyalty && <strong>{text.menu.loyaltyTitle}</strong>}
+          <em className="menu-price">
+            {shown !== null && (
+              <s className="plans-was">
+                <span className="sr-only">{copy.was} </span>
+                {formatMoney(shown.reference, locale)}
+              </s>
+            )}{" "}
+            {formatMoney(price, locale)} {copy.perYear}
+          </em>
+        </span>
+        {shown !== null && <span className="plans-discount">-{promoPercent(shown)}%</span>}
+      </div>
+      {shown !== null && (
+        <p className="menu-hint">
+          {copy.promoTitle} · {copy.firstYear(formatMoney(shown.regular, locale))}
+        </p>
+      )}
+    </>
   );
 }

@@ -16,7 +16,7 @@
   <a href="https://github.com/AurelioAvila/pc-tweaker-uninstaller/releases/latest"><img src="https://img.shields.io/github/v/release/AurelioAvila/pc-tweaker-uninstaller?display_name=tag&style=for-the-badge&color=7C3AED" alt="Latest release"></a>
 </p>
 
-<p align="center"><img src="docs/screenshots/uninstaller-0.12.4.png" width="85%" alt="PC Tweaker Uninstaller 0.12.4 Installed apps view with inventory summary and refresh control"></p>
+<p align="center"><img src="docs/screenshots/uninstaller-0.13.0.png" width="85%" alt="PC Tweaker Uninstaller 0.13.0 Installed apps view with inventory summary, Plans & pricing and History in the top bar"></p>
 
 ## Download
 
@@ -67,10 +67,15 @@ Uninstall Windows programs cleanly, with a safety net. Every removal is explaine
 | --- | --- |
 | Unlimited single uninstalls, desktop and Store apps | Everything in Free |
 | Confidence Score and Removal Brief for every program | **Leftover cleanup**: remove the files, folders and registry keys the scan finds. Files go to the Recycle Bin. |
-| Restore-point attempt before elevated removals, with the outcome recorded | **Safe Batch**: queue several programs and let them run in sequence |
-| Leftover scan and the Removal Ledger | |
+| Restore-point attempt before elevated removals, with the outcome recorded | **Batch removal**: queue several programs and let them run in a safe order |
+| Leftover scan and the Removal Ledger | **Broken entries**: remove programs whose own uninstaller is gone |
 
-See the [official product page](https://pctweaker.app/uninstaller/) for current plans.
+**Plans & pricing** in the app's top bar compares both plans, shows your account
+and plan, and opens Stripe's billing portal to manage a subscription. Current
+offers appear there only while the server reports them as running. See also the
+[official product page](https://pctweaker.app/uninstaller/).
+
+<p align="center"><img src="docs/screenshots/uninstaller-0.13.0-plans.png" width="85%" alt="Plans & pricing page comparing Free and Pro, with account status"></p>
 
 ## Architecture
 
@@ -93,6 +98,13 @@ See the [official product page](https://pctweaker.app/uninstaller/) for current 
 npm install
 npm run tauri dev
 ```
+
+`npm run tauri:dev:profile` runs an isolated development profile: its own app
+identifier (so its own sign-in, license cache and WebView storage), port 1431,
+and API calls proxied through the dev server, since the backend only accepts
+the installed app's origin. The Removal Ledger and diagnostic log still live in
+the regular data folder, so do not uninstall or clear history from a dev build
+unless that is the point of the test.
 
 Checks (all of these gate CI):
 
