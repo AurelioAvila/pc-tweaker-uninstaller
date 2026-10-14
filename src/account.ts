@@ -9,7 +9,6 @@
  */
 
 import { invoke } from "@tauri-apps/api/core";
-import { currentLocale } from "./i18n";
 export const API_BASE_URL: string =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
   "https://pc-tweaker-app-production.up.railway.app";
@@ -104,6 +103,13 @@ async function request(path: string, init: RequestInit): Promise<Response> {
 const PRODUCT = "uninstaller";
 const INSTALLATION_KEY = "pcu-installation-id";
 
+/** The app's language, which account mail is written in. Set by the app
+ *  whenever it changes, so this module does not import the dictionaries. */
+let mailLocale = "en";
+export function setAccountLocale(locale: string): void {
+  mailLocale = locale;
+}
+
 /** A random id this installation keeps, sent at sign-in so the account can
  *  tell a new PC from a known one. Not a hardware fingerprint. */
 function installationId(): string {
@@ -140,7 +146,7 @@ export async function login(email: string, password: string): Promise<AccountSta
       email: address,
       password,
       product: PRODUCT,
-      locale: currentLocale(),
+      locale: mailLocale,
       deviceId: installationId(),
     }),
   });
@@ -159,7 +165,7 @@ export async function forgotPassword(email: string): Promise<void> {
     body: JSON.stringify({
       email: email.trim().toLowerCase(),
       product: PRODUCT,
-      locale: currentLocale(),
+      locale: mailLocale,
     }),
   });
   if (!res.ok) throw failure(res.status);
@@ -171,7 +177,7 @@ export async function resendVerification(): Promise<void> {
   const res = await request(`/api/auth/resend-verification`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ product: PRODUCT, locale: currentLocale() }),
+    body: JSON.stringify({ product: PRODUCT, locale: mailLocale }),
   });
   if (!res.ok) throw failure(res.status);
 }
@@ -189,7 +195,7 @@ export async function changePassword(currentPassword: string, newPassword: strin
       currentPassword,
       newPassword,
       product: PRODUCT,
-      locale: currentLocale(),
+      locale: mailLocale,
     }),
   });
   if (res.status === 401) throw new AccountRequestError("errorCurrentPassword");
@@ -209,7 +215,7 @@ export async function changeEmail(password: string, newEmail: string): Promise<v
       password,
       newEmail: newEmail.trim(),
       product: PRODUCT,
-      locale: currentLocale(),
+      locale: mailLocale,
     }),
   });
   if (res.status === 401) throw new AccountRequestError("errorCurrentPassword");
@@ -233,7 +239,7 @@ export async function register(
       lastName,
       dateOfBirth,
       product: PRODUCT,
-      locale: currentLocale(),
+      locale: mailLocale,
       deviceId: installationId(),
     }),
   });

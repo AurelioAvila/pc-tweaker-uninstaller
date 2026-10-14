@@ -19,6 +19,7 @@ import {
   startBillingPortal,
   changeEmail,
   changePassword,
+  setAccountLocale,
   forgotPassword,
   login,
   register,
@@ -394,6 +395,7 @@ export default function App() {
 
   // Language and theme: persisted locally, English + Violet by default.
   const [lang, setLang] = useState<Locale>(() => currentLocale());
+  setAccountLocale(lang);
   const [theme, setTheme] = useState<ThemeCode>(() => initialTheme());
   const copy = inventoryCopy[lang];
   const [inventoryExport, setInventoryExport] = useState<string | null>(null);

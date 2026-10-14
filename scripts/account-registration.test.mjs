@@ -32,10 +32,13 @@ test("registration uses the suite API, persists its session and adopts a renewed
     assert.equal(entries.get("pcu-token"), "renewed-token");
     assert.equal(entries.get("pcu-email"), "new@example.com");
     assert.equal(calls.length, 2);
-    assert.deepEqual(JSON.parse(calls[0].options.body), {
+    const { deviceId, ...body } = JSON.parse(calls[0].options.body);
+    assert.deepEqual(body, {
       email: "new@example.com", password: "password123", firstName: "New",
-      lastName: "User", dateOfBirth: "1990-01-01", product: "uninstaller",
+      lastName: "User", dateOfBirth: "1990-01-01", product: "uninstaller", locale: "en",
     });
+    assert.match(deviceId, /^[0-9a-f-]{36}$/, "a random installation id, kept for later sign-ins");
+    assert.equal(entries.get("pcu-installation-id"), deviceId);
     assert.equal(calls[1].options.headers.Authorization, "Bearer signed-token");
   } finally {
     globalThis.fetch = previousFetch;
