@@ -169,17 +169,25 @@
     var(--bg-raised);
   box-shadow: 0 10px 34px color-mix(in srgb, var(--accent) 12%, transparent);
 }
+/* The family's badge: a pill straddling the top edge of the card, centred, with
+   a ring in the page colour that cuts it out of the border. */
 .plans-ribbon {
   position: absolute;
-  top: -11px;
-  right: 18px;
-  padding: 4px 11px;
+  top: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 5px 13px;
   border-radius: 999px;
   color: var(--accent-ink);
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow:
+    0 0 0 3px var(--bg, #0c0a14),
+    0 6px 18px -8px var(--accent);
   font-size: 11px;
-  font-weight: 750;
-  letter-spacing: 0.04em;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 .plans-card-name {
   display: flex;
@@ -461,6 +469,7 @@
 @media (max-width: 760px) {
   .plans-cards {
     grid-template-columns: minmax(0, 1fr);
+    row-gap: 24px;
   }
   .plans-account {
     flex-wrap: wrap;
