@@ -199,8 +199,13 @@ body {
   color: var(--fg-faint);
 }
 
-.search:focus {
+.search:focus,
+.search:focus-visible {
+  /* One ring only: the border turns accent and a 1px shadow thickens it.
+     An outline offset from the border drew a second, concentric line. */
   border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 1px var(--accent);
 }
 
 .chip {
@@ -291,8 +296,7 @@ body {
   filter: brightness(1.08);
 }
 
-.button:focus-visible,
-.search:focus-visible {
+.button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
