@@ -222,6 +222,18 @@ export type Dictionary = {
     readonly birthDateLabel: string;
     readonly verifyEmail: string;
     readonly verifyEmailFailed: string;
+    readonly errorCredentials: string;
+    readonly errorAlreadyRegistered: string;
+    readonly errorRateLimited: string;
+    readonly errorInvalid: string;
+    readonly errorServer: string;
+    readonly errorNetwork: string;
+    readonly forgotPassword: string;
+    readonly resetSent: string;
+    readonly emailUnverified: string;
+    readonly resendVerification: string;
+    readonly verificationResent: string;
+    readonly planLifetime: string;
   };
   readonly updater: {
     readonly title: (version: string) => string;
@@ -487,6 +499,20 @@ const en: Dictionary = {
     verifyEmail: "Check your inbox to verify your email address.",
     verifyEmailFailed:
       "Account created, but we could not send the verification email. Contact support.",
+    errorCredentials: "The email or password is incorrect.",
+    errorAlreadyRegistered:
+      "This email already has an account, perhaps from PC Tweaker or Tweaky Driver. Sign in with it, or reset the password.",
+    errorRateLimited: "Too many attempts. Wait 15 minutes and try again.",
+    errorInvalid: "Check the details you entered and try again.",
+    errorServer: "The account service is not responding right now. Try again in a few minutes.",
+    errorNetwork:
+      "Could not reach the account service. Check your internet connection and try again.",
+    forgotPassword: "Forgot your password?",
+    resetSent: "If this email has an account, a reset link is on its way.",
+    emailUnverified: "Your email is not verified yet.",
+    resendVerification: "Resend verification email",
+    verificationResent: "Verification email sent. Check your inbox and spam folder.",
+    planLifetime: "Lifetime",
   },
   updater: {
     title: (version) => `Update ${version} is ready`,
@@ -755,6 +781,21 @@ const it: Dictionary = {
     verifyEmail: "Controlla la posta per verificare il tuo indirizzo email.",
     verifyEmailFailed:
       "Account creato, ma non è stato possibile inviare l'email di verifica. Contatta l'assistenza.",
+    errorCredentials: "Email o password non corretti.",
+    errorAlreadyRegistered:
+      "Questa email ha già un account, magari creato in PC Tweaker o Tweaky Driver. Accedi con quello oppure reimposta la password.",
+    errorRateLimited: "Troppi tentativi. Attendi 15 minuti e riprova.",
+    errorInvalid: "Controlla i dati inseriti e riprova.",
+    errorServer: "Il servizio account non risponde in questo momento. Riprova tra qualche minuto.",
+    errorNetwork:
+      "Impossibile raggiungere il servizio account. Controlla la connessione a internet e riprova.",
+    forgotPassword: "Password dimenticata?",
+    resetSent:
+      "Se questa email ha un account, ti stiamo inviando un link per reimpostare la password.",
+    emailUnverified: "La tua email non è ancora verificata.",
+    resendVerification: "Invia di nuovo l'email di verifica",
+    verificationResent: "Email di verifica inviata. Controlla la posta in arrivo e lo spam.",
+    planLifetime: "A vita",
   },
   updater: {
     title: (version) => `Aggiornamento ${version} pronto`,
@@ -1025,6 +1066,22 @@ const fr: Dictionary = {
     verifyEmail: "Consultez votre boîte mail pour vérifier votre adresse.",
     verifyEmailFailed:
       "Compte créé, mais l'e-mail de vérification n'a pas pu être envoyé. Contactez l'assistance.",
+    errorCredentials: "L'e-mail ou le mot de passe est incorrect.",
+    errorAlreadyRegistered:
+      "Cet e-mail a déjà un compte, peut-être créé dans PC Tweaker ou Tweaky Driver. Connectez-vous avec celui-ci ou réinitialisez le mot de passe.",
+    errorRateLimited: "Trop de tentatives. Patientez 15 minutes, puis réessayez.",
+    errorInvalid: "Vérifiez les informations saisies, puis réessayez.",
+    errorServer:
+      "Le service de compte ne répond pas pour le moment. Réessayez dans quelques minutes.",
+    errorNetwork:
+      "Impossible de joindre le service de compte. Vérifiez votre connexion internet, puis réessayez.",
+    forgotPassword: "Mot de passe oublié ?",
+    resetSent: "Si cet e-mail a un compte, un lien de réinitialisation est en route.",
+    emailUnverified: "Votre e-mail n'est pas encore vérifié.",
+    resendVerification: "Renvoyer l'e-mail de vérification",
+    verificationResent:
+      "E-mail de vérification envoyé. Consultez votre boîte de réception et vos spams.",
+    planLifetime: "À vie",
   },
   updater: {
     title: (version) => `Mise à jour ${version} prête`,
@@ -1293,6 +1350,22 @@ const es: Dictionary = {
     verifyEmail: "Revisa tu correo para verificar tu dirección.",
     verifyEmailFailed:
       "Cuenta creada, pero no se pudo enviar el correo de verificación. Contacta con soporte.",
+    errorCredentials: "El correo o la contraseña no son correctos.",
+    errorAlreadyRegistered:
+      "Este correo ya tiene una cuenta, quizá creada en PC Tweaker o Tweaky Driver. Inicia sesión con ella o restablece la contraseña.",
+    errorRateLimited: "Demasiados intentos. Espera 15 minutos y vuelve a intentarlo.",
+    errorInvalid: "Revisa los datos introducidos y vuelve a intentarlo.",
+    errorServer:
+      "El servicio de cuentas no responde en este momento. Inténtalo de nuevo en unos minutos.",
+    errorNetwork:
+      "No se pudo conectar con el servicio de cuentas. Comprueba tu conexión a internet y vuelve a intentarlo.",
+    forgotPassword: "¿Has olvidado la contraseña?",
+    resetSent:
+      "Si este correo tiene una cuenta, te estamos enviando un enlace para restablecer la contraseña.",
+    emailUnverified: "Tu correo aún no está verificado.",
+    resendVerification: "Reenviar el correo de verificación",
+    verificationResent: "Correo de verificación enviado. Revisa la bandeja de entrada y el spam.",
+    planLifetime: "De por vida",
   },
   updater: {
     title: (version) => `Actualización ${version} lista`,
@@ -1567,6 +1640,23 @@ const de: Dictionary = {
     verifyEmail: "Prüfen Sie Ihr Postfach, um Ihre E-Mail-Adresse zu bestätigen.",
     verifyEmailFailed:
       "Konto erstellt, aber die Bestätigungs-E-Mail konnte nicht gesendet werden. Kontaktieren Sie den Support.",
+    errorCredentials: "E-Mail-Adresse oder Passwort ist falsch.",
+    errorAlreadyRegistered:
+      "Für diese E-Mail-Adresse gibt es bereits ein Konto, vielleicht aus PC Tweaker oder Tweaky Driver. Melden Sie sich damit an oder setzen Sie das Passwort zurück.",
+    errorRateLimited: "Zu viele Versuche. Bitte warten Sie 15 Minuten und versuchen Sie es erneut.",
+    errorInvalid: "Bitte prüfen Sie Ihre Eingaben und versuchen Sie es erneut.",
+    errorServer:
+      "Der Kontodienst antwortet gerade nicht. Bitte versuchen Sie es in einigen Minuten erneut.",
+    errorNetwork:
+      "Der Kontodienst ist nicht erreichbar. Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
+    forgotPassword: "Passwort vergessen?",
+    resetSent:
+      "Wenn zu dieser E-Mail-Adresse ein Konto gehört, ist ein Link zum Zurücksetzen unterwegs.",
+    emailUnverified: "Ihre E-Mail-Adresse ist noch nicht bestätigt.",
+    resendVerification: "Bestätigungs-E-Mail erneut senden",
+    verificationResent:
+      "Bestätigungs-E-Mail gesendet. Bitte prüfen Sie Ihr Postfach und den Spam-Ordner.",
+    planLifetime: "Lebenslang",
   },
   updater: {
     title: (version) => `Update ${version} ist bereit`,
@@ -1836,6 +1926,22 @@ const pt: Dictionary = {
     verifyEmail: "Verifique a sua caixa de entrada para confirmar o endereço de e-mail.",
     verifyEmailFailed:
       "Conta criada, mas não foi possível enviar o e-mail de verificação. Contacte o suporte.",
+    errorCredentials: "O e-mail ou a palavra-passe estão incorretos.",
+    errorAlreadyRegistered:
+      "Este e-mail já tem uma conta, talvez criada no PC Tweaker ou no Tweaky Driver. Inicie sessão com ela ou reponha a palavra-passe.",
+    errorRateLimited: "Demasiadas tentativas. Aguarde 15 minutos e tente novamente.",
+    errorInvalid: "Verifique os dados introduzidos e tente novamente.",
+    errorServer:
+      "O serviço de contas não está a responder neste momento. Tente novamente dentro de alguns minutos.",
+    errorNetwork:
+      "Não foi possível contactar o serviço de contas. Verifique a ligação à internet e tente novamente.",
+    forgotPassword: "Esqueceu-se da palavra-passe?",
+    resetSent:
+      "Se este e-mail tiver uma conta, vai receber uma ligação para repor a palavra-passe.",
+    emailUnverified: "O seu e-mail ainda não foi verificado.",
+    resendVerification: "Reenviar o e-mail de verificação",
+    verificationResent: "E-mail de verificação enviado. Verifique a caixa de entrada e o spam.",
+    planLifetime: "Vitalício",
   },
   updater: {
     title: (version) => `A atualização ${version} está pronta`,

@@ -52,6 +52,9 @@ const GRACE_PERIOD_SECS: u64 = 3 * 24 * 60 * 60;
 /// being three days for somebody who is demonstrably paid up.
 const PAID_PERIOD_GRACE_SECS: u64 = 30 * 24 * 60 * 60;
 
+/// How far this PC's clock may run behind the server's.
+const MAX_CLOCK_SKEW_SECS: u64 = 24 * 60 * 60;
+
 /// Field names must match the backend's `LicensePayload` type exactly,
 /// camelCase included — parsed directly from the JSON string the server
 /// signed, never adapted at any boundary in between.
@@ -129,9 +132,11 @@ fn now_secs() -> u64 {
 /// said something true three weeks ago, not that it is still true now.
 fn is_fresh(payload: &LicensePayload) -> bool {
     let now = now_secs();
-    // A licence issued in the future is a clock problem or a forgery; the
-    // minute of slack is for ordinary clock skew between here and the server.
-    if payload.issued_at > now + 60 {
+    // A licence issued in the future is a clock problem or a forgery. A day of
+    // slack covers PCs whose clock runs behind the server (a hand-set time
+    // zone, a drifting clock), as the account service allows; a minute locked
+    // Pro on them. Freshness is still measured from the signed time.
+    if payload.issued_at > now + MAX_CLOCK_SKEW_SECS {
         return false;
     }
     let age = now.saturating_sub(payload.issued_at);
@@ -399,7 +404,11 @@ mod tests {
         assert!(!is_fresh(&payload));
         payload.expires_at = Some(now_secs() + 3600);
         assert!(is_fresh(&payload));
-        payload.issued_at = now_secs() + 600;
+        // Regression: a PC two hours behind the server must accept a licence
+        // signed a moment ago; one more than a day ahead is still refused.
+        payload.issued_at = now_secs() + 2 * 60 * 60;
+        assert!(is_fresh(&payload));
+        payload.issued_at = now_secs() + MAX_CLOCK_SKEW_SECS + 600;
         assert!(!is_fresh(&payload));
     }
 

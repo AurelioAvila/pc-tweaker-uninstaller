@@ -10,11 +10,14 @@ import {
 } from "./i18n";
 import { THEMES, applyTheme, initialTheme, type ThemeCode } from "./themes";
 import {
+  AccountRequestError,
   fetchAccount,
   fetchUninstallerEntitlement,
+  forgotPassword,
   login,
   register,
   logout,
+  resendVerification,
   startUninstallerCheckout,
   type AccountState,
   type UninstallerEntitlement,
@@ -550,6 +553,16 @@ export default function App() {
   const [lastName, setLastName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [registrationNotice, setRegistrationNotice] = useState<string | null>(null);
+  const [accountNotice, setAccountNotice] = useState<string | null>(null);
+  const accountErrorText = useCallback(
+    (error: unknown) =>
+      error instanceof AccountRequestError
+        ? text.menu[error.key]
+        : typeof error === "string"
+          ? error
+          : (error as Error).message,
+    [],
+  );
   const isProConfirmed = account.status === "signed-in" && account.isPro;
 
   const refreshAccount = useCallback(() => {
@@ -594,7 +607,7 @@ export default function App() {
       })
       .catch((error: unknown) => {
         setAccount({ status: "anonymous" });
-        setLoginError(typeof error === "string" ? error : (error as Error).message);
+        setLoginError(accountErrorText(error));
       });
   }, [
     loginEmail,
@@ -604,6 +617,7 @@ export default function App() {
     lastName,
     dateOfBirth,
     refreshEntitlement,
+    accountErrorText,
   ]);
 
   const openAccount = useCallback((mode: "signIn" | "register") => {
@@ -1105,12 +1119,37 @@ export default function App() {
                       {account.isPro ? text.menu.proActive : text.menu.proInactive}
                     </p>
                     {registrationNotice && <p className="menu-hint">{registrationNotice}</p>}
+                    {!account.emailVerified && (
+                      <>
+                        <p className="menu-hint">{text.menu.emailUnverified}</p>
+                        <button
+                          type="button"
+                          className="button-ghost small full"
+                          onClick={() => {
+                            setAccountNotice(null);
+                            resendVerification()
+                              .then(() => {
+                                setAccountNotice(text.menu.verificationResent);
+                              })
+                              .catch((error: unknown) => {
+                                setAccountNotice(accountErrorText(error));
+                              });
+                          }}
+                        >
+                          {text.menu.resendVerification}
+                        </button>
+                      </>
+                    )}
+                    {accountNotice && <p className="menu-hint">{accountNotice}</p>}
                     {/* Uninstaller Pro: read from /api/entitlements, purchased
                       via Stripe Checkout in the system browser. The backend
                       picks the loyalty price server-side; the label here only
                       mirrors what it will charge. */}
                     <p className={uninstallerPro?.active ? "menu-hint menu-hint-ok" : "menu-hint"}>
                       {uninstallerPro?.active ? text.menu.upsActive : text.menu.upsInactive}
+                      {uninstallerPro?.active && uninstallerPro.plan === "lifetime"
+                        ? ` · ${text.menu.planLifetime}`
+                        : ""}
                     </p>
                     {uninstallerPro?.expiresAt && (
                       <p className="menu-hint menu-hint-ok">
@@ -1243,9 +1282,34 @@ export default function App() {
                           : text.menu.signInButton}
                     </button>
                     {account.status === "error" && (
-                      <p className="detail-notice">{account.message}</p>
+                      <p className="detail-notice">
+                        {account.message === "offline"
+                          ? text.menu.errorNetwork
+                          : text.menu.errorServer}
+                      </p>
                     )}
                     {loginError !== null && <p className="detail-notice">{loginError}</p>}
+                    {!registerMode && (
+                      <button
+                        type="button"
+                        className="button-ghost small full"
+                        disabled={!loginEmail.includes("@")}
+                        onClick={() => {
+                          setLoginError(null);
+                          setAccountNotice(null);
+                          forgotPassword(loginEmail)
+                            .then(() => {
+                              setAccountNotice(text.menu.resetSent);
+                            })
+                            .catch((error: unknown) => {
+                              setLoginError(accountErrorText(error));
+                            });
+                        }}
+                      >
+                        {text.menu.forgotPassword}
+                      </button>
+                    )}
+                    {accountNotice && <p className="menu-hint">{accountNotice}</p>}
                     <button
                       type="button"
                       className="button-ghost small full"
