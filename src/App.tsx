@@ -595,10 +595,12 @@ export default function App() {
     };
   }, [billing, refreshEntitlement]);
 
-  const beginProCheckout = useCallback(() => {
+  // Also used directly as an onClick handler, so anything but a boolean
+  // means "no choice made": the request then carries no start_trial.
+  const beginProCheckout = useCallback((startTrial?: unknown) => {
     setCheckoutBusy(true);
     setCheckoutError(false);
-    startUninstallerCheckout()
+    startUninstallerCheckout(typeof startTrial === "boolean" ? startTrial : undefined)
       .then((url) => invoke("open_checkout_url", { url }))
       .then(() => {
         setCheckoutStarted(true);

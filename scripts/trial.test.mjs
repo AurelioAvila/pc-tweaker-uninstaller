@@ -39,7 +39,7 @@ test("the trial button needs the server switch, eligibility and a server price",
   assert.equal(trialOffer("uninstaller", "annual", prices, status([row({ can_start_trial: false })])), null);
   assert.equal(trialOffer("uninstaller", "annual", prices, status([row()], { trial_enabled: false })), null);
   // A loyalty account's own renewal price wins over the public list.
-  assert.deepEqual(trialOffer("uninstaller", "annual", prices, status([row({ renew_amount: 499 })])), {
+  assert.deepEqual(trialOffer("uninstaller", "annual", prices, status([row({ prices: [{ plan: "annual", amount: 499, currency: "eur", interval: "year" }] })])), {
     days: 3,
     amount: 499,
   });

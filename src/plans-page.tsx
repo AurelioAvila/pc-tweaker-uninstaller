@@ -19,7 +19,8 @@ export type CheckoutControls = {
   busy: boolean;
   started: boolean;
   failed: boolean;
-  begin: () => void;
+  /** `startTrial` only when a trial is on offer: the trial button or "Subscribe now". */
+  begin: (startTrial?: boolean) => void;
   refresh: () => void;
 };
 
@@ -84,7 +85,7 @@ export function PlansPage({
   // A loyalty account renews at its own price: without the server's figure
   // for it there is no honest line to print, so no trial button either.
   const trial =
-    proActive || (loyalty && !mine?.renewAmount)
+    proActive || (loyalty && !mine?.prices.some((p) => p.plan === "annual"))
       ? null
       : trialOffer("uninstaller", "annual", prices, billing, offer?.regular);
   const paymentFailed = mine?.state === "blocked" && mine.blockedReason === "payment_failed";
@@ -96,6 +97,9 @@ export function PlansPage({
         date: day(new Date(now + trial.days * 86_400_000).toISOString()),
       })
     : null;
+  const subscribeNote = trial
+    ? fill(t.subscribeNowNote, { price: money(shownOffer ? shownOffer.price : trial.amount) })
+    : "";
   const running = proActive && mine?.state === "trialing" && mine.trialEndsAt ? mine : null;
   const left = running?.trialEndsAt
     ? trialLeft(running.trialEndsAt, billing?.trialDays ?? 3, now)
@@ -169,9 +173,21 @@ export function PlansPage({
         >
           {trial ? fill(t.start, { days: trial.days }) : copy.goPro}
         </button>
+        {trial && (
+          <button
+            type="button"
+            className="button-ghost plans-cta"
+            disabled={account.status === "checking"}
+            onClick={() => {
+              onOpenAccount("signIn");
+            }}
+          >
+            {t.subscribeNow}
+          </button>
+        )}
         {trialLine && (
           <p className="plans-hint plans-trial-line" id="plans-trial-line">
-            {trialLine}
+            {trialLine} {subscribeNote}
           </p>
         )}
         {account.status === "anonymous" && <p className="plans-hint">{copy.signInFirst}</p>}
@@ -186,13 +202,27 @@ export function PlansPage({
           disabled={checkout.busy}
           aria-busy={checkout.busy}
           aria-describedby={trialLine ? "plans-trial-line" : undefined}
-          onClick={checkout.begin}
+          onClick={() => {
+            checkout.begin(trial ? true : undefined);
+          }}
         >
-          {trial ? fill(t.start, { days: trial.days }) : copy.goPro}
+          {trial ? fill(t.start, { days: trial.days }) : spent ? t.subscribe : copy.goPro}
         </button>
+        {trial && (
+          <button
+            type="button"
+            className="button-ghost plans-cta"
+            disabled={checkout.busy}
+            onClick={() => {
+              checkout.begin(false);
+            }}
+          >
+            {t.subscribeNow}
+          </button>
+        )}
         {(trialLine ?? spent) && (
           <p className="plans-hint plans-trial-line" id="plans-trial-line">
-            {trialLine ?? t.used}
+            {trialLine ? `${trialLine} ${subscribeNote}` : t.used}
           </p>
         )}
         {!account.emailVerified && <p className="plans-hint">{copy.unverified}</p>}

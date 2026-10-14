@@ -318,13 +318,19 @@ export async function fetchPriceList(): Promise<unknown> {
 /** Starts a Stripe Checkout for Uninstaller Pro (annual; the backend picks
  *  the loyalty price server-side when the account has PC Tweaker Pro) and
  *  returns the URL to open in the system browser. */
-export async function startUninstallerCheckout(): Promise<string> {
+export async function startUninstallerCheckout(startTrial?: boolean): Promise<string> {
   const token = readToken();
   if (!token || !API_BASE_URL) throw new Error("Sign in first.");
   const res = await fetch(`${API_BASE_URL}/api/checkout`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ product: "uninstaller", plan: "annual" }),
+    // start_trial only when a trial is on offer (trial button or "Subscribe
+    // now"); the server still decides whether one applies.
+    body: JSON.stringify(
+      startTrial === undefined
+        ? { product: "uninstaller", plan: "annual" }
+        : { product: "uninstaller", plan: "annual", start_trial: startTrial },
+    ),
   });
   const body = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
   if (!res.ok || !body.url) throw new Error(body.error || `HTTP ${String(res.status)}`);
