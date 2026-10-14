@@ -34,9 +34,9 @@
   </Company_Info>
   <Program_Info>
     <Program_Name>PC Tweaker Uninstaller</Program_Name>
-    <Program_Version>0.13.0</Program_Version>
+    <Program_Version>0.13.1</Program_Version>
     <Program_Release_Month>10</Program_Release_Month>
-    <Program_Release_Day>11</Program_Release_Day>
+    <Program_Release_Day>14</Program_Release_Day>
     <Program_Release_Year>2026</Program_Release_Year>
     <Program_Cost_Dollars></Program_Cost_Dollars>
     <Program_Cost_Other_Code></Program_Cost_Other_Code>
@@ -47,8 +47,8 @@
     <Program_OS_Support>WinOther</Program_OS_Support>
     <Program_Language>English</Program_Language>
     <File_Info>
-      <File_Size_Bytes>4304496</File_Size_Bytes>
-      <File_Size_K>4203.61</File_Size_K>
+      <File_Size_Bytes>4305072</File_Size_Bytes>
+      <File_Size_K>4204.17</File_Size_K>
       <File_Size_MB>4.11</File_Size_MB>
     </File_Info>
     <Expire_Info>
@@ -60,7 +60,7 @@
       <Expire_Day></Expire_Day>
       <Expire_Year></Expire_Year>
     </Expire_Info>
-    <Program_Change_Info>0.13.0 adds a Plans &amp; pricing page that compares Free and Pro, shows the account and plan, and opens the billing portal to manage a subscription. See release notes for details.</Program_Change_Info>
+    <Program_Change_Info>0.13.1 keeps users signed in, adds password reset and verification email resend, shows sign-in errors in the app's language and keeps Pro active on PCs whose clock runs behind. See release notes for details.</Program_Change_Info>
     <Program_Category_Class>System Utilities::System Maintenance</Program_Category_Class>
     <Program_Specific_Category></Program_Specific_Category>
     <Program_System_Requirements>Windows 10/11 x64; internet for accounts, updates and supported online features.</Program_System_Requirements>
@@ -84,7 +84,7 @@
       <Application_XML_File_URL>https://raw.githubusercontent.com/AurelioAvila/pc-tweaker-uninstaller/master/docs/pad.xml</Application_XML_File_URL>
     </Application_URLs>
     <Download_URLs>
-      <Primary_Download_URL>https://github.com/AurelioAvila/pc-tweaker-uninstaller/releases/download/v0.13.0/PC.Tweaker.Uninstaller_0.13.0_x64-setup.exe</Primary_Download_URL>
+      <Primary_Download_URL>https://github.com/AurelioAvila/pc-tweaker-uninstaller/releases/download/v0.13.1/PC.Tweaker.Uninstaller_0.13.1_x64-setup.exe</Primary_Download_URL>
       <Secondary_Download_URL></Secondary_Download_URL>
       <Additional_Download_URL_1></Additional_Download_URL_1>
       <Additional_Download_URL_2></Additional_Download_URL_2>
