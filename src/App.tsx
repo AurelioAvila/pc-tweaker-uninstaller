@@ -38,6 +38,7 @@ import { ProgramIcon } from "./program-icon";
 import appLogo from "../src-tauri/icons/128x128.png";
 import "./App.css";
 import "./workspace.css";
+import "./family-polish.css";
 import { UiIcon } from "./ui-icon";
 import { workspaceCopy } from "./workspace-copy";
 
