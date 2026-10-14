@@ -8,6 +8,8 @@ import { LOYALTY_CENTS, money as formatMoney, proPrice } from "./plans-price";
 import { promoPercent } from "./promo";
 import { UiIcon } from "./ui-icon";
 import { usePromo } from "./use-promo";
+import { fill, trialCopy } from "./trial-copy";
+import { trialLeft, trialOffer, trialUsed, type BillingStatus, type PriceList } from "./trial";
 import "./plans.css";
 
 /** Six capabilities are free; the last three in `rows` are Pro only. */
@@ -30,10 +32,16 @@ export function PlansPage({
   onOpenAccount,
   onRefreshAccount,
   onOpenPrivacy,
+  billing = null,
+  prices = null,
 }: {
   lang: Locale;
   account: AccountState;
   entitlement: UninstallerEntitlement | null;
+  /** This account's trial and subscription state (GET /api/billing/status). */
+  billing?: BillingStatus | null;
+  /** Public prices and the trial switch (GET /api/billing/prices). */
+  prices?: PriceList | null;
   checkout: CheckoutControls;
   onBack: () => void;
   onOpenAccount: (mode: "signIn" | "register") => void;
@@ -52,6 +60,17 @@ export function PlansPage({
   }, []);
   const [portal, setPortal] = useState<"idle" | "busy" | "error">("idle");
   const promo = usePromo();
+  const t = trialCopy[lang];
+  // Half-minute steps keep the first-charge date and the countdown current.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setNow(Date.now());
+    }, 30_000);
+    return () => {
+      window.clearInterval(id);
+    };
+  }, []);
 
   const signedIn = account.status === "signed-in";
   const loyalty = signedIn && account.isPro;
@@ -61,6 +80,33 @@ export function PlansPage({
   const { shown: shownOffer, price } = proPrice(loyalty, proActive, offer);
   const reservePromo = !proActive && !loyalty && shownOffer === null && promo.reserve;
   const promoEnd = promo.promo?.endsAt;
+  const mine = billing?.products.find((p) => p.product === "uninstaller") ?? null;
+  // A loyalty account renews at its own price: without the server's figure
+  // for it there is no honest line to print, so no trial button either.
+  const trial =
+    proActive || (loyalty && !mine?.renewAmount)
+      ? null
+      : trialOffer("uninstaller", "annual", prices, billing, offer?.regular);
+  const paymentFailed = mine?.state === "blocked" && mine.blockedReason === "payment_failed";
+  const spent = !proActive && trialUsed("uninstaller", billing);
+  const trialLine = trial
+    ? fill(shownOffer ? t.thenYearPromo : t.thenYear, {
+        price: money(shownOffer ? shownOffer.price : trial.amount),
+        regular: money(trial.amount),
+        date: day(new Date(now + trial.days * 86_400_000).toISOString()),
+      })
+    : null;
+  const running = proActive && mine?.state === "trialing" && mine.trialEndsAt ? mine : null;
+  const left = running?.trialEndsAt
+    ? trialLeft(running.trialEndsAt, billing?.trialDays ?? 3, now)
+    : null;
+  const leftText = left
+    ? left.days
+      ? fill(t.leftDays, { days: left.days, hours: left.hours })
+      : left.hours
+        ? fill(t.leftHours, { hours: left.hours, minutes: left.minutes })
+        : fill(t.leftMinutes, { minutes: Math.max(1, left.minutes) })
+    : null;
 
   const manage = () => {
     setPortal("busy");
@@ -92,6 +138,23 @@ export function PlansPage({
       ) : (
         <p className="plans-status">{copy.proActiveStatus}</p>
       );
+  } else if (signedIn && paymentFailed) {
+    proAction = (
+      <>
+        <button
+          type="button"
+          className="button plans-cta"
+          disabled={portal === "busy"}
+          aria-busy={portal === "busy"}
+          onClick={manage}
+        >
+          {t.updatePayment}
+        </button>
+        <p className="plans-hint plans-error">
+          {t.paymentFailed}. {t.paymentFailedHint}
+        </p>
+      </>
+    );
   } else if (!signedIn) {
     proAction = (
       <>
@@ -99,12 +162,18 @@ export function PlansPage({
           type="button"
           className="button plans-cta"
           disabled={account.status === "checking"}
+          aria-describedby={trialLine ? "plans-trial-line" : undefined}
           onClick={() => {
             onOpenAccount("signIn");
           }}
         >
-          {copy.goPro}
+          {trial ? fill(t.start, { days: trial.days }) : copy.goPro}
         </button>
+        {trialLine && (
+          <p className="plans-hint plans-trial-line" id="plans-trial-line">
+            {trialLine}
+          </p>
+        )}
         {account.status === "anonymous" && <p className="plans-hint">{copy.signInFirst}</p>}
       </>
     );
@@ -116,10 +185,16 @@ export function PlansPage({
           className="button plans-cta"
           disabled={checkout.busy}
           aria-busy={checkout.busy}
+          aria-describedby={trialLine ? "plans-trial-line" : undefined}
           onClick={checkout.begin}
         >
-          {copy.goPro}
+          {trial ? fill(t.start, { days: trial.days }) : copy.goPro}
         </button>
+        {(trialLine ?? spent) && (
+          <p className="plans-hint plans-trial-line" id="plans-trial-line">
+            {trialLine ?? t.used}
+          </p>
+        )}
         {!account.emailVerified && <p className="plans-hint">{copy.unverified}</p>}
       </>
     );
@@ -182,10 +257,25 @@ export function PlansPage({
                 <p className="plans-account-main">
                   <span className="plans-email">{account.email}</span>
                   <span className={`plans-pill${proActive ? " plans-pill-pro" : ""}`}>
-                    {proActive ? copy.proPlan : copy.freePlan}
+                    {running ? t.trial : proActive ? copy.proPlan : copy.freePlan}
                   </span>
                 </p>
-                {proActive && (
+                {running?.trialEndsAt && leftText && left && (
+                  <div className="plans-trial">
+                    <p className="plans-trial-left">{leftText}</p>
+                    <span className="plans-trial-bar" aria-hidden="true">
+                      <i style={{ width: `${String(Math.round(left.used * 100))}%` }} />
+                    </span>
+                    <p>
+                      {fill(running.cancelAtPeriodEnd ? t.noCharge : t.firstCharge, {
+                        date: day(new Date(running.trialEndsAt).toISOString()),
+                      })}
+                    </p>
+                  </div>
+                )}
+                {paymentFailed && <p className="plans-error">{t.paymentFailedHint}</p>}
+                {spent && !paymentFailed && <p>{t.trialUsed}</p>}
+                {proActive && !running && (
                   <p>
                     {bonus && entitlement.expiresAt
                       ? copy.bonusUntil(day(entitlement.expiresAt))

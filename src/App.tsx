@@ -12,7 +12,11 @@ import { THEMES, applyTheme, initialTheme, type ThemeCode } from "./themes";
 import {
   AccountRequestError,
   fetchAccount,
+  fetchBillingStatus,
+  fetchPriceList,
   fetchUninstallerEntitlement,
+  readStoredEmail,
+  startBillingPortal,
   forgotPassword,
   login,
   register,
@@ -24,6 +28,17 @@ import {
 } from "./account";
 import { UpdateBanner, useAppUpdater } from "./updater";
 import { PlansPage, ProPriceSummary } from "./plans-page";
+import { trialCopy } from "./trial-copy";
+import {
+  billingChanges,
+  billingSnapshot,
+  nextTrialEnd,
+  parseBillingStatus,
+  parsePriceList,
+  type BillingChange,
+  type BillingStatus,
+  type PriceList,
+} from "./trial";
 import { plansCopy } from "./plans-copy";
 import {
   comparePrograms,
@@ -522,13 +537,63 @@ export default function App() {
   const [checkoutStarted, setCheckoutStarted] = useState(false);
   const [checkoutError, setCheckoutError] = useState(false);
 
+  const [billing, setBilling] = useState<BillingStatus | null>(null);
+  const [prices, setPrices] = useState<PriceList | null>(null);
+  const [billingNotice, setBillingNotice] = useState<BillingChange | null>(null);
+  const [convertedNote, setConvertedNote] = useState(false);
+
   const refreshEntitlement = useCallback(() => {
     fetchUninstallerEntitlement()
       .then(setUninstallerPro)
       .catch(() => {
         setUninstallerPro(null);
       });
+    // Trial state, and the one notice shown on return when Pro stopped or a
+    // trial became a subscription. Compared with what this PC saw last time.
+    void fetchBillingStatus().then((raw) => {
+      const next = parseBillingStatus(raw);
+      if (!next) return;
+      setBilling(next);
+      const key = `pcu-billing-seen:${(readStoredEmail() ?? "").toLowerCase()}`;
+      let seen: Record<string, string> | null = null;
+      try {
+        seen = JSON.parse(localStorage.getItem(key) ?? "null") as Record<string, string> | null;
+        localStorage.setItem(key, JSON.stringify(billingSnapshot(next)));
+      } catch {
+        // Unreadable or blocked storage: no notice is better than a wrong one.
+      }
+      const change = billingChanges(seen, next).find((c) => c.product === "uninstaller");
+      if (change?.kind === "converted") setConvertedNote(true);
+      else if (change) setBillingNotice(change);
+    });
   }, []);
+
+  useEffect(() => {
+    const load = () => {
+      void fetchPriceList().then((raw) => {
+        setPrices(parsePriceList(raw));
+      });
+    };
+    load();
+    const id = window.setInterval(load, 60 * 60_000);
+    return () => {
+      window.clearInterval(id);
+    };
+  }, []);
+
+  // Look again just after a trial ends: Pro stops there unless the first
+  // payment went through, and the licence on disk expires at that second.
+  useEffect(() => {
+    const end = nextTrialEnd(billing, Date.now());
+    if (end === null) return;
+    const id = window.setTimeout(
+      refreshEntitlement,
+      Math.min(end - Date.now() + 15_000, 2_000_000_000),
+    );
+    return () => {
+      window.clearTimeout(id);
+    };
+  }, [billing, refreshEntitlement]);
 
   const beginProCheckout = useCallback(() => {
     setCheckoutBusy(true);
@@ -631,6 +696,8 @@ export default function App() {
   const signOut = useCallback(() => {
     logout();
     setUninstallerPro(null);
+    setBilling(null);
+    setBillingNotice(null);
     setAccount({ status: "anonymous" });
     setLoginEmail("");
   }, []);
@@ -1472,8 +1539,85 @@ export default function App() {
             onOpenPrivacy={() => {
               openLink("privacy");
             }}
+            billing={billing}
+            prices={prices}
           />
         </main>
+      )}
+      {(billingNotice ?? convertedNote) && (
+        <div
+          className="overlay"
+          role="presentation"
+          onClick={() => {
+            setBillingNotice(null);
+            setConvertedNote(false);
+          }}
+        >
+          <div
+            className="dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="billing-notice-title"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            {billingNotice ? (
+              <>
+                <h2 id="billing-notice-title">
+                  {billingNotice.kind === "paused"
+                    ? trialCopy[lang].pausedTitle
+                    : billingNotice.kind === "trialEnded"
+                      ? trialCopy[lang].trialEndedTitle
+                      : trialCopy[lang].endedTitle}
+                </h2>
+                <p className="dialog-body">
+                  {billingNotice.kind === "paused"
+                    ? trialCopy[lang].pausedBody
+                    : trialCopy[lang].endedBody}
+                </p>
+              </>
+            ) : (
+              <h2 id="billing-notice-title">{trialCopy[lang].converted}</h2>
+            )}
+            <div className="dialog-actions">
+              {billingNotice && (
+                <button
+                  type="button"
+                  className="button primary"
+                  onClick={() => {
+                    const paused = billingNotice.kind === "paused";
+                    setBillingNotice(null);
+                    if (!paused) {
+                      setView("plans");
+                      return;
+                    }
+                    startBillingPortal()
+                      .then((url) => invoke("open_checkout_url", { url }))
+                      .catch(() => {
+                        setView("plans");
+                      });
+                  }}
+                >
+                  {billingNotice.kind === "paused"
+                    ? trialCopy[lang].updatePayment
+                    : trialCopy[lang].seePlans}
+                </button>
+              )}
+              <button
+                type="button"
+                className="button-ghost"
+                autoFocus
+                onClick={() => {
+                  setBillingNotice(null);
+                  setConvertedNote(false);
+                }}
+              >
+                {billingNotice ? trialCopy[lang].notNow : text.uninstall.close}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       <main className="content" hidden={view === "plans"} inert={updater.phase !== "offer"}>
         <div className="workspace-heading">

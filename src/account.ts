@@ -284,6 +284,37 @@ export async function fetchUninstallerEntitlement(): Promise<UninstallerEntitlem
   }
 }
 
+/** Trial and subscription state for this account (CONTRATTO.md §2.1), as
+ *  sent: trial.ts parses it. Null on a backend that does not publish it yet. */
+export async function fetchBillingStatus(): Promise<unknown> {
+  const token = readToken();
+  if (!token || !API_BASE_URL) return null;
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/billing/status?product=uninstaller`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok || readToken() !== token) return null;
+    return (await res.json()) as unknown;
+  } catch {
+    return null;
+  }
+}
+
+/** Public prices and the trial switch, as sent: the only source of a
+ *  renewal price. */
+export async function fetchPriceList(): Promise<unknown> {
+  if (!API_BASE_URL) return null;
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/billing/prices`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(8000),
+    });
+    return res.ok ? ((await res.json()) as unknown) : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Starts a Stripe Checkout for Uninstaller Pro (annual; the backend picks
  *  the loyalty price server-side when the account has PC Tweaker Pro) and
  *  returns the URL to open in the system browser. */
