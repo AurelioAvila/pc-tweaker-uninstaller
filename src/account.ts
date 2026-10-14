@@ -9,6 +9,7 @@
  */
 
 import { invoke } from "@tauri-apps/api/core";
+import { currentLocale } from "./i18n";
 export const API_BASE_URL: string =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
   "https://pc-tweaker-app-production.up.railway.app";
@@ -66,6 +67,7 @@ export function clearSession(): void {
 /** Why an account request failed, as a key of the `menu` dictionary. The
  *  server's own text is English, and a rate-limited request has none. */
 export type AccountErrorKey =
+  | "errorCurrentPassword"
   | "errorCredentials"
   | "errorAlreadyRegistered"
   | "errorRateLimited"
@@ -98,8 +100,24 @@ async function request(path: string, init: RequestInit): Promise<Response> {
   }
 }
 /** The account is shared with PC Tweaker and Tweaky Driver; mail about it is
- *  branded for the app that asked. */
+ *  branded for the app that asked, and written in the app's language. */
 const PRODUCT = "uninstaller";
+const INSTALLATION_KEY = "pcu-installation-id";
+
+/** A random id this installation keeps, sent at sign-in so the account can
+ *  tell a new PC from a known one. Not a hardware fingerprint. */
+function installationId(): string {
+  try {
+    let id = localStorage.getItem(INSTALLATION_KEY);
+    if (!id || !/^[A-Za-z0-9-]{16,64}$/.test(id)) {
+      id = crypto.randomUUID();
+      localStorage.setItem(INSTALLATION_KEY, id);
+    }
+    return id;
+  } catch {
+    return "";
+  }
+}
 
 /** Sessions slide: once a token is a day old, any authenticated answer
  *  carries a fresh one. Without adopting it the app signed people out after
@@ -118,7 +136,13 @@ export async function login(email: string, password: string): Promise<AccountSta
   const res = await request(`/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: address, password }),
+    body: JSON.stringify({
+      email: address,
+      password,
+      product: PRODUCT,
+      locale: currentLocale(),
+      deviceId: installationId(),
+    }),
   });
   if (!res.ok) throw failure(res.status);
   const data = (await res.json()) as { token: string };
@@ -132,7 +156,11 @@ export async function forgotPassword(email: string): Promise<void> {
   const res = await request(`/api/auth/forgot-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: email.trim().toLowerCase(), product: PRODUCT }),
+    body: JSON.stringify({
+      email: email.trim().toLowerCase(),
+      product: PRODUCT,
+      locale: currentLocale(),
+    }),
   });
   if (!res.ok) throw failure(res.status);
 }
@@ -143,8 +171,48 @@ export async function resendVerification(): Promise<void> {
   const res = await request(`/api/auth/resend-verification`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ product: PRODUCT }),
+    body: JSON.stringify({ product: PRODUCT, locale: currentLocale() }),
   });
+  if (!res.ok) throw failure(res.status);
+}
+
+/** Needs the current password; this session continues with the token the
+ *  server returns, every other one ends. */
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  const token = readToken();
+  const email = readStoredEmail();
+  if (!token || !email) throw new AccountRequestError("errorCredentials");
+  const res = await request(`/api/auth/change-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({
+      currentPassword,
+      newPassword,
+      product: PRODUCT,
+      locale: currentLocale(),
+    }),
+  });
+  if (res.status === 401) throw new AccountRequestError("errorCurrentPassword");
+  if (!res.ok) throw failure(res.status);
+  const data = (await res.json()) as { token: string };
+  storeSession(data.token, email);
+}
+
+/** Nothing changes until the link sent to the new address is confirmed. */
+export async function changeEmail(password: string, newEmail: string): Promise<void> {
+  const token = readToken();
+  if (!token) throw new AccountRequestError("errorCredentials");
+  const res = await request(`/api/auth/change-email`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({
+      password,
+      newEmail: newEmail.trim(),
+      product: PRODUCT,
+      locale: currentLocale(),
+    }),
+  });
+  if (res.status === 401) throw new AccountRequestError("errorCurrentPassword");
   if (!res.ok) throw failure(res.status);
 }
 
@@ -165,6 +233,8 @@ export async function register(
       lastName,
       dateOfBirth,
       product: PRODUCT,
+      locale: currentLocale(),
+      deviceId: installationId(),
     }),
   });
   if (!res.ok) throw failure(res.status);
