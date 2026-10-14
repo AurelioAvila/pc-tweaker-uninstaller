@@ -229,6 +229,15 @@ export type Dictionary = {
     readonly errorServer: string;
     readonly errorNetwork: string;
     readonly forgotPassword: string;
+    readonly securityTitle: string;
+    readonly currentPassword: string;
+    readonly newPassword: string;
+    readonly changePassword: string;
+    readonly passwordChanged: string;
+    readonly newEmail: string;
+    readonly changeEmail: string;
+    readonly changeEmailSent: string;
+    readonly errorCurrentPassword: string;
     readonly resetSent: string;
     readonly emailUnverified: string;
     readonly resendVerification: string;
@@ -508,6 +517,15 @@ const en: Dictionary = {
     errorNetwork:
       "Could not reach the account service. Check your internet connection and try again.",
     forgotPassword: "Forgot your password?",
+    securityTitle: "Password and email",
+    currentPassword: "Current password",
+    newPassword: "New password",
+    changePassword: "Change password",
+    passwordChanged: "Password changed. Other PCs were signed out; this one stays signed in.",
+    newEmail: "New email address",
+    changeEmail: "Change email",
+    changeEmailSent: "Check the new inbox: the change happens when you confirm the link there.",
+    errorCurrentPassword: "The current password is not correct.",
     resetSent: "If this email has an account, a reset link is on its way.",
     emailUnverified: "Your email is not verified yet.",
     resendVerification: "Resend verification email",
@@ -790,6 +808,17 @@ const it: Dictionary = {
     errorNetwork:
       "Impossibile raggiungere il servizio account. Controlla la connessione a internet e riprova.",
     forgotPassword: "Password dimenticata?",
+    securityTitle: "Password ed email",
+    currentPassword: "Password attuale",
+    newPassword: "Nuova password",
+    changePassword: "Cambia password",
+    passwordChanged:
+      "Password cambiata. Gli altri PC sono stati disconnessi; questo resta connesso.",
+    newEmail: "Nuovo indirizzo email",
+    changeEmail: "Cambia email",
+    changeEmailSent:
+      "Controlla la nuova casella: la modifica avviene quando confermi il link che trovi lì.",
+    errorCurrentPassword: "La password attuale non è corretta.",
     resetSent:
       "Se questa email ha un account, ti stiamo inviando un link per reimpostare la password.",
     emailUnverified: "La tua email non è ancora verificata.",
@@ -1076,6 +1105,17 @@ const fr: Dictionary = {
     errorNetwork:
       "Impossible de joindre le service de compte. Vérifiez votre connexion internet, puis réessayez.",
     forgotPassword: "Mot de passe oublié ?",
+    securityTitle: "Mot de passe et e-mail",
+    currentPassword: "Mot de passe actuel",
+    newPassword: "Nouveau mot de passe",
+    changePassword: "Changer le mot de passe",
+    passwordChanged:
+      "Mot de passe modifié. Les autres PC ont été déconnectés ; celui-ci reste connecté.",
+    newEmail: "Nouvelle adresse e-mail",
+    changeEmail: "Changer d'adresse e-mail",
+    changeEmailSent:
+      "Consultez la nouvelle boîte de réception : le changement a lieu quand vous confirmez le lien qu'elle contient.",
+    errorCurrentPassword: "Le mot de passe actuel n'est pas correct.",
     resetSent: "Si cet e-mail a un compte, un lien de réinitialisation est en route.",
     emailUnverified: "Votre e-mail n'est pas encore vérifié.",
     resendVerification: "Renvoyer l'e-mail de vérification",
@@ -1360,6 +1400,17 @@ const es: Dictionary = {
     errorNetwork:
       "No se pudo conectar con el servicio de cuentas. Comprueba tu conexión a internet y vuelve a intentarlo.",
     forgotPassword: "¿Has olvidado la contraseña?",
+    securityTitle: "Contraseña y correo",
+    currentPassword: "Contraseña actual",
+    newPassword: "Contraseña nueva",
+    changePassword: "Cambiar contraseña",
+    passwordChanged:
+      "Contraseña cambiada. Se cerró la sesión en los demás PC; en este sigues conectado.",
+    newEmail: "Nueva dirección de correo",
+    changeEmail: "Cambiar correo",
+    changeEmailSent:
+      "Revisa la nueva bandeja de entrada: el cambio se hace cuando confirmes el enlace que encontrarás allí.",
+    errorCurrentPassword: "La contraseña actual no es correcta.",
     resetSent:
       "Si este correo tiene una cuenta, te estamos enviando un enlace para restablecer la contraseña.",
     emailUnverified: "Tu correo aún no está verificado.",
@@ -1650,6 +1701,16 @@ const de: Dictionary = {
     errorNetwork:
       "Der Kontodienst ist nicht erreichbar. Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
     forgotPassword: "Passwort vergessen?",
+    securityTitle: "Passwort und E-Mail",
+    currentPassword: "Aktuelles Passwort",
+    newPassword: "Neues Passwort",
+    changePassword: "Passwort ändern",
+    passwordChanged: "Passwort geändert. Andere PCs wurden abgemeldet; dieser bleibt angemeldet.",
+    newEmail: "Neue E-Mail-Adresse",
+    changeEmail: "E-Mail ändern",
+    changeEmailSent:
+      "Sehen Sie im neuen Postfach nach: Die Änderung erfolgt, wenn Sie den Link dort bestätigen.",
+    errorCurrentPassword: "Das aktuelle Passwort ist nicht korrekt.",
     resetSent:
       "Wenn zu dieser E-Mail-Adresse ein Konto gehört, ist ein Link zum Zurücksetzen unterwegs.",
     emailUnverified: "Ihre E-Mail-Adresse ist noch nicht bestätigt.",
@@ -1936,6 +1997,17 @@ const pt: Dictionary = {
     errorNetwork:
       "Não foi possível contactar o serviço de contas. Verifique a ligação à internet e tente novamente.",
     forgotPassword: "Esqueceu-se da palavra-passe?",
+    securityTitle: "Palavra-passe e e-mail",
+    currentPassword: "Palavra-passe atual",
+    newPassword: "Nova palavra-passe",
+    changePassword: "Alterar a palavra-passe",
+    passwordChanged:
+      "Palavra-passe alterada. A sessão terminou nos outros PCs; neste continua iniciada.",
+    newEmail: "Novo endereço de e-mail",
+    changeEmail: "Alterar o e-mail",
+    changeEmailSent:
+      "Verifique a nova caixa de correio: a alteração acontece quando confirmar a ligação que lá encontrar.",
+    errorCurrentPassword: "A palavra-passe atual não está correta.",
     resetSent:
       "Se este e-mail tiver uma conta, vai receber uma ligação para repor a palavra-passe.",
     emailUnverified: "O seu e-mail ainda não foi verificado.",

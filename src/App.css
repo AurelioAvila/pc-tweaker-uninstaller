@@ -1356,3 +1356,19 @@ body {
   padding: 8px 10px;
   min-height: 36px;
 }
+
+/* Password and email changes, inside the signed-in account menu. */
+.account-changes {
+  margin: 8px 0;
+}
+.account-changes summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--fg-faint);
+}
+.account-changes .menu-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}

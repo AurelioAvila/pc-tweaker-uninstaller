@@ -17,6 +17,9 @@ import {
   fetchUninstallerEntitlement,
   readStoredEmail,
   startBillingPortal,
+  changeEmail,
+  changePassword,
+  setAccountLocale,
   forgotPassword,
   login,
   register,
@@ -392,6 +395,7 @@ export default function App() {
 
   // Language and theme: persisted locally, English + Violet by default.
   const [lang, setLang] = useState<Locale>(() => currentLocale());
+  setAccountLocale(lang);
   const [theme, setTheme] = useState<ThemeCode>(() => initialTheme());
   const copy = inventoryCopy[lang];
   const [inventoryExport, setInventoryExport] = useState<string | null>(null);
@@ -1211,6 +1215,94 @@ export default function App() {
                       </>
                     )}
                     {accountNotice && <p className="menu-hint">{accountNotice}</p>}
+                    <details className="account-changes">
+                      <summary>{text.menu.securityTitle}</summary>
+                      <form
+                        className="menu-form"
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          const data = new FormData(event.currentTarget);
+                          const form = event.currentTarget;
+                          setAccountNotice(null);
+                          changePassword(
+                            (data.get("current") as string | null) ?? "",
+                            (data.get("next") as string | null) ?? "",
+                          )
+                            .then(() => {
+                              form.reset();
+                              setAccountNotice(text.menu.passwordChanged);
+                            })
+                            .catch((error: unknown) => {
+                              setAccountNotice(accountErrorText(error));
+                            });
+                        }}
+                      >
+                        <input
+                          className="search"
+                          name="current"
+                          type="password"
+                          autoComplete="current-password"
+                          required
+                          placeholder={text.menu.currentPassword}
+                          aria-label={text.menu.currentPassword}
+                        />
+                        <input
+                          className="search"
+                          name="next"
+                          type="password"
+                          autoComplete="new-password"
+                          required
+                          minLength={8}
+                          placeholder={text.menu.newPassword}
+                          aria-label={text.menu.newPassword}
+                        />
+                        <button type="submit" className="button-ghost small full">
+                          {text.menu.changePassword}
+                        </button>
+                      </form>
+                      <form
+                        className="menu-form"
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          const data = new FormData(event.currentTarget);
+                          const form = event.currentTarget;
+                          setAccountNotice(null);
+                          changeEmail(
+                            (data.get("password") as string | null) ?? "",
+                            (data.get("email") as string | null) ?? "",
+                          )
+                            .then(() => {
+                              form.reset();
+                              setAccountNotice(text.menu.changeEmailSent);
+                            })
+                            .catch((error: unknown) => {
+                              setAccountNotice(accountErrorText(error));
+                            });
+                        }}
+                      >
+                        <input
+                          className="search"
+                          name="email"
+                          type="email"
+                          autoComplete="email"
+                          required
+                          placeholder={text.menu.newEmail}
+                          aria-label={text.menu.newEmail}
+                        />
+                        <input
+                          className="search"
+                          name="password"
+                          type="password"
+                          autoComplete="current-password"
+                          required
+                          placeholder={text.menu.currentPassword}
+                          aria-label={text.menu.currentPassword}
+                        />
+                        <button type="submit" className="button-ghost small full">
+                          {text.menu.changeEmail}
+                        </button>
+                      </form>
+                    </details>
                     {/* Uninstaller Pro: read from /api/entitlements, purchased
                       via Stripe Checkout in the system browser. The backend
                       picks the loyalty price server-side; the label here only
