@@ -282,8 +282,14 @@ export function PlansPage({
             </ul>
           </article>
 
-          <article className="plans-card plans-card-pro" aria-labelledby="plans-pro-name">
-            <span className="plans-ribbon">{copy.recommended}</span>
+          <article
+            className="plans-card plans-card-pro"
+            aria-labelledby="plans-pro-name"
+            aria-describedby="plans-badge"
+          >
+            <span className="plans-ribbon" id="plans-badge">
+              {copy.recommended}
+            </span>
             <div className="plans-card-name">
               <h3 id="plans-pro-name">
                 <UiIcon name="crown" />
