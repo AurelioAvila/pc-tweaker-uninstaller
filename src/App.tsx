@@ -31,7 +31,7 @@ import { PlansPage, ProPriceSummary } from "./plans-page";
 import { trialCopy } from "./trial-copy";
 import {
   billingChanges,
-  billingSnapshot,
+  planSnapshot,
   nextTrialEnd,
   parseBillingStatus,
   parsePriceList,
@@ -554,11 +554,11 @@ export default function App() {
       const next = parseBillingStatus(raw);
       if (!next) return;
       setBilling(next);
-      const key = `pcu-billing-seen:${(readStoredEmail() ?? "").toLowerCase()}`;
+      const key = `pcu-plan-seen:${(readStoredEmail() ?? "").toLowerCase()}`;
       let seen: Record<string, string> | null = null;
       try {
         seen = JSON.parse(localStorage.getItem(key) ?? "null") as Record<string, string> | null;
-        localStorage.setItem(key, JSON.stringify(billingSnapshot(next)));
+        localStorage.setItem(key, JSON.stringify(planSnapshot(next)));
       } catch {
         // Unreadable or blocked storage: no notice is better than a wrong one.
       }

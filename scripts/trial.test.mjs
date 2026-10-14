@@ -9,7 +9,7 @@ const load = async (file) => {
   }).outputText;
   return import("data:text/javascript;base64," + Buffer.from(code).toString("base64"));
 };
-const { parseBillingStatus, parsePriceList, trialOffer, trialUsed, trialLeft, billingSnapshot, billingChanges } =
+const { parseBillingStatus, parsePriceList, trialOffer, trialUsed, trialLeft, planSnapshot, billingChanges } =
   await load("../src/trial.ts");
 
 const row = (over = {}) => ({
@@ -57,7 +57,7 @@ test("countdown and the one notice on return", () => {
   const end = Date.parse("2026-10-17T10:00:00Z");
   const left = trialLeft(end, 3, end - 26 * 3_600_000);
   assert.deepEqual([left.days, left.hours], [1, 2]);
-  const seen = billingSnapshot(status([row({ state: "trialing", trial_ends_at: "2026-10-17T10:00:00Z" })]));
+  const seen = planSnapshot(status([row({ state: "trialing", trial_ends_at: "2026-10-17T10:00:00Z" })]));
   const now = (state, blocked_reason = "none") => status([row({ state, blocked_reason })]);
   assert.deepEqual(billingChanges(seen, now("blocked", "payment_failed")), [{ product: "uninstaller", kind: "paused" }]);
   assert.deepEqual(billingChanges(seen, now("active")), [{ product: "uninstaller", kind: "converted" }]);
