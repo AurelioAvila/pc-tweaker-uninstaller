@@ -63,22 +63,89 @@ export function clearSession(): void {
   }
 }
 
-/** Signs in and returns the verified account. Throws with a message the UI
- *  can show verbatim. */
+/** Why an account request failed, as a key of the `menu` dictionary. The
+ *  server's own text is English, and a rate-limited request has none. */
+export type AccountErrorKey =
+  | "errorCredentials"
+  | "errorAlreadyRegistered"
+  | "errorRateLimited"
+  | "errorInvalid"
+  | "errorServer"
+  | "errorNetwork";
+export class AccountRequestError extends Error {
+  constructor(readonly key: AccountErrorKey) {
+    super(key);
+  }
+}
+function failure(status: number): AccountRequestError {
+  return new AccountRequestError(
+    status === 401
+      ? "errorCredentials"
+      : status === 409
+        ? "errorAlreadyRegistered"
+        : status === 429
+          ? "errorRateLimited"
+          : status >= 500
+            ? "errorServer"
+            : "errorInvalid",
+  );
+}
+async function request(path: string, init: RequestInit): Promise<Response> {
+  try {
+    return await fetch(`${API_BASE_URL}${path}`, init);
+  } catch {
+    throw new AccountRequestError("errorNetwork");
+  }
+}
+/** The account is shared with PC Tweaker and Tweaky Driver; mail about it is
+ *  branded for the app that asked. */
+const PRODUCT = "uninstaller";
+
+/** Sessions slide: once a token is a day old, any authenticated answer
+ *  carries a fresh one. Without adopting it the app signed people out after
+ *  thirty days however often they used it. */
+function adoptRenewedToken(res: Response): void {
+  const renewed = res.headers.get("X-Session-Token");
+  const email = readStoredEmail();
+  if (renewed && email) storeSession(renewed, email);
+}
+
+/** Signs in and returns the verified account. Throws an AccountRequestError
+ *  whose key names the message to show. */
 export async function login(email: string, password: string): Promise<AccountState> {
   if (!API_BASE_URL) throw new Error("Sign-in is not configured in this build.");
-  const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+  const address = email.trim().toLowerCase();
+  const res = await request(`/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email: address, password }),
   });
-  if (!res.ok) {
-    const body = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(body.error || `HTTP ${String(res.status)}`);
-  }
+  if (!res.ok) throw failure(res.status);
   const data = (await res.json()) as { token: string };
-  storeSession(data.token, email);
+  storeSession(data.token, address);
   return fetchAccount();
+}
+
+/** Asks for a reset link. Answers the same whether or not the address has an
+ *  account, like the server. */
+export async function forgotPassword(email: string): Promise<void> {
+  const res = await request(`/api/auth/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email.trim().toLowerCase(), product: PRODUCT }),
+  });
+  if (!res.ok) throw failure(res.status);
+}
+
+export async function resendVerification(): Promise<void> {
+  const token = readToken();
+  if (!token) throw new AccountRequestError("errorCredentials");
+  const res = await request(`/api/auth/resend-verification`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ product: PRODUCT }),
+  });
+  if (!res.ok) throw failure(res.status);
 }
 
 export async function register(
@@ -88,17 +155,24 @@ export async function register(
   lastName: string,
   dateOfBirth: string,
 ): Promise<{ account: AccountState; verificationEmailSent: boolean }> {
-  const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+  const res = await request(`/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, firstName, lastName, dateOfBirth }),
+    body: JSON.stringify({
+      email: email.trim().toLowerCase(),
+      password,
+      firstName,
+      lastName,
+      dateOfBirth,
+      product: PRODUCT,
+    }),
   });
+  if (!res.ok) throw failure(res.status);
   const data = (await res.json().catch(() => ({}))) as {
     token?: string;
     verificationEmailSent?: boolean;
-    error?: string;
   };
-  if (!res.ok || !data.token) throw new Error(data.error || `HTTP ${String(res.status)}`);
+  if (!data.token) throw new AccountRequestError("errorServer");
   storeSession(data.token, email.trim().toLowerCase());
   return {
     account: await fetchAccount(),
@@ -125,8 +199,9 @@ export async function fetchAccount(): Promise<AccountState> {
       return { status: "anonymous" };
     }
     if (!res.ok) {
-      return { status: "error", email, message: `HTTP ${String(res.status)}` };
+      return { status: "error", email, message: "server" };
     }
+    adoptRenewedToken(res);
     const data = (await res.json()) as {
       email: string;
       isPro: boolean;
