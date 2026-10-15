@@ -154,6 +154,7 @@ fn now_secs() -> u64 {
 /// A payload that passed signature verification AND is still inside its grace
 /// period: a validly signed license from three weeks ago proves the server
 /// said something true three weeks ago, not that it is still true now.
+#[cfg(test)]
 fn is_fresh(payload: &LicensePayload) -> bool {
     is_fresh_with_offset(payload, 0)
 }
@@ -217,6 +218,7 @@ impl LicenseStore {
         result
     }
 
+    #[cfg(test)]
     fn load(&self) -> Option<SignedLicenseResponse> {
         self.load_stored().map(|stored| stored.response)
     }
