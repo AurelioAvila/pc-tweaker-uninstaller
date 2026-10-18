@@ -1,8 +1,12 @@
+# PC Tweaker Uninstaller — Review Windows Removals Before They Run
+
+For Windows users reviewing installed software and its removal risk. Inspect the registered uninstall command and permissions, then keep a local removal receipt; review leftovers separately.
+
+[Product](https://pctweaker.app/uninstaller/) · [Official downloads](https://github.com/AurelioAvila/pc-tweaker-uninstaller/releases/latest) · [Verify the publisher signature](https://github.com/AurelioAvila/.github/blob/master/CODE_SIGNING.md)
+
 <p align="center">
   <img src="src-tauri/icons/128x128.png" width="112" alt="PC Tweaker Uninstaller logo">
 </p>
-
-<h1 align="center">PC Tweaker Uninstaller</h1>
 
 <p align="center">
   <strong>Removal Intelligence for Windows.</strong><br>
