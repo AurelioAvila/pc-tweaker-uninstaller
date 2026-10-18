@@ -5,7 +5,7 @@ For Windows users reviewing installed software and its removal risk. Inspect the
 [Product](https://pctweaker.app/uninstaller/) · [Official downloads](https://github.com/AurelioAvila/pc-tweaker-uninstaller/releases/latest) · [Verify the publisher signature](https://github.com/AurelioAvila/.github/blob/master/CODE_SIGNING.md)
 
 <p align="center">
-  <img src="src-tauri/icons/128x128.png" width="112" alt="PC Tweaker Uninstaller logo">
+  <img src="docs/icon.png" width="112" alt="PC Tweaker Uninstaller logo">
 </p>
 
 <p align="center">
@@ -20,7 +20,9 @@ For Windows users reviewing installed software and its removal risk. Inspect the
   <a href="https://github.com/AurelioAvila/pc-tweaker-uninstaller/releases/latest"><img src="https://img.shields.io/github/v/release/AurelioAvila/pc-tweaker-uninstaller?display_name=tag&style=for-the-badge&color=7C3AED" alt="Latest release"></a>
 </p>
 
-<p align="center"><img src="docs/screenshots/uninstaller-0.13.0.png" width="85%" alt="PC Tweaker Uninstaller 0.13.0 Installed apps view with inventory summary, Plans & pricing and History in the top bar"></p>
+<p align="center"><img src="docs/screenshots/inventory-0.13.3.png" width="100%" alt="Uninstaller 0.13.3 interface preview with example programs; no software was removed."></p>
+
+*Uninstaller 0.13.3 interface preview with example programs; no software was removed.* [Capture details and hashes](docs/SCREENSHOTS.md).
 
 ## Download
 
