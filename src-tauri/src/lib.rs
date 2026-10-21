@@ -22,6 +22,7 @@ pub mod residue;
 pub mod restore_point;
 pub mod rollback;
 pub mod store_apps;
+mod tray;
 pub mod uninstall_command;
 pub mod uninstall_exec;
 mod window_state;
@@ -47,20 +48,29 @@ pub fn run() {
     // during setup is exactly the one nobody could see until now.
     applog::init(env!("CARGO_PKG_VERSION"), "gui");
     tauri::Builder::default()
+        // First, so a second launch exits before anything else starts and
+        // brings the running window back instead: with the window closed to
+        // the notification area, the shortcut would otherwise open a copy.
+        // The elevated child exits in main() before reaching this point.
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            tray::show(app)
+        }))
         .setup(|app| {
             window_state::restore(app);
+            tray::setup(app)?;
             Ok(())
         })
         .on_window_event(|window, event| match event {
             tauri::WindowEvent::Resized(s) => window_state::remember(window, Some(*s), None),
             tauri::WindowEvent::Moved(p) => window_state::remember(window, None, Some(*p)),
-            _ => {}
+            _ => tray::window_event(window, event),
         })
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .invoke_handler(tauri::generate_handler![
             app_version,
+            tray::set_tray_language,
             license::save_license,
             license::license_status,
             license::clear_license,

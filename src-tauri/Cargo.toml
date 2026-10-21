@@ -8,7 +8,7 @@
 
 [package]
 name = "pc-tweaker-uninstaller"
-version = "0.13.3"
+version = "0.13.4"
 description = "Uninstall Windows programs cleanly, with a safety net"
 authors = ["Aurelio Avila"]
 license-file = "../LICENSE"
@@ -22,7 +22,8 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-single-instance = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
 tauri-plugin-opener = "2"

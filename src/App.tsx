@@ -438,6 +438,10 @@ export default function App() {
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
+  // The notification-area menu speaks the window's language.
+  useEffect(() => {
+    void invoke("set_tray_language", { language: lang }).catch(() => {});
+  }, [lang]);
   const chooseLang = useCallback((l: Locale) => {
     setLocale(l); // swaps the module `text` binding before the re-render
     setLang(l);
