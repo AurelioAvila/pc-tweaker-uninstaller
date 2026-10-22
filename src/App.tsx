@@ -31,13 +31,14 @@ import {
 } from "./account";
 import { UpdateBanner, useAppUpdater } from "./updater";
 import { PlansPage, ProPriceSummary } from "./plans-page";
-import { trialCopy } from "./trial-copy";
+import { fill, trialCopy } from "./trial-copy";
 import {
   billingChanges,
   planSnapshot,
   nextTrialEnd,
   parseBillingStatus,
   parsePriceList,
+  trialOffer,
   type BillingChange,
   type BillingStatus,
   type PriceList,
@@ -621,6 +622,47 @@ export default function App() {
         setCheckoutBusy(false);
       });
   }, []);
+  // Locked points (leftover cleanup, batch removal, broken entries) lead with
+  // the free trial on the same terms as Plans & pricing, which is where the
+  // button goes: that page states the price after the trial, the first
+  // charge date and how to cancel before anything opens Stripe.
+  const mineBilling = billing?.products.find((p) => p.product === "uninstaller") ?? null;
+  const lockedTrial =
+    uninstallerPro?.active ||
+    (account.status === "signed-in" &&
+      account.isPro &&
+      !mineBilling?.prices.some((p) => p.plan === "annual"))
+      ? null
+      : trialOffer(
+          "uninstaller",
+          "annual",
+          prices,
+          account.status === "signed-in" ? billing : null,
+        );
+  const proGateAction = (close: () => void) =>
+    lockedTrial ? (
+      <button
+        type="button"
+        className="button primary"
+        onClick={() => {
+          close();
+          setView("plans");
+        }}
+      >
+        {fill(trialCopy[lang].start, { days: lockedTrial.days })}
+      </button>
+    ) : (
+      account.status === "signed-in" && (
+        <button
+          type="button"
+          className="button primary"
+          disabled={checkoutBusy}
+          onClick={beginProCheckout}
+        >
+          {account.isPro ? text.menu.upsGoProLoyalty : text.menu.upsGoPro}
+        </button>
+      )
+    );
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -2721,16 +2763,7 @@ export default function App() {
                       {text.uninstall.forgetAction}
                     </button>
                   )}
-                  {!uninstallerPro?.active && account.status === "signed-in" && (
-                    <button
-                      type="button"
-                      className="button primary"
-                      disabled={checkoutBusy}
-                      onClick={beginProCheckout}
-                    >
-                      {account.isPro ? text.menu.upsGoProLoyalty : text.menu.upsGoPro}
-                    </button>
-                  )}
+                  {!uninstallerPro?.active && proGateAction(closeFlow)}
                   <button type="button" className="button" onClick={closeFlow}>
                     {text.uninstall.cancel}
                   </button>
@@ -2958,16 +2991,7 @@ export default function App() {
                   )}
                   {flow.residue.items.length > 0 &&
                     !uninstallerPro?.active &&
-                    account.status === "signed-in" && (
-                      <button
-                        type="button"
-                        className="button primary"
-                        disabled={checkoutBusy}
-                        onClick={beginProCheckout}
-                      >
-                        {account.isPro ? text.menu.upsGoProLoyalty : text.menu.upsGoPro}
-                      </button>
-                    )}
+                    proGateAction(closeFlow)}
                   <button type="button" className="button" onClick={closeFlow}>
                     {text.uninstall.close}
                   </button>
@@ -3030,16 +3054,7 @@ export default function App() {
                       {text.uninstall.confirm}
                     </button>
                   )}
-                  {!uninstallerPro?.active && account.status === "signed-in" && (
-                    <button
-                      type="button"
-                      className="button primary"
-                      disabled={checkoutBusy}
-                      onClick={beginProCheckout}
-                    >
-                      {account.isPro ? text.menu.upsGoProLoyalty : text.menu.upsGoPro}
-                    </button>
-                  )}
+                  {!uninstallerPro?.active && proGateAction(closeFlow)}
                   <button type="button" className="button" onClick={closeFlow}>
                     {text.uninstall.cancel}
                   </button>
