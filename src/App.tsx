@@ -38,6 +38,7 @@ import {
   nextTrialEnd,
   parseBillingStatus,
   parsePriceList,
+  trialLeft,
   trialOffer,
   type BillingChange,
   type BillingStatus,
@@ -1138,6 +1139,43 @@ export default function App() {
               {text.app.suiteDetected}
             </button>
           )}
+          {(() => {
+            // The trial in the main window (owner, 23/10/2026): how to start
+            // it while it is open to this account, or how long is left.
+            const running = mineBilling?.state === "trialing" ? mineBilling.trialEndsAt : null;
+            if (running) {
+              const left = trialLeft(running, billing?.trialDays ?? 3, Date.now());
+              const t = trialCopy[lang];
+              return (
+                <button
+                  type="button"
+                  className="button-ghost small nav-trial-left"
+                  onClick={() => {
+                    setView("plans");
+                  }}
+                >
+                  {`${t.trial} · ${
+                    left.days
+                      ? fill(t.leftDays, { days: left.days, hours: left.hours })
+                      : left.hours
+                        ? fill(t.leftHours, { hours: left.hours, minutes: left.minutes })
+                        : fill(t.leftMinutes, { minutes: Math.max(1, left.minutes) })
+                  }`}
+                </button>
+              );
+            }
+            return lockedTrial ? (
+              <button
+                type="button"
+                className="button primary small nav-trial"
+                onClick={() => {
+                  setView("plans");
+                }}
+              >
+                {fill(trialCopy[lang].start, { days: lockedTrial.days })}
+              </button>
+            ) : null;
+          })()}
           <button
             type="button"
             ref={navPlans}
