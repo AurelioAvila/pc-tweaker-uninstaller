@@ -27,8 +27,9 @@ pub const PRODUCT_ID: &str = "uninstaller";
 
 /// Public half of the ecosystem's license-signing key pair — the same key
 /// PC Tweaker embeds, because both products verify licenses signed by the
-/// same backend. Safe to embed: it can only verify, never sign.
-const PUBLIC_KEY_B64: &str = "QisYr46g3mqEeiz1BDyEcPbRO1xO4z0lR3d5/ODppIU=";
+/// same backend. Safe to embed: it can only verify, never sign. Key 2 since the
+/// 23 Oct 2026 rotation, requested with `?sig=2`; key 1 is no longer trusted.
+const PUBLIC_KEY_B64: &str = "0Cy9wfSUsS/47MQrkgWjlaphga0Rqoho2RPCWMNUSro=";
 
 /// How long a signed license with no stated expiry is trusted without a fresh
 /// fetch. Long enough for a weekend offline, short enough that a cancelled
@@ -345,12 +346,23 @@ mod tests {
         dir
     }
 
-    /// Real responses produced by the production backend (2026-08-20) with
-    /// the private half of the embedded key — not values invented on the
-    /// Rust side. These prove the Node and Rust implementations agree on
+    /// Real responses signed by the backend's key 2 (re-signed 2026-10-23 for
+    /// the rotation) — not values invented on the Rust side. These prove the Node and Rust implementations agree on
     /// wire format including the new `product` field.
-    const REAL_UNINSTALLER_RESPONSE: &str = r#"{"payloadJson":"{\"userId\":\"17\",\"isPro\":false,\"plan\":null,\"product\":\"uninstaller\",\"issuedAt\":1787184494}","signature":"tkIXmjlBNm4ZcQ5P+Zn6gbKeVM3FN5Wkmmt1qgn6m9giYzI6NsyiU1rV+ZGYv8zS+6RoU+J52/HT4OMt9WlaCA=="}"#;
-    const REAL_PCTWEAKER_RESPONSE: &str = r#"{"payloadJson":"{\"userId\":\"17\",\"isPro\":false,\"plan\":null,\"product\":\"pctweaker\",\"issuedAt\":1787184494}","signature":"l6azTddf0rEurxP4VqlRiTmxZvIhAH5HGH0krUXLEuqT7cNKsNiTwl2+RgC3z07UNpvt4SLpWuxIXKjwhdorAQ=="}"#;
+    const REAL_UNINSTALLER_RESPONSE: &str = r#"{"payloadJson":"{\"userId\":\"17\",\"isPro\":false,\"plan\":null,\"product\":\"uninstaller\",\"issuedAt\":1787184494}","signature":"4sJEDtbhVgMWTyGhGXY0OaSzHcXap6dqEnCK7LaAji11fBCeBZ2XxnAai7ePtxzOPDzAHzRBEDqjzIDWdK4QDw=="}"#;
+    const REAL_PCTWEAKER_RESPONSE: &str = r#"{"payloadJson":"{\"userId\":\"17\",\"isPro\":false,\"plan\":null,\"product\":\"pctweaker\",\"issuedAt\":1787184494}","signature":"oIa8M1x7OD2sg/ZroNJkA/l6L9UQIC7v9WtsWjfYl+IzWk0c1ZtDMdYNZHxSM0Daswi4CYlAYsXJmD9XqMMNDw=="}"#;
+
+    /// The same uninstaller payload signed by the retired key 1.
+    const KEY1_UNINSTALLER_RESPONSE: &str = r#"{"payloadJson":"{\"userId\":\"17\",\"isPro\":false,\"plan\":null,\"product\":\"uninstaller\",\"issuedAt\":1787184494}","signature":"tkIXmjlBNm4ZcQ5P+Zn6gbKeVM3FN5Wkmmt1qgn6m9giYzI6NsyiU1rV+ZGYv8zS+6RoU+J52/HT4OMt9WlaCA=="}"#;
+
+    #[test]
+    fn a_licence_signed_by_the_retired_key_1_is_rejected() {
+        let resp: SignedLicenseResponse = serde_json::from_str(KEY1_UNINSTALLER_RESPONSE).unwrap();
+        assert_eq!(
+            verify(&resp.payload_json, &resp.signature),
+            Err(VerifyError::SignatureInvalid)
+        );
+    }
 
     #[test]
     fn a_real_signature_from_the_node_backend_verifies_with_product() {
