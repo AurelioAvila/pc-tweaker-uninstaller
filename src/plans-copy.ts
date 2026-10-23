@@ -117,7 +117,7 @@ const en: Copy = {
   freeTagline: "Everything you need to remove programs safely.",
   freeNote: "Free for good. No account needed.",
   onFree: "You're on the Free plan",
-  includedInPro: "Included in Pro",
+  includedInPro: "Included in your plan",
   current: "Current plan",
   proName: "Pro",
   proTagline: "Clean up what uninstallers leave behind, and remove several programs in one go.",
@@ -227,7 +227,7 @@ const it: Copy = {
   freeTagline: "Tutto il necessario per rimuovere i programmi in sicurezza.",
   freeNote: "Gratis per sempre. Nessun account richiesto.",
   onFree: "Stai usando il piano Free",
-  includedInPro: "Incluso in Pro",
+  includedInPro: "Incluso nel tuo piano",
   current: "Piano attuale",
   proName: "Pro",
   proTagline:
@@ -339,7 +339,7 @@ const fr: Copy = {
   freeTagline: "Tout le nécessaire pour supprimer des programmes en toute sécurité.",
   freeNote: "Gratuit pour toujours. Aucun compte requis.",
   onFree: "Vous utilisez l'offre Free",
-  includedInPro: "Inclus dans Pro",
+  includedInPro: "Inclus dans votre offre",
   current: "Offre actuelle",
   proName: "Pro",
   proTagline:
@@ -452,7 +452,7 @@ const es: Copy = {
   freeTagline: "Todo lo necesario para eliminar programas con seguridad.",
   freeNote: "Gratis para siempre. Sin necesidad de cuenta.",
   onFree: "Estás en el plan Free",
-  includedInPro: "Incluido en Pro",
+  includedInPro: "Incluido en tu plan",
   current: "Plan actual",
   proName: "Pro",
   proTagline:
@@ -564,7 +564,7 @@ const de: Copy = {
   freeTagline: "Alles, was Sie zum sicheren Entfernen von Programmen brauchen.",
   freeNote: "Dauerhaft kostenlos. Kein Konto nötig.",
   onFree: "Sie nutzen den Free-Tarif",
-  includedInPro: "In Pro enthalten",
+  includedInPro: "In Ihrem Tarif enthalten",
   current: "Aktueller Tarif",
   proName: "Pro",
   proTagline:
@@ -678,7 +678,7 @@ const pt: Copy = {
   freeTagline: "Tudo o que precisa para remover programas em segurança.",
   freeNote: "Grátis para sempre. Sem necessidade de conta.",
   onFree: "Está no plano Free",
-  includedInPro: "Incluído no Pro",
+  includedInPro: "Incluído no seu plano",
   current: "Plano atual",
   proName: "Pro",
   proTagline:

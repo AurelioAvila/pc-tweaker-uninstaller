@@ -4,7 +4,7 @@ import { startBillingPortal, type AccountState, type UninstallerEntitlement } fr
 import { text, type Locale } from "./i18n";
 import { HalloweenOfferBanner } from "./halloween-offer";
 import { plansCopy } from "./plans-copy";
-import { LOYALTY_CENTS, money as formatMoney, proPrice } from "./plans-price";
+import { LOYALTY_CENTS, money as formatMoney, planBadges, proPrice } from "./plans-price";
 import { promoPercent } from "./promo";
 import { UiIcon } from "./ui-icon";
 import { usePromo } from "./use-promo";
@@ -382,7 +382,9 @@ export function PlansPage({
           <article className="plans-card" aria-labelledby="plans-free-name">
             <div className="plans-card-name">
               <h3 id="plans-free-name">{copy.freeName}</h3>
-              {!proActive && <span className="plans-current">{copy.current}</span>}
+              <span className="plans-current">
+                {planBadges(proActive).free === "current" ? copy.current : copy.includedInPro}
+              </span>
             </div>
             <p className="plans-tagline">{copy.freeTagline}</p>
             <div className="plans-price">
@@ -415,7 +417,7 @@ export function PlansPage({
                 <UiIcon name="crown" />
                 {copy.proName}
               </h3>
-              {proActive && <span className="plans-current">{copy.current}</span>}
+              {planBadges(proActive).pro && <span className="plans-current">{copy.current}</span>}
             </div>
             <p className="plans-tagline">{copy.proTagline}</p>
             <div className="plans-price">
