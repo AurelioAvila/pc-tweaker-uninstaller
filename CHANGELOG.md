@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.13.6
+
+PC Tweaker Uninstaller 0.13.6 is a routine maintenance update.
+
 ## 0.13.5
 
 PC Tweaker Uninstaller 0.13.5 offers the 3-day free trial of Pro where Pro is needed, and keeps your licence tied to your own PC.
