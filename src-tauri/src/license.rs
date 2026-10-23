@@ -18,7 +18,8 @@ use base64::{engine::general_purpose::STANDARD, Engine as _};
 use ed25519_dalek::{Signature, Verifier, VerifyingKey};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::sync::OnceLock;
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 /// The ecosystem product this binary is. Licenses naming any other product
 /// are rejected even when their signature is valid.
@@ -127,11 +128,21 @@ fn now_secs() -> u64 {
         .unwrap_or(0)
 }
 
+/// This PC's clock, never earlier than the clock at start plus the time the
+/// process has run: moving the clock back while the app is open cannot
+/// stretch the offline window (same anchor as PC Tweaker's license.rs).
+fn monotonic_now() -> u64 {
+    static ANCHOR: OnceLock<(u64, Instant)> = OnceLock::new();
+    let wall = now_secs();
+    let (start, tick) = ANCHOR.get_or_init(|| (wall, Instant::now()));
+    wall.max(start.saturating_add(tick.elapsed().as_secs()))
+}
+
 /// A payload that passed signature verification AND is still inside its grace
 /// period: a validly signed license from three weeks ago proves the server
 /// said something true three weeks ago, not that it is still true now.
 fn is_fresh(payload: &LicensePayload) -> bool {
-    let now = now_secs();
+    let now = monotonic_now();
     // A licence issued in the future is a clock problem or a forgery. A day of
     // slack covers PCs whose clock runs behind the server (a hand-set time
     // zone, a drifting clock), as the account service allows; a minute locked
@@ -150,6 +161,70 @@ fn is_fresh(payload: &LicensePayload) -> bool {
         // Older licences carry no expiry, so age is all there is to go on.
         None => age <= GRACE_PERIOD_SECS,
     }
+}
+
+/// SHA-256 of `pc-tweaker-licence:` and this Windows installation's
+/// MachineGuid (lower case). Sent with every licence request; the backend
+/// signs it into the licence, so a `license.json` copied to another PC
+/// unlocks nothing there. The same value in PC Tweaker and the Uninstaller:
+/// it names the PC, not the product. None where the registry cannot be read.
+pub(crate) fn device_hash() -> Option<String> {
+    static HASH: OnceLock<Option<String>> = OnceLock::new();
+    HASH.get_or_init(|| machine_guid().map(|guid| hash_guid(&guid)))
+        .clone()
+}
+
+fn hash_guid(guid: &str) -> String {
+    use sha2::{Digest, Sha256};
+    format!(
+        "{:x}",
+        Sha256::digest(format!(
+            "pc-tweaker-licence:{}",
+            guid.trim().to_ascii_lowercase()
+        ))
+    )
+}
+
+#[cfg(windows)]
+fn machine_guid() -> Option<String> {
+    use winreg::enums::{HKEY_LOCAL_MACHINE, KEY_READ, KEY_WOW64_64KEY};
+    let key = winreg::RegKey::predef(HKEY_LOCAL_MACHINE)
+        .open_subkey_with_flags(
+            r"SOFTWARE\Microsoft\Cryptography",
+            KEY_READ | KEY_WOW64_64KEY,
+        )
+        .ok()?;
+    let guid: String = key.get_value("MachineGuid").ok()?;
+    (!guid.trim().is_empty()).then_some(guid)
+}
+#[cfg(not(windows))]
+fn machine_guid() -> Option<String> {
+    None
+}
+
+/// A licence without `deviceHash` (issued before the backend bound licences
+/// to a PC) stays valid until it expires as before; one with it must name
+/// this PC. Read from the exact signed bytes, after the signature check.
+fn bound_to(payload_json: &str, this_pc: Option<&str>) -> bool {
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct Binding {
+        #[serde(default)]
+        device_hash: Option<String>,
+    }
+    match serde_json::from_str::<Binding>(payload_json) {
+        Ok(Binding { device_hash: None }) => true,
+        Ok(Binding {
+            device_hash: Some(hash),
+        }) => this_pc == Some(hash.as_str()),
+        Err(_) => false,
+    }
+}
+
+/// For the licence request header: this PC's hash, or nothing.
+#[tauri::command]
+pub fn license_device_hash() -> Option<String> {
+    device_hash()
 }
 
 /// Persists the raw, still-signed response so it survives a restart.
@@ -209,7 +284,10 @@ impl LicenseStore {
         let Ok(payload) = verify(&cached.payload_json, &cached.signature) else {
             return false;
         };
-        payload.product == PRODUCT_ID && payload.is_pro && is_fresh(&payload)
+        payload.product == PRODUCT_ID
+            && payload.is_pro
+            && is_fresh(&payload)
+            && bound_to(&cached.payload_json, device_hash().as_deref())
     }
 }
 
@@ -225,6 +303,9 @@ pub fn save_license(app: tauri::AppHandle, response: SignedLicenseResponse) -> R
             "license is for product '{}', this app is '{}'",
             payload.product, PRODUCT_ID
         ));
+    }
+    if !bound_to(&response.payload_json, device_hash().as_deref()) {
+        return Err("license was issued to another PC".into());
     }
     let store = LicenseStore::new(crate::app_data_dir(&app)?);
     store.save(&response).map_err(|e| e.to_string())
@@ -433,5 +514,33 @@ mod tests {
         assert!(store.load().is_none());
         store.delete().unwrap();
         let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn a_licence_bound_to_another_pc_unlocks_nothing_here() {
+        let here = hash_guid("1B4E28BA-2FA1-11D2-883F-0016D3CCA427");
+        assert_eq!(here, hash_guid(" 1b4e28ba-2fa1-11d2-883f-0016d3cca427 "));
+        let payload = |hash: Option<&str>| {
+            let mut value = serde_json::json!({"userId":"42","isPro":true,"plan":"annual","product":"uninstaller","issuedAt":1});
+            if let Some(hash) = hash {
+                value["deviceHash"] = serde_json::Value::String(hash.into());
+            }
+            value.to_string()
+        };
+        assert!(bound_to(&payload(Some(&here)), Some(&here)));
+        assert!(!bound_to(
+            &payload(Some(&hash_guid("another-pc"))),
+            Some(&here)
+        ));
+        assert!(!bound_to(&payload(Some(&here)), None));
+        assert!(bound_to(&payload(None), Some(&here)));
+        assert!(!bound_to("not json", Some(&here)));
+    }
+
+    #[test]
+    fn the_clock_used_for_freshness_never_runs_backwards_in_a_process() {
+        let first = monotonic_now();
+        assert!(monotonic_now() >= first);
+        assert!(first + 5 >= now_secs());
     }
 }

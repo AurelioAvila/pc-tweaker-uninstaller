@@ -2655,7 +2655,7 @@ dependencies = [
 
 [[package]]
 name = "pc-tweaker-uninstaller"
-version = "0.13.4"
+version = "0.13.5"
 dependencies = [
  "base64 0.22.1",
  "ed25519-dalek",
@@ -2664,6 +2664,7 @@ dependencies = [
  "runas",
  "serde",
  "serde_json",
+ "sha2",
  "tauri",
  "tauri-build",
  "tauri-plugin-opener",

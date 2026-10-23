@@ -326,8 +326,10 @@ export async function fetchUninstallerEntitlement(): Promise<UninstallerEntitlem
   const token = readToken();
   if (!token || !API_BASE_URL) return null;
   try {
+    // The backend signs this PC's hash into the licence (license.rs bound_to).
+    const device = await invoke<string | null>("license_device_hash").catch(() => null);
     const license = await fetch(`${API_BASE_URL}/api/license?product=uninstaller`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}`, ...(device ? { "X-Device-Hash": device } : {}) },
     });
     if (license.status === 401) return null;
     if (!license.ok) return await cachedEntitlement();

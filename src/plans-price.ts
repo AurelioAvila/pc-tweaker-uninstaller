@@ -23,6 +23,16 @@ export function proPrice<T extends PriceOffer>(
   };
 }
 
+/** The badge on each plan card: the plan the account is on reads "current",
+ *  every plan below it "included" (owner, 23/10/2026). Pro covers the trial,
+ *  the annual plan and the year included with PC Tweaker Lifetime alike. */
+export function planBadges(proActive: boolean): {
+  free: "current" | "included";
+  pro: "current" | null;
+} {
+  return proActive ? { free: "included", pro: "current" } : { free: "current", pro: null };
+}
+
 /** "€9.99" / "9,99 €"; whole amounts without decimals ("€0"). */
 export function money(cents: number, locale: string): string {
   return new Intl.NumberFormat(locale, {

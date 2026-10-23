@@ -73,6 +73,7 @@ pub fn run() {
             tray::set_tray_language,
             license::save_license,
             license::license_status,
+            license::license_device_hash,
             license::clear_license,
             programs::list_programs,
             inventory_export::export_inventory,
