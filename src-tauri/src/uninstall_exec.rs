@@ -557,7 +557,7 @@ pub fn run_elevated_flag(flag: &str, source: &str, id: &str) -> Result<Uninstall
         let _ = std::fs::remove_file(path);
     }
     crate::applog::line(&format!("elevating for {source}:{id}"));
-    crate::elevation::run_elevated_args(&[flag, source, id]).map_err(|e| {
+    crate::elevation::run_elevated_args(flag, &[source, id]).map_err(|e| {
         crate::applog::line(&format!("elevation failed for {source}:{id}: {e}"));
         format!("The uninstall did not run: {e}. No changes were made by this app.")
     })?;

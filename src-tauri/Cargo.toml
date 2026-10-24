@@ -38,7 +38,6 @@ trash = "5"
 
 [target.'cfg(windows)'.dependencies]
 is_elevated = "0.1"
-runas = "1"
 winreg = "0.52"
 trash = "5"
 # LoadLibrary/GetProcAddress only, to call SRSetRestorePointW dynamically:
@@ -47,8 +46,12 @@ trash = "5"
 # reads when Windows last made a restore point (restore_point.rs).
 windows-sys = { version = "0.59", features = [
   "Win32_Foundation",
+  "Win32_System_Com",
   "Win32_System_EventLog",
   "Win32_System_LibraryLoader",
+  # SHELLEXECUTEINFOW (the UAC relaunch in elevation.rs) needs Registry.
+  "Win32_System_Registry",
+  "Win32_System_Threading",
   "Win32_UI_Shell",
   "Win32_UI_WindowsAndMessaging",
   "Win32_Graphics_Gdi",
