@@ -103,7 +103,9 @@ const SLACK_S: u64 = 5;
 
 /// The decision, kept pure so it is tested with recorded readings. `before`
 /// and `after` are the newest point listed around the request; `started` and
-/// `finished` bound the operation.
+/// `finished` bound the operation. A point another process (Windows Update)
+/// made during the operation also counts as created: it exists, and it
+/// predates the change that follows.
 pub fn verdict(
     before: Result<Option<Newest>, String>,
     request: Result<(), Failure>,
@@ -307,9 +309,9 @@ mod imp {
     /// A provider that stops answering must not hang the removal.
     const TIMEOUT_MS: i32 = 30_000;
 
-    /// Mirrors `RESTOREPOINTINFOW` from sr.h. `#[repr(C)]` matches the SDK
-    /// layout: the i64 lands at its natural 8-byte offset.
-    #[repr(C)]
+    /// Mirrors `RESTOREPOINTINFOW` from SRRestorePtAPI.h, which declares it
+    /// under `#pragma pack(1)` (528 bytes; checked in the tests below).
+    #[repr(C, packed)]
     struct RestorePointInfoW {
         event_type: u32,
         restore_pt_type: u32,
@@ -317,8 +319,9 @@ mod imp {
         description: [u16; 256],
     }
 
-    /// Mirrors `STATEMGRSTATUS` from sr.h.
-    #[repr(C)]
+    /// Mirrors `STATEMGRSTATUS`, also `#pragma pack(1)`: 12 bytes, the
+    /// sequence number at offset 4, not at the natural 8.
+    #[repr(C, packed)]
     struct StateMgrStatus {
         status: u32,
         sequence_number: i64,
@@ -326,6 +329,16 @@ mod imp {
 
     type SrSetRestorePointW =
         unsafe extern "system" fn(*const RestorePointInfoW, *mut StateMgrStatus) -> BOOL;
+
+    #[cfg(test)]
+    #[test]
+    fn structs_match_the_sdk_pack_1_layout() {
+        assert_eq!(std::mem::size_of::<RestorePointInfoW>(), 528);
+        assert_eq!(std::mem::offset_of!(RestorePointInfoW, sequence_number), 8);
+        assert_eq!(std::mem::offset_of!(RestorePointInfoW, description), 16);
+        assert_eq!(std::mem::size_of::<StateMgrStatus>(), 12);
+        assert_eq!(std::mem::offset_of!(StateMgrStatus, sequence_number), 4);
+    }
 
     /// Asks Windows for a point. `Ok` only means Windows accepted the
     /// request; the sequence number it names is logged, never trusted.
@@ -397,7 +410,7 @@ mod imp {
             let end = RestorePointInfoW {
                 event_type: END_SYSTEM_CHANGE,
                 restore_pt_type: 0,
-                sequence_number: status.sequence_number,
+                sequence_number: { status.sequence_number },
                 description: [0u16; 256],
             };
             let mut end_status = StateMgrStatus {
@@ -410,7 +423,7 @@ mod imp {
         // SAFETY: `module` came from LoadLibraryExW above.
         unsafe { FreeLibrary(module) };
 
-        match (ok != 0, status.status) {
+        match (ok != 0, { status.status }) {
             (true, _) => Ok(status.sequence_number),
             (false, SERVICE_DISABLED) => Err((
                 FailCause::Disabled,
@@ -624,8 +637,10 @@ mod imp {
         super::parse_event_time(&String::from_utf16_lossy(&buffer))
     }
 
-    /// System Restore on/off (`RPSessionInterval` is 0 when protection is
-    /// off; the policy can also turn it off) and the creation frequency
+    /// `Some(false)` only when the `DisableSR` policy turns System Restore
+    /// off (`RPSessionInterval` is a scheduling setting, not an on/off
+    /// switch, so it is not read); otherwise unknown, and the request itself
+    /// says whether System Restore is off. Plus the creation frequency
     /// policy, in minutes.
     pub fn settings() -> (Option<bool>, Option<u32>) {
         use winreg::enums::HKEY_LOCAL_MACHINE;
@@ -637,11 +652,7 @@ mod imp {
             r"SOFTWARE\Policies\Microsoft\Windows NT\SystemRestore",
             "DisableSR",
         ) == Some(1);
-        let enabled = if policy_off {
-            Some(false)
-        } else {
-            value(SR, "RPSessionInterval").map(|v| v >= 1)
-        };
+        let enabled = policy_off.then_some(false);
         (enabled, value(SR, "SystemRestorePointCreationFrequency"))
     }
 }
