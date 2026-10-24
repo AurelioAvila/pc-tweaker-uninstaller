@@ -320,6 +320,13 @@ async function cachedEntitlement(): Promise<UninstallerEntitlement | null> {
   }
 }
 
+/** This PC's licence identity (license.rs device_hash) as a request header, or nothing on a
+ *  PC whose identity cannot be read. */
+async function deviceHeader(): Promise<Record<string, string>> {
+  const device = await invoke<string | null>("license_device_hash").catch(() => null);
+  return device ? { "X-Device-Hash": device } : {};
+}
+
 /** The per-product entitlement map; only the uninstaller's row matters here.
  *  Informational for the UI — enforcement lives server-side. */
 export async function fetchUninstallerEntitlement(): Promise<UninstallerEntitlement | null> {
@@ -327,9 +334,8 @@ export async function fetchUninstallerEntitlement(): Promise<UninstallerEntitlem
   if (!token || !API_BASE_URL) return null;
   try {
     // The backend signs this PC's hash into the licence (license.rs bound_to).
-    const device = await invoke<string | null>("license_device_hash").catch(() => null);
     const license = await fetch(`${API_BASE_URL}/api/license?product=uninstaller&sig=2`, {
-      headers: { Authorization: `Bearer ${token}`, ...(device ? { "X-Device-Hash": device } : {}) },
+      headers: { Authorization: `Bearer ${token}`, ...(await deviceHeader()) },
     });
     if (license.status === 401) return null;
     if (!license.ok) return await cachedEntitlement();
@@ -368,8 +374,9 @@ export async function fetchBillingStatus(): Promise<unknown> {
   const token = readToken();
   if (!token || !API_BASE_URL) return null;
   try {
+    // The PC id: a PC that already had the free trial is not offered it again.
     const res = await fetch(`${API_BASE_URL}/api/billing/status?product=uninstaller`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}`, ...(await deviceHeader()) },
     });
     if (!res.ok || readToken() !== token) return null;
     return (await res.json()) as unknown;
@@ -401,7 +408,12 @@ export async function startUninstallerCheckout(startTrial?: boolean): Promise<st
   if (!token || !API_BASE_URL) throw new Error("Sign in first.");
   const res = await fetch(`${API_BASE_URL}/api/checkout`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    // The PC id: the free trial is once per PC as well as per account.
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      ...(await deviceHeader()),
+    },
     // start_trial only when a trial is on offer (trial button or "Subscribe
     // now"); the server still decides whether one applies.
     body: JSON.stringify(

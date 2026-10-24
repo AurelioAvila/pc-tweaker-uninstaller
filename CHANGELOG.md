@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.13.7
+
+PC Tweaker Uninstaller 0.13.7 is a maintenance and security hardening update.
+
 ## 0.13.6
 
 PC Tweaker Uninstaller 0.13.6 is a routine maintenance update.
