@@ -81,6 +81,7 @@ pub fn run() {
             store_apps::list_store_apps,
             store_apps::remove_store_app,
             uninstall_exec::plan_uninstall,
+            restore_point::restore_point_forecast,
             uninstall_exec::execute_uninstall,
             forget::forget_broken_entry,
             residue::scan_residue,

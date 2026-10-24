@@ -165,14 +165,31 @@ interface RemovalReceipt {
   success: boolean;
   exitCode: number | null;
   rebootRequired: boolean;
+  /** English line. Before 0.13.8 every accepted request read "created". */
   restorePoint: string;
+  /** Absent in receipts written before 0.13.8. */
+  restorePointOutcome?: RestorePointOutcome;
   estimatedSizeKb: number | null;
   verifiedFreedKb: number | null;
   message: string;
 }
 
+/** Mirror of `RestorePointOutcome` (src-tauri/src/restore_point.rs). Times
+ *  are Unix seconds. "created" only when a new point was verified. */
 type RestorePointOutcome =
-  { kind: "created" } | { kind: "skipped"; reason: string } | { kind: "failed"; reason: string };
+  | { kind: "created"; at: number }
+  | { kind: "reused"; at: number }
+  | { kind: "unverified"; reason: string }
+  | { kind: "skipped"; reason: string }
+  | {
+      kind: "failed";
+      cause: "disabled" | "diskSpace" | "unavailable" | "error";
+      reason: string;
+    };
+
+/** Mirror of `Forecast`: what Windows will most likely do, read before
+ *  anything runs. */
+type RestoreForecast = { kind: "off" } | { kind: "reuse"; at: number } | { kind: "new" };
 
 interface UninstallReport {
   programName: string;
@@ -317,15 +334,52 @@ function confidenceTitle(c: Confidence): string {
   return [...lines, text.confidence.disclaimer].join("\n");
 }
 
+/** Date and time of a restore point in the UI language (pt is pt-PT). */
+function pointTime(at: number): string {
+  const locale = currentLocale();
+  return new Intl.DateTimeFormat(locale === "pt" ? "pt-PT" : locale, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(at * 1000));
+}
+
 function restorePointLine(outcome: RestorePointOutcome): string {
   switch (outcome.kind) {
     case "created":
-      return text.uninstall.restorePointCreated;
+      return text.uninstall.restorePointCreated(pointTime(outcome.at));
+    case "reused":
+      return text.uninstall.restorePointReused(pointTime(outcome.at));
+    case "unverified":
+      return text.uninstall.restorePointUnverified;
     case "skipped":
       return text.uninstall.restorePointSkipped(outcome.reason);
     case "failed":
-      return text.uninstall.restorePointFailed(outcome.reason);
+      return text.uninstall.restorePointFailed(
+        outcome.cause === "error"
+          ? outcome.reason
+          : text.uninstall.restorePointCauses[outcome.cause],
+      );
   }
+}
+
+/** Shown before anything runs; `null` while it loads or if it could not be
+ *  read, which falls back to the conditional wording. */
+function restoreForecastNote(forecast: RestoreForecast | null) {
+  if (forecast?.kind === "reuse")
+    return (
+      <li className="note-warn">{text.uninstall.restoreForecastReuse(pointTime(forecast.at))}</li>
+    );
+  if (forecast?.kind === "off")
+    return <li className="note-warn">{text.uninstall.restoreForecastOff}</li>;
+  return <li>{text.uninstall.restorePointNote}</li>;
+}
+
+/** History line: receipts before 0.13.8 said "created" for any request
+ *  Windows accepted, so that word is not repeated as a fact. */
+function ledgerRestoreLine(r: RemovalReceipt): string {
+  if (r.restorePointOutcome) return restorePointLine(r.restorePointOutcome);
+  const legacy = r.restorePoint === "created" ? text.ledger.restorePointLegacy : r.restorePoint;
+  return `${text.ledger.restorePointLabel}: ${legacy}`;
 }
 
 function badgeLabel(summary: UninstallSummary): string {
@@ -1061,6 +1115,27 @@ export default function App() {
       window.clearTimeout(timer);
     };
   }, [flow.step]);
+
+  // What Windows will most likely do about a restore point, for whichever
+  // confirmation is open: said before the user continues, never promised.
+  const [restoreForecast, setRestoreForecast] = useState<RestoreForecast | null>(null);
+  const confirming =
+    flow.step === "confirm" || flow.step === "forgetConfirm" || flow.step === "batchConfirm";
+  useEffect(() => {
+    setRestoreForecast(null);
+    if (!confirming) return;
+    let cancelled = false;
+    invoke<RestoreForecast>("restore_point_forecast")
+      .then((forecast) => {
+        if (!cancelled) setRestoreForecast(forecast);
+      })
+      .catch(() => {
+        // Unreadable: the conditional wording stands.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [confirming]);
 
   // Esc closes the dialog in every step where closing is meaningful. While
   // an uninstall is actually running there is nothing to cancel from here —
@@ -2517,7 +2592,7 @@ export default function App() {
                           : r.estimatedSizeKb !== null && r.estimatedSizeKb > 0
                             ? text.ledger.estimatedOnly(formatSize(r.estimatedSizeKb))
                             : "—"}{" "}
-                        · {text.ledger.restorePointLabel}: {r.restorePoint}
+                        · {ledgerRestoreLine(r)}
                       </span>
                       <span className="ledger-message">{r.message}</span>
                     </span>
@@ -2717,7 +2792,7 @@ export default function App() {
                 <code className="command">{displayCommand(flow.plan.command)}</code>
                 <ul className="dialog-notes">
                   {flow.plan.needsElevation && <li>{text.uninstall.elevationNote}</li>}
-                  {flow.plan.willAttemptRestorePoint && <li>{text.uninstall.restorePointNote}</li>}
+                  {flow.plan.willAttemptRestorePoint && restoreForecastNote(restoreForecast)}
                   {flow.plan.warnings.map((warning) => (
                     <li key={warning}>{warning}</li>
                   ))}
@@ -2780,7 +2855,7 @@ export default function App() {
                 <p className="dialog-body">{text.uninstall.forgetConfirmBody}</p>
                 <ul className="dialog-notes">
                   {flow.program.source !== "user" && <li>{text.uninstall.elevationNote}</li>}
-                  {flow.program.source !== "user" && <li>{text.uninstall.restorePointNote}</li>}
+                  {flow.program.source !== "user" && restoreForecastNote(restoreForecast)}
                   <li>{text.uninstall.forgetLedgerNote}</li>
                 </ul>
                 {!uninstallerPro?.active && (
@@ -3074,6 +3149,9 @@ export default function App() {
                     </li>
                   ))}
                 </ul>
+                {flow.programs.some((p) => p.source !== "user") && (
+                  <ul className="dialog-notes">{restoreForecastNote(restoreForecast)}</ul>
+                )}
                 {!uninstallerPro?.active && (
                   <p className="dialog-body reboot">
                     {text.menu.proGateBatch}
