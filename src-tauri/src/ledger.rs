@@ -28,8 +28,14 @@ pub struct RemovalReceipt {
     pub success: bool,
     pub exit_code: Option<i32>,
     pub reboot_required: bool,
-    /// One human line about the restore point outcome.
+    /// One English line about the restore point outcome. Receipts from
+    /// before 0.13.8 say "created" for every accepted request, including the
+    /// ones Windows answered by reusing an existing point.
     pub restore_point: String,
+    /// The outcome itself, so the history can say it in the UI language.
+    /// Absent in receipts written before 0.13.8.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub restore_point_outcome: Option<crate::restore_point::RestorePointOutcome>,
     /// What the registry claimed the program occupied.
     pub estimated_size_kb: Option<u32>,
     /// Measured install-folder shrinkage, when the folder was measurable
@@ -171,6 +177,7 @@ mod tests {
             exit_code: Some(0),
             reboot_required: false,
             restore_point: "created".into(),
+            restore_point_outcome: None,
             estimated_size_kb: Some(1024),
             verified_freed_kb: None,
             message: "Uninstalled successfully.".into(),

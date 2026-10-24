@@ -123,6 +123,8 @@ export type Dictionary = {
     readonly notRemovedNote: string;
     readonly elevationNote: string;
     readonly restorePointNote: string;
+    readonly restoreForecastReuse: (when: string) => string;
+    readonly restoreForecastOff: string;
     readonly confirm: string;
     readonly cancel: string;
     readonly close: string;
@@ -142,9 +144,12 @@ export type Dictionary = {
     readonly reportSuccessTitle: string;
     readonly reportFailureTitle: string;
     readonly rebootNote: string;
-    readonly restorePointCreated: string;
+    readonly restorePointCreated: (when: string) => string;
+    readonly restorePointReused: (when: string) => string;
+    readonly restorePointUnverified: string;
     readonly restorePointSkipped: (reason: string) => string;
     readonly restorePointFailed: (reason: string) => string;
+    readonly restorePointCauses: Readonly<Record<"disabled" | "diskSpace" | "unavailable", string>>;
     readonly exitCodeLabel: string;
     readonly freedLine: (mb: string) => string;
     readonly residueScan: string;
@@ -187,6 +192,7 @@ export type Dictionary = {
     readonly rebootFlag: string;
     readonly failedFlag: string;
     readonly restorePointLabel: string;
+    readonly restorePointLegacy: string;
   };
   readonly menu: {
     readonly open: string;
@@ -383,7 +389,12 @@ const en: Dictionary = {
     notRemovedNote:
       "Not removed automatically: leftover files, folders and registry entries. You can scan for them right after the uninstall, and nothing is deleted without asking.",
     elevationNote: "Windows will ask for administrator approval (UAC) first.",
-    restorePointNote: "A System Restore point will be attempted before anything runs.",
+    restorePointNote:
+      "Before anything runs, Windows is asked for a new System Restore point. If it cannot make one, the removal still runs and the report says so.",
+    restoreForecastReuse: (when) =>
+      `Windows already made a System Restore point on ${when} and makes at most one a day, so it will most likely reuse that one: no new point is made just before this removal.`,
+    restoreForecastOff:
+      "System Restore is turned off, so no restore point will be made before this removal.",
     confirm: "Uninstall",
     cancel: "Cancel",
     close: "Close",
@@ -407,10 +418,19 @@ const en: Dictionary = {
     reportSuccessTitle: "Uninstalled",
     reportFailureTitle: "Uninstall did not complete",
     rebootNote: "A restart is required to finish removing files.",
-    restorePointCreated:
-      "System Restore point: requested from Windows. Windows keeps at most one a day, so a point made in the last 24 hours may be the one to use.",
+    restorePointCreated: (when) =>
+      `System Restore point: created on ${when}, just before the removal.`,
+    restorePointReused: (when) =>
+      `System Restore point: none created. Windows reused the one from ${when}; restoring it also undoes everything changed since then.`,
+    restorePointUnverified:
+      "System Restore point: Windows accepted the request, but the app could not confirm that a new point exists. Check Manage restore points.",
     restorePointSkipped: (reason) => `System Restore point: skipped - ${reason}`,
     restorePointFailed: (reason) => `System Restore point: not created - ${reason}`,
+    restorePointCauses: {
+      disabled: "System Restore is turned off.",
+      diskSpace: "there is not enough free disk space.",
+      unavailable: "this Windows edition has no System Restore.",
+    },
     exitCodeLabel: "Exit code",
     freedLine: (mb) => `Space freed: ${mb} MB (verified)`,
     residueScan: "Scan for leftovers",
@@ -469,6 +489,8 @@ const en: Dictionary = {
     rebootFlag: "restart required",
     failedFlag: "failed",
     restorePointLabel: "Restore point",
+    restorePointLegacy:
+      "requested from Windows, not verified (versions before 0.13.8 did not check whether Windows made a new point)",
   },
   menu: {
     open: "Account & settings",
@@ -673,7 +695,12 @@ const it: Dictionary = {
     notRemovedNote:
       "Non rimosso automaticamente: file, cartelle e voci di registro residue. Puoi cercarli subito dopo la disinstallazione e nulla viene eliminato senza chiedere.",
     elevationNote: "Windows chiederà prima l'approvazione da amministratore (UAC).",
-    restorePointNote: "Prima dell'esecuzione verrà tentato un punto di ripristino di sistema.",
+    restorePointNote:
+      "Prima dell'esecuzione viene chiesto a Windows un nuovo punto di ripristino. Se Windows non riesce a crearlo, la rimozione prosegue comunque e il report lo indica.",
+    restoreForecastReuse: (when) =>
+      `Windows ha già creato un punto di ripristino il ${when} e ne crea al massimo uno al giorno, quindi molto probabilmente riutilizzerà quello: subito prima di questa rimozione non verrà creato un nuovo punto.`,
+    restoreForecastOff:
+      "Il Ripristino configurazione di sistema è disattivato: prima di questa rimozione non verrà creato alcun punto di ripristino.",
     confirm: "Disinstalla",
     cancel: "Annulla",
     close: "Chiudi",
@@ -697,10 +724,19 @@ const it: Dictionary = {
     reportSuccessTitle: "Disinstallato",
     reportFailureTitle: "Disinstallazione non completata",
     rebootNote: "Serve un riavvio per completare la rimozione dei file.",
-    restorePointCreated:
-      "Punto di ripristino: richiesto a Windows. Windows ne conserva al massimo uno al giorno, quindi potrebbe valere quello delle ultime 24 ore.",
+    restorePointCreated: (when) =>
+      `Punto di ripristino: creato il ${when}, subito prima della rimozione.`,
+    restorePointReused: (when) =>
+      `Punto di ripristino: nessuno nuovo. Windows ha riutilizzato quello del ${when}; ripristinarlo annulla anche tutte le modifiche fatte da allora.`,
+    restorePointUnverified:
+      "Punto di ripristino: Windows ha accettato la richiesta, ma l'app non ha potuto verificare che esista un nuovo punto. Controlla in Gestisci punti di ripristino.",
     restorePointSkipped: (reason) => `Punto di ripristino: saltato - ${reason}`,
     restorePointFailed: (reason) => `Punto di ripristino: non creato - ${reason}`,
+    restorePointCauses: {
+      disabled: "il Ripristino configurazione di sistema è disattivato.",
+      diskSpace: "lo spazio libero su disco non è sufficiente.",
+      unavailable: "questa edizione di Windows non ha il Ripristino configurazione di sistema.",
+    },
     exitCodeLabel: "Codice di uscita",
     freedLine: (mb) => `Spazio liberato: ${mb} MB (verificato)`,
     residueScan: "Cerca residui",
@@ -760,6 +796,8 @@ const it: Dictionary = {
     rebootFlag: "riavvio richiesto",
     failedFlag: "non riuscita",
     restorePointLabel: "Punto di ripristino",
+    restorePointLegacy:
+      "richiesto a Windows, non verificato (le versioni precedenti alla 0.13.8 non controllavano se Windows creasse un nuovo punto)",
   },
   menu: {
     open: "Account e impostazioni",
@@ -967,7 +1005,12 @@ const fr: Dictionary = {
     notRemovedNote:
       "Non supprimé automatiquement : fichiers, dossiers et entrées de registre résiduels. Vous pouvez les rechercher juste après la désinstallation, et rien n'est supprimé sans demander.",
     elevationNote: "Windows demandera d'abord l'approbation administrateur (UAC).",
-    restorePointNote: "Un point de restauration système sera tenté avant toute exécution.",
+    restorePointNote:
+      "Avant toute exécution, un nouveau point de restauration est demandé à Windows. S'il ne peut pas en créer, la désinstallation a quand même lieu et le rapport l'indique.",
+    restoreForecastReuse: (when) =>
+      `Windows a déjà créé un point de restauration le ${when} et n'en crée qu'un par jour au maximum : il réutilisera donc très probablement celui-ci, et aucun nouveau point ne sera créé juste avant cette désinstallation.`,
+    restoreForecastOff:
+      "La protection du système est désactivée : aucun point de restauration ne sera créé avant cette désinstallation.",
     confirm: "Désinstaller",
     cancel: "Annuler",
     close: "Fermer",
@@ -992,10 +1035,19 @@ const fr: Dictionary = {
     reportSuccessTitle: "Désinstallé",
     reportFailureTitle: "Désinstallation non terminée",
     rebootNote: "Un redémarrage est nécessaire pour finir de supprimer les fichiers.",
-    restorePointCreated:
-      "Point de restauration : demandé à Windows. Windows n'en garde qu'un par jour ; celui des dernières 24 heures peut être celui à utiliser.",
+    restorePointCreated: (when) =>
+      `Point de restauration : créé le ${when}, juste avant la désinstallation.`,
+    restorePointReused: (when) =>
+      `Point de restauration : aucun nouveau. Windows a réutilisé celui du ${when} ; le restaurer annule aussi tout ce qui a changé depuis.`,
+    restorePointUnverified:
+      "Point de restauration : Windows a accepté la demande, mais l'application n'a pas pu confirmer qu'un nouveau point existe. Vérifiez dans Gérer les points de restauration.",
     restorePointSkipped: (reason) => `Point de restauration : ignoré - ${reason}`,
     restorePointFailed: (reason) => `Point de restauration : non créé - ${reason}`,
+    restorePointCauses: {
+      disabled: "la protection du système est désactivée.",
+      diskSpace: "l'espace disque libre est insuffisant.",
+      unavailable: "cette édition de Windows n'a pas la restauration du système.",
+    },
     exitCodeLabel: "Code de sortie",
     freedLine: (mb) => `Espace libéré : ${mb} Mo (vérifié)`,
     residueScan: "Rechercher les restes",
@@ -1054,6 +1106,8 @@ const fr: Dictionary = {
     rebootFlag: "redémarrage requis",
     failedFlag: "échec",
     restorePointLabel: "Point de restauration",
+    restorePointLegacy:
+      "demandé à Windows, non vérifié (les versions antérieures à 0.13.8 ne contrôlaient pas si Windows créait un nouveau point)",
   },
   menu: {
     open: "Compte et réglages",
@@ -1263,7 +1317,12 @@ const es: Dictionary = {
     notRemovedNote:
       "No se elimina automáticamente: archivos, carpetas y entradas de registro residuales. Puedes buscarlos justo después de desinstalar y no se elimina nada sin preguntar.",
     elevationNote: "Windows pedirá primero la aprobación de administrador (UAC).",
-    restorePointNote: "Se intentará crear un punto de restauración antes de ejecutar nada.",
+    restorePointNote:
+      "Antes de ejecutar nada, se pide a Windows un punto de restauración nuevo. Si no puede crearlo, la desinstalación sigue adelante y el informe lo indica.",
+    restoreForecastReuse: (when) =>
+      `Windows ya creó un punto de restauración el ${when} y crea como máximo uno al día, así que lo más probable es que reutilice ese: no se creará un punto nuevo justo antes de esta desinstalación.`,
+    restoreForecastOff:
+      "La protección del sistema está desactivada, así que no se creará ningún punto de restauración antes de esta desinstalación.",
     confirm: "Desinstalar",
     cancel: "Cancelar",
     close: "Cerrar",
@@ -1288,10 +1347,19 @@ const es: Dictionary = {
     reportSuccessTitle: "Desinstalado",
     reportFailureTitle: "La desinstalación no se completó",
     rebootNote: "Se requiere un reinicio para terminar de eliminar los archivos.",
-    restorePointCreated:
-      "Punto de restauración: solicitado a Windows. Windows conserva como máximo uno al día, así que puede valer el de las últimas 24 horas.",
+    restorePointCreated: (when) =>
+      `Punto de restauración: creado el ${when}, justo antes de la desinstalación.`,
+    restorePointReused: (when) =>
+      `Punto de restauración: ninguno nuevo. Windows reutilizó el del ${when}; restaurarlo también deshace todo lo que haya cambiado desde entonces.`,
+    restorePointUnverified:
+      "Punto de restauración: Windows aceptó la solicitud, pero la aplicación no pudo confirmar que exista un punto nuevo. Compruébalo en Administrar puntos de restauración.",
     restorePointSkipped: (reason) => `Punto de restauración: omitido - ${reason}`,
     restorePointFailed: (reason) => `Punto de restauración: no creado - ${reason}`,
+    restorePointCauses: {
+      disabled: "la protección del sistema está desactivada.",
+      diskSpace: "no hay suficiente espacio libre en el disco.",
+      unavailable: "esta edición de Windows no incluye Restaurar sistema.",
+    },
     exitCodeLabel: "Código de salida",
     freedLine: (mb) => `Espacio liberado: ${mb} MB (verificado)`,
     residueScan: "Buscar restos",
@@ -1350,6 +1418,8 @@ const es: Dictionary = {
     rebootFlag: "reinicio requerido",
     failedFlag: "falló",
     restorePointLabel: "Punto de restauración",
+    restorePointLegacy:
+      "solicitado a Windows, sin verificar (las versiones anteriores a la 0.13.8 no comprobaban si Windows creaba un punto nuevo)",
   },
   menu: {
     open: "Cuenta y ajustes",
@@ -1561,7 +1631,12 @@ const de: Dictionary = {
     notRemovedNote:
       "Nicht automatisch entfernt: übrig gebliebene Dateien, Ordner und Registrierungseinträge. Sie können direkt nach der Deinstallation danach suchen, und nichts wird ohne Rückfrage gelöscht.",
     elevationNote: "Windows fragt zuerst nach Administrator-Bestätigung (UAC).",
-    restorePointNote: "Vor der Ausführung wird ein Systemwiederherstellungspunkt versucht.",
+    restorePointNote:
+      "Bevor etwas ausgeführt wird, wird Windows um einen neuen Wiederherstellungspunkt gebeten. Kann Windows keinen erstellen, läuft die Deinstallation trotzdem, und der Bericht sagt es.",
+    restoreForecastReuse: (when) =>
+      `Windows hat am ${when} bereits einen Wiederherstellungspunkt erstellt und erstellt höchstens einen pro Tag. Es wird daher sehr wahrscheinlich diesen wiederverwenden: Unmittelbar vor dieser Deinstallation entsteht kein neuer Punkt.`,
+    restoreForecastOff:
+      "Der Computerschutz ist ausgeschaltet, daher wird vor dieser Deinstallation kein Wiederherstellungspunkt erstellt.",
     confirm: "Deinstallieren",
     cancel: "Abbrechen",
     close: "Schließen",
@@ -1586,10 +1661,19 @@ const de: Dictionary = {
     reportSuccessTitle: "Deinstalliert",
     reportFailureTitle: "Deinstallation nicht abgeschlossen",
     rebootNote: "Ein Neustart ist nötig, um die Dateien vollständig zu entfernen.",
-    restorePointCreated:
-      "Wiederherstellungspunkt: bei Windows angefordert. Windows behält höchstens einen pro Tag, daher kann der Punkt der letzten 24 Stunden der richtige sein.",
+    restorePointCreated: (when) =>
+      `Wiederherstellungspunkt: am ${when} erstellt, unmittelbar vor der Deinstallation.`,
+    restorePointReused: (when) =>
+      `Wiederherstellungspunkt: kein neuer. Windows hat den vom ${when} wiederverwendet. Wird er wiederhergestellt, wird auch alles rückgängig gemacht, was seitdem geändert wurde.`,
+    restorePointUnverified:
+      "Wiederherstellungspunkt: Windows hat die Anfrage angenommen, aber die App konnte nicht bestätigen, dass ein neuer Punkt existiert. Prüfen Sie es unter Wiederherstellungspunkte verwalten.",
     restorePointSkipped: (reason) => `Wiederherstellungspunkt: übersprungen - ${reason}`,
     restorePointFailed: (reason) => `Wiederherstellungspunkt: nicht erstellt - ${reason}`,
+    restorePointCauses: {
+      disabled: "der Computerschutz ist ausgeschaltet.",
+      diskSpace: "es ist nicht genug freier Speicherplatz vorhanden.",
+      unavailable: "diese Windows-Edition hat keine Systemwiederherstellung.",
+    },
     exitCodeLabel: "Exit-Code",
     freedLine: (mb) => `Freigegebener Speicher: ${mb} MB (geprüft)`,
     residueScan: "Nach Resten suchen",
@@ -1650,6 +1734,8 @@ const de: Dictionary = {
     rebootFlag: "Neustart erforderlich",
     failedFlag: "fehlgeschlagen",
     restorePointLabel: "Wiederherstellungspunkt",
+    restorePointLegacy:
+      "bei Windows angefordert, nicht geprüft (Versionen vor 0.13.8 prüften nicht, ob Windows einen neuen Punkt erstellt hat)",
   },
   menu: {
     open: "Konto & Einstellungen",
@@ -1861,7 +1947,12 @@ const pt: Dictionary = {
     notRemovedNote:
       "Não é removido automaticamente: ficheiros, pastas e entradas de registo residuais. Pode procurá-los logo após a desinstalação, e nada é apagado sem perguntar.",
     elevationNote: "O Windows pedirá primeiro a aprovação de administrador (UAC).",
-    restorePointNote: "Será tentado um ponto de Restauro do Sistema antes de qualquer execução.",
+    restorePointNote:
+      "Antes de qualquer execução, é pedido ao Windows um novo ponto de Restauro do Sistema. Se não o conseguir criar, a remoção continua na mesma e o relatório indica-o.",
+    restoreForecastReuse: (when) =>
+      `O Windows já criou um ponto de restauro em ${when} e cria no máximo um por dia, por isso deverá reutilizar esse: não será criado um ponto novo imediatamente antes desta remoção.`,
+    restoreForecastOff:
+      "O Restauro do Sistema está desativado, por isso não será criado nenhum ponto de restauro antes desta remoção.",
     confirm: "Desinstalar",
     cancel: "Cancelar",
     close: "Fechar",
@@ -1885,10 +1976,19 @@ const pt: Dictionary = {
     reportSuccessTitle: "Desinstalado",
     reportFailureTitle: "A desinstalação não foi concluída",
     rebootNote: "É necessário reiniciar para terminar a remoção dos ficheiros.",
-    restorePointCreated:
-      "Ponto de Restauro do Sistema: pedido ao Windows. O Windows mantém no máximo um por dia, por isso um ponto criado nas últimas 24 horas pode ser o que vai usar.",
+    restorePointCreated: (when) =>
+      `Ponto de Restauro do Sistema: criado em ${when}, imediatamente antes da remoção.`,
+    restorePointReused: (when) =>
+      `Ponto de Restauro do Sistema: nenhum novo. O Windows reutilizou o de ${when}; restaurá-lo também anula tudo o que foi alterado desde então.`,
+    restorePointUnverified:
+      "Ponto de Restauro do Sistema: o Windows aceitou o pedido, mas a aplicação não conseguiu confirmar que existe um ponto novo. Verifique em Gerir pontos de restauro.",
     restorePointSkipped: (reason) => `Ponto de Restauro do Sistema: ignorado - ${reason}`,
     restorePointFailed: (reason) => `Ponto de Restauro do Sistema: não criado - ${reason}`,
+    restorePointCauses: {
+      disabled: "o Restauro do Sistema está desativado.",
+      diskSpace: "não há espaço livre suficiente no disco.",
+      unavailable: "esta edição do Windows não tem Restauro do Sistema.",
+    },
     exitCodeLabel: "Código de saída",
     freedLine: (mb) => `Espaço libertado: ${mb} MB (verificado)`,
     residueScan: "Procurar resíduos",
@@ -1947,6 +2047,8 @@ const pt: Dictionary = {
     rebootFlag: "reinício necessário",
     failedFlag: "falhou",
     restorePointLabel: "Ponto de restauro",
+    restorePointLegacy:
+      "pedido ao Windows, não verificado (as versões anteriores à 0.13.8 não confirmavam se o Windows criava um ponto novo)",
   },
   menu: {
     open: "Conta e definições",

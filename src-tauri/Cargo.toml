@@ -8,7 +8,7 @@
 
 [package]
 name = "pc-tweaker-uninstaller"
-version = "0.13.7"
+version = "0.13.8"
 description = "Uninstall Windows programs cleanly, with a safety net"
 authors = ["Aurelio Avila"]
 license-file = "../LICENSE"
@@ -43,9 +43,11 @@ winreg = "0.52"
 trash = "5"
 # LoadLibrary/GetProcAddress only, to call SRSetRestorePointW dynamically:
 # a link-time dependency on srclient.dll would crash the app at startup on
-# editions without System Restore (Windows Server).
+# editions without System Restore (Windows Server). EventLog: the confirmation
+# reads when Windows last made a restore point (restore_point.rs).
 windows-sys = { version = "0.59", features = [
   "Win32_Foundation",
+  "Win32_System_EventLog",
   "Win32_System_LibraryLoader",
   "Win32_UI_Shell",
   "Win32_UI_WindowsAndMessaging",
@@ -56,11 +58,14 @@ windows-sys = { version = "0.59", features = [
 # and remove MSIX/Store packages. Deliberately not PowerShell — this app
 # refuses to run interpreters for uninstalls (see uninstall_command.rs), and
 # that rule would be hollow if the Store path shelled out to one.
+# Wmi: restore_point.rs reads the newest restore point before and after its
+# request, because Windows reports success even when it creates nothing.
 windows = { version = "0.58", features = [
   "Management_Deployment",
   "Foundation_Collections",
   "ApplicationModel",
   "Win32_System_Com",
+  "Win32_System_Wmi",
 ] }
 
 [features]
