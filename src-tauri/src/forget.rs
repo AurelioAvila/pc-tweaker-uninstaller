@@ -128,11 +128,6 @@ pub fn run_elevated_child(source: &str, id: &str) -> i32 {
 }
 
 fn record_receipt(source: &str, report: &UninstallReport, entry: &RawEntry) {
-    let restore_point = match &report.restore_point {
-        RestorePointOutcome::Created => "created".to_string(),
-        RestorePointOutcome::Skipped { reason } => format!("skipped: {reason}"),
-        RestorePointOutcome::Failed { reason } => format!("failed: {reason}"),
-    };
     let ts = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_secs())
@@ -147,7 +142,8 @@ fn record_receipt(source: &str, report: &UninstallReport, entry: &RawEntry) {
         success: report.success,
         exit_code: None,
         reboot_required: false,
-        restore_point,
+        restore_point: report.restore_point.ledger_line(),
+        restore_point_outcome: Some(report.restore_point.clone()),
         estimated_size_kb: entry.estimated_size_kb,
         verified_freed_kb: None,
         message: report.message.clone(),

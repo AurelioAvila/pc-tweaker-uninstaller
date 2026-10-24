@@ -61,7 +61,7 @@ Uninstall Windows programs cleanly, with a safety net. Every removal is explaine
 | **Removal Confidence Score** | Every program is rated Safe, Review or Keep, with the reasons spelled out. System components and runtimes other software depends on are flagged before you touch them. |
 | **Removal Brief** | Before anything runs you see the exact command, the method (Windows Installer or the program's own uninstaller), the permissions it will ask for and the reported size. |
 | **Related programs** | Programs installed inside another program's folder are named before you remove the parent, so a game library or plugin host does not take other software with it by surprise. |
-| **Restore-point attempt** | Before elevated removals, the app attempts to create a Windows restore point and records the outcome. Creation can fail or be skipped; Windows settings, permissions and throttling affect availability. |
+| **Restore-point attempt** | Before elevated removals, the app asks Windows for a restore point and records what Windows actually did: a new point, the existing point it reused (Windows makes at most one a day), or why none was made. The confirmation says beforehand which to expect. |
 | **Leftover scan** | After the uninstall, the program's remaining folders, shortcuts and registry keys are listed. Protected system and personal folders are never offered. |
 | **Removal Ledger** | A local receipt of what was removed, how, with what result and how much space was actually freed. Exportable, and it never leaves your PC. |
 | **Store apps too** | Classic desktop software and Microsoft Store apps in one list, with search, filters, sorting and CSV export. |

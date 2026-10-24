@@ -414,11 +414,6 @@ fn record_receipt(
             }
         })
         .unwrap_or("unknown");
-    let restore_point = match &report.restore_point {
-        RestorePointOutcome::Created => "created".to_string(),
-        RestorePointOutcome::Skipped { reason } => format!("skipped: {reason}"),
-        RestorePointOutcome::Failed { reason } => format!("failed: {reason}"),
-    };
     let ts = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_secs())
@@ -431,7 +426,8 @@ fn record_receipt(
         success: report.success,
         exit_code: report.exit_code,
         reboot_required: report.reboot_required,
-        restore_point,
+        restore_point: report.restore_point.ledger_line(),
+        restore_point_outcome: Some(report.restore_point.clone()),
         estimated_size_kb,
         verified_freed_kb,
         message: report.message.clone(),
@@ -892,7 +888,7 @@ mod tests {
         let report = UninstallReport {
             program_name: "Test App".into(),
             command: vec![r"C:\Windows\System32\msiexec.exe".into(), "/x".into()],
-            restore_point: RestorePointOutcome::Created,
+            restore_point: RestorePointOutcome::Reused { at: 1_792_780_121 },
             exit_code: Some(3010),
             success: true,
             reboot_required: true,
@@ -903,6 +899,9 @@ mod tests {
         let back: UninstallReport = serde_json::from_str(&json).unwrap();
         assert_eq!(back.exit_code, Some(3010));
         assert!(back.reboot_required);
-        assert_eq!(back.restore_point, RestorePointOutcome::Created);
+        assert_eq!(
+            back.restore_point,
+            RestorePointOutcome::Reused { at: 1_792_780_121 }
+        );
     }
 }
