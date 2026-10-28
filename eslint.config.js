@@ -10,6 +10,8 @@ export default tseslint.config(
     plugins: { "react-hooks": reactHooks },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // French copy uses real no-break spaces before : ; ! ? and inside « ».
+      "no-irregular-whitespace": ["error", { skipStrings: true, skipTemplates: true }],
     },
     languageOptions: {
       parserOptions: {

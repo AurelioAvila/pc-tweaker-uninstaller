@@ -61,6 +61,7 @@ import "./workspace.css";
 import "./family-polish.css";
 import { UiIcon } from "./ui-icon";
 import { workspaceCopy } from "./workspace-copy";
+import { backendText } from "./backend-copy";
 
 /** Mirror of the Rust `ProgramInfo` shape (src-tauri/src/programs.rs). Every
  *  string here originates in the registry and is untrusted display data —
@@ -334,10 +335,15 @@ function confidenceTitle(c: Confidence): string {
   return [...lines, text.confidence.disclaimer].join("\n");
 }
 
-/** Date and time of a restore point in the UI language (pt is pt-PT). */
-function pointTime(at: number): string {
+/** BCP 47 tag of the UI language (pt is pt-PT). */
+function uiTag(): string {
   const locale = currentLocale();
-  return new Intl.DateTimeFormat(locale === "pt" ? "pt-PT" : locale, {
+  return locale === "pt" ? "pt-PT" : locale;
+}
+
+/** Date and time of a restore point in the UI language. */
+function pointTime(at: number): string {
+  return new Intl.DateTimeFormat(uiTag(), {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(at * 1000));
@@ -352,11 +358,11 @@ function restorePointLine(outcome: RestorePointOutcome): string {
     case "unverified":
       return text.uninstall.restorePointUnverified;
     case "skipped":
-      return text.uninstall.restorePointSkipped(outcome.reason);
+      return text.uninstall.restorePointSkipped(backendText(outcome.reason));
     case "failed":
       return text.uninstall.restorePointFailed(
         outcome.cause === "error"
-          ? outcome.reason
+          ? backendText(outcome.reason)
           : text.uninstall.restorePointCauses[outcome.cause],
       );
   }
@@ -494,6 +500,10 @@ export default function App() {
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
+  // Screen readers pick their voice from the document language.
+  useEffect(() => {
+    document.documentElement.lang = uiTag();
+  }, [lang]);
   // The notification-area menu speaks the window's language.
   useEffect(() => {
     void invoke("set_tray_language", { language: lang }).catch(() => {});
@@ -1474,7 +1484,8 @@ export default function App() {
                     </p>
                     {uninstallerPro?.expiresAt && (
                       <p className="menu-hint menu-hint-ok">
-                        {words.until} {new Date(uninstallerPro.expiresAt).toLocaleDateString()}
+                        {words.until}{" "}
+                        {new Date(uninstallerPro.expiresAt).toLocaleDateString(uiTag())}
                       </p>
                     )}
                     {!uninstallerPro?.active && (
@@ -1890,7 +1901,7 @@ export default function App() {
             {lastScan && (
               <span>
                 {words.lastScan}{" "}
-                {lastScan.toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" })}
+                {lastScan.toLocaleTimeString(uiTag(), { hour: "2-digit", minute: "2-digit" })}
               </span>
             )}
           </div>
@@ -1914,7 +1925,7 @@ export default function App() {
         {state.phase === "error" && (
           <section className="empty" role="alert">
             <h2>{text.programs.errorTitle}</h2>
-            <p>{state.message}</p>
+            <p>{backendText(state.message)}</p>
             <button type="button" className="button" onClick={load}>
               {text.programs.retry}
             </button>
@@ -2586,7 +2597,7 @@ export default function App() {
                         )}
                       </span>
                       <span className="ledger-meta">
-                        {new Date(r.ts * 1000).toLocaleString()} ·{" "}
+                        {new Date(r.ts * 1000).toLocaleString(uiTag())} ·{" "}
                         {r.verifiedFreedKb !== null && r.verifiedFreedKb > 0
                           ? text.ledger.verifiedFreed(formatSize(r.verifiedFreedKb))
                           : r.estimatedSizeKb !== null && r.estimatedSizeKb > 0
@@ -2594,7 +2605,7 @@ export default function App() {
                             : "—"}{" "}
                         · {ledgerRestoreLine(r)}
                       </span>
-                      <span className="ledger-message">{r.message}</span>
+                      <span className="ledger-message">{backendText(r.message)}</span>
                     </span>
                   </li>
                 ))}
@@ -2708,7 +2719,7 @@ export default function App() {
             {flow.step === "planError" && (
               <>
                 <h2>{text.uninstall.planFailedTitle}</h2>
-                <p className="dialog-body">{flow.message}</p>
+                <p className="dialog-body">{backendText(flow.message)}</p>
                 {flow.program.broken && (
                   <p className="dialog-body subtle">{text.uninstall.forgetOffer}</p>
                 )}
@@ -2794,7 +2805,7 @@ export default function App() {
                   {flow.plan.needsElevation && <li>{text.uninstall.elevationNote}</li>}
                   {flow.plan.willAttemptRestorePoint && restoreForecastNote(restoreForecast)}
                   {flow.plan.warnings.map((warning) => (
-                    <li key={warning}>{warning}</li>
+                    <li key={warning}>{backendText(warning)}</li>
                   ))}
                   {isFamilyApp(flow.program) && (
                     <li className="note-suite">{text.uninstall.familyNote}</li>
@@ -2896,7 +2907,7 @@ export default function App() {
                     ? text.uninstall.forgetDoneTitle
                     : text.uninstall.reportFailureTitle}
                 </h2>
-                <p className="dialog-body">{flow.report.message}</p>
+                <p className="dialog-body">{backendText(flow.report.message)}</p>
                 <ul className="dialog-notes">
                   <li>{restorePointLine(flow.report.restorePoint)}</li>
                 </ul>
@@ -2952,7 +2963,7 @@ export default function App() {
                     ? text.uninstall.reportSuccessTitle
                     : text.uninstall.reportFailureTitle}
                 </h2>
-                <p className="dialog-body">{flow.report.message}</p>
+                <p className="dialog-body">{backendText(flow.report.message)}</p>
                 {flow.report.rebootRequired && (
                   <p className="dialog-body reboot">{text.uninstall.rebootNote}</p>
                 )}
@@ -3204,7 +3215,7 @@ export default function App() {
                 <ul className="dialog-notes">
                   {flow.results.map((r) => (
                     <li key={r.name}>
-                      {r.success ? "✓" : "✗"} {r.name} — {r.message}
+                      {r.success ? "✓" : "✗"} {r.name} — {backendText(r.message)}
                     </li>
                   ))}
                 </ul>
@@ -3224,7 +3235,7 @@ export default function App() {
             {flow.step === "execError" && (
               <>
                 <h2>{text.uninstall.reportFailureTitle}</h2>
-                <p className="dialog-body">{flow.message}</p>
+                <p className="dialog-body">{backendText(flow.message)}</p>
                 <div className="dialog-actions">
                   <button type="button" className="button" onClick={closeFlow}>
                     {text.uninstall.close}

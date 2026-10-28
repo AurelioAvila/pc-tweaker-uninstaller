@@ -55,7 +55,7 @@ export const inventoryCopy: Record<Locale, Copy> = {
     export: "Exporter la vue en CSV",
     estimated: "Taille déclarée dans cette vue",
     unknown: "Applications de taille inconnue",
-    hint: "Les tailles et dates proviennent des programmes d’installation et peuvent être incomplètes. Les dates peuvent correspondre à une mise à jour ou réparation. L’espace récupérable n’est pas garanti. Les valeurs inconnues restent en dernier.",
+    hint: "Les tailles et dates proviennent des programmes d'installation et peuvent être incomplètes. Les dates peuvent correspondre à une mise à jour ou réparation. L'espace récupérable n'est pas garanti. Les valeurs inconnues restent en dernier.",
   },
   es: {
     sort: "Ordenar por",
@@ -83,7 +83,7 @@ export const inventoryCopy: Record<Locale, Copy> = {
     export: "Ansicht als CSV exportieren",
     estimated: "Gemeldete Größe in dieser Ansicht",
     unknown: "Apps mit unbekannter Größe",
-    hint: "Größen und Datumsangaben stammen von Installationsprogrammen und können unvollständig sein. Datumsangaben können ein Update oder eine Reparatur betreffen. Freigebbarer Speicherplatz ist nicht garantiert. Unbekannte Werte stehen immer am Ende.",
+    hint: "Größen und Datumsangaben stammen von Installationsprogrammen und können unvollständig sein. Datumsangaben können ein Update oder eine Reparatur betreffen. Der tatsächlich freiwerdende Speicherplatz ist nicht garantiert. Unbekannte Werte stehen immer am Ende.",
   },
   pt: {
     sort: "Ordenar por",
