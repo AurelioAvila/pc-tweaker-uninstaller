@@ -67,6 +67,9 @@ jobs:
       - name: Default language regression tests
         run: node --test scripts/i18n-default.test.mjs
 
+      - name: Translation table tests
+        run: node --test scripts/i18n-tables.test.mjs
+
       - name: Account request regression tests
         run: node --test scripts/account-registration.test.mjs
 

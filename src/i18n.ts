@@ -571,13 +571,13 @@ const en: Dictionary = {
 const it: Dictionary = {
   app: {
     title: "PC Tweaker Uninstaller",
-    tagline: "Controlla i programmi installati. Scegli cosa rimuovere.",
+    tagline: "Controlla i programmi installati. Rimuovi con sicurezza.",
     suiteDetected: "PC Tweaker rilevato - membro della suite",
     suiteDetectedHint:
       "PC Tweaker è installato su questo PC. Accedi con il tuo account PC Tweaker Pro per sbloccare il prezzo fedeltà.",
   },
   programs: {
-    searchPlaceholder: "Cerca per nome o produttore...",
+    searchPlaceholder: "Cerca per nome o editore...",
     searchLabel: "Cerca tra i programmi installati",
     loading: "Lettura dei programmi installati...",
     countSummary: (shown, total) =>
@@ -594,13 +594,13 @@ const it: Dictionary = {
     retry: "Riprova",
     columnProgram: "Programma",
     columnVersion: "Versione",
-    columnPublisher: "Produttore",
+    columnPublisher: "Editore",
     columnSize: "Dimensione",
     columnInstalled: "Installato",
     badgeMsi: "MSI",
     badgeExecutable: "EXE",
     badgeManualOnly: "Manuale",
-    badgeNone: "Senza uninstaller",
+    badgeNone: "Senza disinstallatore",
     badgeInvalid: "Voce danneggiata",
     badgeManualOnlyHint:
       "Il comando di disinstallazione usa un interprete di script: per sicurezza va eseguito manualmente.",
@@ -638,22 +638,23 @@ const it: Dictionary = {
     labelSafe: "Rimozione sicura",
     labelReview: "Rivedi prima di rimuovere",
     labelKeep: "Da tenere - componente di sistema",
-    disclaimer: "Basato su evidenze visibili: una guida, non una certezza.",
+    disclaimer: "Basato su indizi visibili: una guida, non una certezza.",
     reasons: {
       hiddenSystem: "Windows stesso nasconde questa voce (componente di sistema o aggiornamento).",
       sharedRuntime: "Runtime condiviso: altri programmi probabilmente ne dipendono.",
       driverComponent: "Pacchetto driver o chipset: rimuoverlo può influire sull'hardware.",
       sharedLauncher:
         "Launcher/store: il software installato tramite esso smetterebbe di funzionare.",
-      noPublisher: "Nessun produttore registrato: origine non verificabile.",
+      noPublisher: "Nessun editore registrato: origine non verificabile.",
       brokenUninstaller:
         "Il comando di disinstallazione è danneggiato e non può girare in automatico.",
-      manualUninstaller: "Il suo uninstaller va eseguito manualmente (basato su script).",
+      manualUninstaller:
+        "Il suo programma di disinstallazione va eseguito manualmente (basato su script).",
       noUninstaller: "Non dichiara alcun comando di disinstallazione.",
-      namedPublisher: "È registrato un produttore con nome.",
-      standardUninstaller: "Ha un uninstaller standard MSI/EXE.",
+      namedPublisher: "È registrato un editore con nome.",
+      standardUninstaller: "Ha un programma di disinstallazione standard MSI/EXE.",
       storeFramework: "Runtime condiviso: altre app sono costruite su questo.",
-      storeOsComponent: "Fa parte dell'interfaccia di Windows, non è un'applicazione.",
+      storeOsComponent: "Fa parte della shell di Windows, non è un'applicazione.",
       storeResourcePackage: "Pacchetto di risorse (lingua o grafica), non un'app.",
       storeNoDisplayName:
         "Windows non dà un nome visualizzabile a questo pacchetto: è un componente interno.",
@@ -685,7 +686,7 @@ const it: Dictionary = {
     storeRemoved: (name: string) => `${name} è stato rimosso.`,
     methodLabel: "Metodo",
     methodMsi: "Windows Installer (silenzioso)",
-    methodExe: "L'uninstaller del programma stesso",
+    methodExe: "Il disinstallatore del programma stesso",
     privilegesLabel: "Privilegi",
     privilegesAdmin: "Amministratore (una richiesta UAC)",
     privilegesUser: "Utente corrente",
@@ -708,19 +709,19 @@ const it: Dictionary = {
     planFailedTitle: "Disinstallazione automatica non possibile",
     forgetOffer:
       "Il disinstallatore del programma non esiste più, quindi non potrà mai essere eseguito. Puoi invece rimuovere la voce da Programmi installati e poi pulire ciò che è rimasto.",
-    forgetAction: "Rimuovi voce non valida",
+    forgetAction: "Rimuovi voce danneggiata",
     forgetConfirmTitle: (name) => `Rimuovere la voce di ${name}?`,
     forgetConfirmBody:
       "Viene rimossa solo la voce in Programmi installati. Non viene eseguito nulla e nessun file viene eliminato; subito dopo puoi cercare i residui, e tutto ciò che pulisci finisce nel Cestino.",
     forgetLedgerNote: "I valori del registro rimossi restano salvati nel Registro rimozioni.",
-    forgetProGate: "La rimozione delle voci non valide fa parte di Uninstaller Pro.",
+    forgetProGate: "La rimozione delle voci danneggiate fa parte di Uninstaller Pro.",
     forgetRunning: "Rimozione della voce in corso...",
     forgetDoneTitle: "Voce rimossa",
     running: (name) => `Disinstallazione di ${name}...`,
     runningNote:
-      "L'uninstaller del programma è in esecuzione. Questa finestra resta reattiva; alcuni uninstaller aprono finestre proprie.",
+      "Il disinstallatore del programma è in esecuzione. Questa finestra resta reattiva; alcuni disinstallatori aprono finestre proprie.",
     runningSlowNote:
-      "Sta impiegando piu del solito. Alcuni programmi di disinstallazione aprono una finestra propria, che puo trovarsi dietro a questa: controlla la barra delle applicazioni. Non si perde nulla ad aspettare.",
+      "Sta impiegando più del solito. Alcuni programmi di disinstallazione aprono una finestra propria, che può trovarsi dietro a questa: controlla la barra delle applicazioni. Non si perde nulla ad aspettare.",
     reportSuccessTitle: "Disinstallato",
     reportFailureTitle: "Disinstallazione non completata",
     rebootNote: "Serve un riavvio per completare la rimozione dei file.",
@@ -746,12 +747,12 @@ const it: Dictionary = {
     residueTitle: "Residui trovati",
     residueNone: "Nessun residuo trovato. Rimozione pulita.",
     residueIntro: (count, mb) =>
-      `${String(count)} elemento/i rimasti, circa ${mb} MB. Tutto ciò che selezioni va nel Cestino, quindi resta recuperabile.`,
+      `Elementi rimasti: ${String(count)}, circa ${mb} MB. Tutto ciò che selezioni va nel Cestino, quindi resta recuperabile.`,
     residueClean: "Sposta selezionati nel Cestino",
     residueRegistryNote:
       "Le chiavi di registro utente vengono eliminate direttamente (non recuperabili); quelle di sistema sono elencate solo per riferimento.",
-    residueDone: (count, mb) => `Puliti ${String(count)} elemento/i, liberati circa ${mb} MB.`,
-    residueFailed: (count) => `${String(count)} elemento/i non rimossi.`,
+    residueDone: (count, mb) => `Elementi puliti: ${String(count)}, liberati circa ${mb} MB.`,
+    residueFailed: (count) => `Elementi non rimossi: ${String(count)}.`,
     residueKinds: {
       "install-dir": "Cartella di installazione",
       "app-data": "Dati applicazione",
@@ -762,19 +763,18 @@ const it: Dictionary = {
     relDependentsWarning: (names) =>
       `Rimuovendolo elimini anche i programmi installati nella sua cartella: ${names}.`,
     relInstalledVia: (name) => `Installato tramite ${name} — valuta di rimuoverlo da lì.`,
-    relSiblings: (count) =>
-      `${String(count)} altro/i programma/i di questo publisher sono installati.`,
+    relSiblings: (count) => `Altri programmi di questo editore installati: ${String(count)}.`,
     batchBar: (count, size) => `Disinstalla ${String(count)} selezionati · ${size}`,
     batchClear: "Svuota selezione",
     batchConfirmTitle: (count) => `Rimuovere ${String(count)} programmi?`,
     batchConfirmBody:
       "Vengono eseguiti uno alla volta, i programmi contenuti prima dei loro contenitori, con gli stessi controlli di una disinstallazione singola. Le voci protette (componenti di sistema, runtime condivisi, la tua suite PC Tweaker) non sono selezionabili.",
-    batchNotBatchable: "Protetto — non disponibile per la rimozione in batch.",
+    batchNotBatchable: "Protetto — non disponibile per la rimozione multipla.",
     batchRunningStep: (name, index, total) =>
       `Disinstallazione di ${name} (${String(index)} di ${String(total)})...`,
-    batchDoneTitle: "Batch completato",
+    batchDoneTitle: "Rimozione multipla completata",
     batchFailedNote: (count) =>
-      `${String(count)} programma/i non completati — vedi il registro per i dettagli.`,
+      `Programmi non completati: ${String(count)} — vedi il registro per i dettagli.`,
     familyNote:
       "Questa app fa parte della tua suite PC Tweaker. Puoi rimuoverla, ma le funzioni della suite che ne dipendono smetteranno di funzionare.",
     hiddenNote:
@@ -826,7 +826,7 @@ const it: Dictionary = {
     proGateResidue:
       "La pulizia dei residui è una funzione di Uninstaller Pro. La scansione qui sopra è gratuita — rimuovere ciò che trova richiede Pro.",
     proGateBatch:
-      "La rimozione in batch è una funzione di Uninstaller Pro. Le disinstallazioni singole restano gratuite, sempre.",
+      "La rimozione multipla è una funzione di Uninstaller Pro. Le disinstallazioni singole restano gratuite, sempre.",
     proGateSignIn: "Accedi prima dal menu account, poi sblocca Pro.",
     loyaltyLocked: "Accedi con il tuo account PC Tweaker Pro per sbloccare il prezzo fedeltà.",
     checkFailed: "Impossibile verificare l'account in questo momento. Riprova tra poco.",
@@ -862,14 +862,14 @@ const it: Dictionary = {
     emailUnverified: "La tua email non è ancora verificata.",
     resendVerification: "Invia di nuovo l'email di verifica",
     verificationResent: "Email di verifica inviata. Controlla la posta in arrivo e lo spam.",
-    planLifetime: "A vita",
+    planLifetime: "Lifetime",
   },
   updater: {
     title: (version) => `Aggiornamento ${version} pronto`,
-    body: "È disponibile una nuova build firmata. Si installa in pochi secondi e l'app si riavvia da sola.",
+    body: "È disponibile una nuova versione firmata. Si installa in pochi secondi e l'app si riavvia da sola.",
     install: "Installa ora",
     later: "Più tardi",
-    downloading: (percent) => `Download… ${String(percent)}%`,
+    downloading: (percent) => `Download in corso… ${String(percent)}%`,
     installing: "Installazione…",
     error: (message) => `Impossibile installare l'aggiornamento: ${message}`,
   },
@@ -881,7 +881,7 @@ const it: Dictionary = {
 const fr: Dictionary = {
   app: {
     title: "PC Tweaker Uninstaller",
-    tagline: "Examinez vos logiciels. Choisissez quoi désinstaller.",
+    tagline: "Examinez vos logiciels. Désinstallez en toute confiance.",
     suiteDetected: "PC Tweaker détecté - membre de la suite",
     suiteDetectedHint:
       "PC Tweaker est installé sur ce PC. Connectez-vous avec votre compte PC Tweaker Pro pour débloquer le prix fidélité.",
@@ -897,7 +897,7 @@ const fr: Dictionary = {
     statTotalSize: "sur le disque",
     emptyTitle: "Aucun programme trouvé",
     emptyBody:
-      "Aucun programme désinstallable n'a été trouvé dans le registre Windows. C'est inhabituel : si vous pensez que c'est une erreur, signalez-le.",
+      "Aucun programme désinstallable n'a été trouvé dans le registre Windows. C'est inhabituel : si vous pensez que c'est une erreur, signalez-le.",
     noMatchesTitle: "Aucun résultat",
     noMatchesBody: "Aucun programme installé ne correspond à votre recherche.",
     errorTitle: "Impossible de lire les programmes installés",
@@ -913,7 +913,7 @@ const fr: Dictionary = {
     badgeNone: "Sans désinstalleur",
     badgeInvalid: "Entrée endommagée",
     badgeManualOnlyHint:
-      "La commande de désinstallation passe par un interpréteur de scripts : par sécurité, elle doit être lancée manuellement.",
+      "La commande de désinstallation passe par un interpréteur de scripts : par sécurité, elle doit être lancée manuellement.",
     badgeNoneHint: "Cette entrée de registre ne déclare aucune commande de désinstallation.",
     badgeInvalidHint: "La commande de désinstallation de ce programme est incompréhensible.",
     badgeMissing: "Désinstalleur absent",
@@ -926,7 +926,7 @@ const fr: Dictionary = {
     badgeUserHint: "Installé pour cet utilisateur uniquement, pas pour tout le PC.",
     badgeHidden: "Masqué",
     badgeHiddenHint:
-      "Windows masque normalement cette entrée (composant système ou mise à jour). La supprimer peut affecter d'autres logiciels : soyez sûr de savoir ce que c'est.",
+      "Windows masque normalement cette entrée (composant système ou mise à jour). La supprimer peut affecter d'autres logiciels : soyez sûr de savoir ce que c'est.",
     badgeSuite: "Suite",
     badgeSuiteHint: "Fait partie de votre suite PC Tweaker.",
     filterAll: "Tous",
@@ -948,30 +948,30 @@ const fr: Dictionary = {
     labelSafe: "Suppression sûre",
     labelReview: "À vérifier avant suppression",
     labelKeep: "À conserver - lié au système",
-    disclaimer: "Basé sur des preuves visibles : un guide, pas une certitude.",
+    disclaimer: "Fondé sur des indices visibles : un guide, pas une certitude.",
     reasons: {
       hiddenSystem: "Windows lui-même masque cette entrée (composant système ou mise à jour).",
-      sharedRuntime: "Runtime partagé : d'autres programmes en dépendent probablement.",
-      driverComponent: "Pilote ou chipset : sa suppression peut affecter le matériel.",
+      sharedRuntime: "Runtime partagé : d'autres programmes en dépendent probablement.",
+      driverComponent: "Pilote ou chipset : sa suppression peut affecter le matériel.",
       sharedLauncher:
-        "Launcher/boutique : les logiciels installés via celui-ci cesseraient de fonctionner.",
-      noPublisher: "Aucun éditeur enregistré : origine invérifiable.",
+        "Launcher/boutique : les logiciels installés via celui-ci cesseraient de fonctionner.",
+      noPublisher: "Aucun éditeur enregistré : origine invérifiable.",
       brokenUninstaller:
         "Sa commande de désinstallation est endommagée et ne peut pas s'exécuter automatiquement.",
       manualUninstaller: "Son désinstalleur doit être lancé manuellement (script).",
       noUninstaller: "Il ne déclare aucune commande de désinstallation.",
       namedPublisher: "Un éditeur nommé est enregistré.",
       standardUninstaller: "Il possède un désinstalleur standard MSI/EXE.",
-      storeFramework: "Runtime partagé : d'autres applications reposent dessus.",
-      storeOsComponent: "Fait partie de l'interface de Windows, ce n'est pas une application.",
+      storeFramework: "Runtime partagé : d'autres applications reposent dessus.",
+      storeOsComponent: "Fait partie du shell de Windows, ce n'est pas une application.",
       storeResourcePackage: "Paquet de ressources (langue ou affichage), pas une application.",
       storeNoDisplayName:
-        "Windows ne donne aucun nom affichable à ce paquet : c'est un composant interne.",
-      storeSystemSigned: "Signé comme partie de Windows : il peut être préinstallé.",
-      storeNoPublisher: "Aucun éditeur enregistré : l'origine n'est pas vérifiable.",
+        "Windows ne donne aucun nom affichable à ce paquet : c'est un composant interne.",
+      storeSystemSigned: "Signé comme partie de Windows : il peut être préinstallé.",
+      storeNoPublisher: "Aucun éditeur enregistré : l'origine n'est pas vérifiable.",
       storeFromStore: "Signé par le Microsoft Store.",
       storeCleanRemoval:
-        "Paquet MSIX : la suppression ne laisse aucun résidu et il est réinstallable depuis le Store.",
+        "Paquet MSIX : la suppression ne laisse aucun résidu et il est réinstallable depuis le Store.",
     },
   },
   footer: {
@@ -985,7 +985,7 @@ const fr: Dictionary = {
   },
   uninstall: {
     action: "Désinstaller",
-    confirmTitle: (name) => `Désinstaller ${name} ?`,
+    confirmTitle: (name) => `Désinstaller ${name} ?`,
     confirmBody:
       "Exactement la commande ci-dessous sera exécutée, rien d'autre. Elle est reconstruite depuis le registre Windows et sera revérifiée au moment de l'exécution.",
     commandLabel: "Commande",
@@ -1003,66 +1003,66 @@ const fr: Dictionary = {
     sizeUnknown: "Non enregistré",
     confidenceLabel: "Confiance",
     notRemovedNote:
-      "Non supprimé automatiquement : fichiers, dossiers et entrées de registre résiduels. Vous pouvez les rechercher juste après la désinstallation, et rien n'est supprimé sans demander.",
+      "Non supprimé automatiquement : fichiers, dossiers et entrées de registre résiduels. Vous pouvez les rechercher juste après la désinstallation, et rien n'est supprimé sans demander.",
     elevationNote: "Windows demandera d'abord l'approbation administrateur (UAC).",
     restorePointNote:
       "Avant toute exécution, un nouveau point de restauration est demandé à Windows. S'il ne peut pas en créer, la désinstallation a quand même lieu et le rapport l'indique.",
     restoreForecastReuse: (when) =>
-      `Windows a déjà créé un point de restauration le ${when} et n'en crée qu'un par jour au maximum : il réutilisera donc très probablement celui-ci, et aucun nouveau point ne sera créé juste avant cette désinstallation.`,
+      `Windows a déjà créé un point de restauration le ${when} et n'en crée qu'un par jour au maximum : il réutilisera donc très probablement celui-ci, et aucun nouveau point ne sera créé juste avant cette désinstallation.`,
     restoreForecastOff:
-      "La protection du système est désactivée : aucun point de restauration ne sera créé avant cette désinstallation.",
+      "La protection du système est désactivée : aucun point de restauration ne sera créé avant cette désinstallation.",
     confirm: "Désinstaller",
     cancel: "Annuler",
     close: "Fermer",
     planning: "Vérification de ce qui serait exécuté...",
     planFailedTitle: "Désinstallation automatique impossible",
     forgetOffer:
-      "Le désinstalleur du programme n'existe plus : il ne pourra jamais s'exécuter. Vous pouvez à la place retirer l'entrée des programmes installés, puis nettoyer ce qui reste.",
-    forgetAction: "Retirer l'entrée cassée",
-    forgetConfirmTitle: (name) => `Retirer l'entrée de ${name} ?`,
+      "Le désinstalleur du programme n'existe plus : il ne pourra jamais s'exécuter. Vous pouvez à la place retirer l'entrée des programmes installés, puis nettoyer ce qui reste.",
+    forgetAction: "Retirer l'entrée endommagée",
+    forgetConfirmTitle: (name) => `Retirer l'entrée de ${name} ?`,
     forgetConfirmBody:
-      "Seule l'entrée des programmes installés est retirée. Rien n'est exécuté et aucun fichier n'est supprimé ; vous pourrez ensuite rechercher les restes, et tout ce que vous nettoyez va dans la Corbeille.",
+      "Seule l'entrée des programmes installés est retirée. Rien n'est exécuté et aucun fichier n'est supprimé ; vous pourrez ensuite rechercher les restes, et tout ce que vous nettoyez va dans la Corbeille.",
     forgetLedgerNote:
       "Les valeurs de registre retirées sont conservées dans le Registre des suppressions.",
-    forgetProGate: "Le retrait des entrées cassées fait partie d'Uninstaller Pro.",
+    forgetProGate: "Le retrait des entrées endommagées fait partie d'Uninstaller Pro.",
     forgetRunning: "Retrait de l'entrée...",
     forgetDoneTitle: "Entrée retirée",
     running: (name) => `Désinstallation de ${name}...`,
     runningNote:
-      "Le désinstalleur du programme est en cours. Cette fenêtre reste réactive ; certains désinstalleurs ouvrent leurs propres fenêtres.",
+      "Le désinstalleur du programme est en cours. Cette fenêtre reste réactive ; certains désinstalleurs ouvrent leurs propres fenêtres.",
     runningSlowNote:
-      "Cela prend plus de temps que d'habitude. Certains desinstalleurs ouvrent leur propre fenetre, qui peut se trouver derriere celle-ci : regardez votre barre des taches. Rien n'est perdu si vous attendez.",
+      "Cela prend plus de temps que d'habitude. Certains désinstalleurs ouvrent leur propre fenêtre, qui peut se trouver derrière celle-ci : regardez votre barre des tâches. Rien n'est perdu si vous attendez.",
     reportSuccessTitle: "Désinstallé",
     reportFailureTitle: "Désinstallation non terminée",
     rebootNote: "Un redémarrage est nécessaire pour finir de supprimer les fichiers.",
     restorePointCreated: (when) =>
-      `Point de restauration : créé le ${when}, juste avant la désinstallation.`,
+      `Point de restauration : créé le ${when}, juste avant la désinstallation.`,
     restorePointReused: (when) =>
-      `Point de restauration : aucun nouveau. Windows a réutilisé celui du ${when} ; le restaurer annule aussi tout ce qui a changé depuis.`,
+      `Point de restauration : aucun nouveau. Windows a réutilisé celui du ${when} ; le restaurer annule aussi tout ce qui a changé depuis.`,
     restorePointUnverified:
-      "Point de restauration : Windows a accepté la demande, mais l'application n'a pas pu confirmer qu'un nouveau point existe. Vérifiez dans Gérer les points de restauration.",
-    restorePointSkipped: (reason) => `Point de restauration : ignoré - ${reason}`,
-    restorePointFailed: (reason) => `Point de restauration : non créé - ${reason}`,
+      "Point de restauration : Windows a accepté la demande, mais l'application n'a pas pu confirmer qu'un nouveau point existe. Vérifiez dans Gérer les points de restauration.",
+    restorePointSkipped: (reason) => `Point de restauration : ignoré - ${reason}`,
+    restorePointFailed: (reason) => `Point de restauration : non créé - ${reason}`,
     restorePointCauses: {
       disabled: "la protection du système est désactivée.",
       diskSpace: "l'espace disque libre est insuffisant.",
       unavailable: "cette édition de Windows n'a pas la restauration du système.",
     },
     exitCodeLabel: "Code de sortie",
-    freedLine: (mb) => `Espace libéré : ${mb} Mo (vérifié)`,
+    freedLine: (mb) => `Espace libéré : ${mb} Mo (vérifié)`,
     residueScan: "Rechercher les restes",
     residueChecking: "Recherche des restes…",
-    residueFound: (count, mb) => `Examiner ${String(count)} restes · ${mb} Mo`,
+    residueFound: (count, mb) => `Examiner ${String(count)} restes · ${mb} Mo`,
     residueScanning: "Recherche des restes...",
     residueTitle: "Restes trouvés",
     residueNone: "Aucun reste trouvé. Désinstallation propre.",
     residueIntro: (count, mb) =>
-      `${String(count)} élément(s) restants, environ ${mb} Mo. Tout ce que vous sélectionnez va à la Corbeille et reste récupérable.`,
+      `Éléments restants : ${String(count)}, environ ${mb} Mo. Tout ce que vous sélectionnez va à la Corbeille et reste récupérable.`,
     residueClean: "Déplacer la sélection vers la Corbeille",
     residueRegistryNote:
-      "Les clés de registre utilisateur sont supprimées directement (non récupérables) ; les clés machine sont listées à titre indicatif.",
-    residueDone: (count, mb) => `${String(count)} élément(s) nettoyés, environ ${mb} Mo libérés.`,
-    residueFailed: (count) => `${String(count)} élément(s) n'ont pas pu être supprimés.`,
+      "Les clés de registre utilisateur sont supprimées directement (non récupérables) ; les clés machine sont listées à titre indicatif.",
+    residueDone: (count, mb) => `Éléments nettoyés : ${String(count)}, environ ${mb} Mo libérés.`,
+    residueFailed: (count) => `Éléments non supprimés : ${String(count)}.`,
     residueKinds: {
       "install-dir": "Dossier d'installation",
       "app-data": "Données d'application",
@@ -1071,12 +1071,12 @@ const fr: Dictionary = {
       "registry-machine": "Registre (machine)",
     },
     relDependentsWarning: (names) =>
-      `Sa suppression emporte aussi les programmes installés dans son dossier : ${names}.`,
+      `Sa suppression emporte aussi les programmes installés dans son dossier : ${names}.`,
     relInstalledVia: (name) => `Installé via ${name} — envisagez de le supprimer depuis là.`,
-    relSiblings: (count) => `${String(count)} autre(s) programme(s) de cet éditeur sont installés.`,
+    relSiblings: (count) => `Autres programmes de cet éditeur installés : ${String(count)}.`,
     batchBar: (count, size) => `Désinstaller ${String(count)} sélectionnés · ${size}`,
     batchClear: "Vider la sélection",
-    batchConfirmTitle: (count) => `Supprimer ${String(count)} programmes ?`,
+    batchConfirmTitle: (count) => `Supprimer ${String(count)} programmes ?`,
     batchConfirmBody:
       "Ils s'exécutent un par un, les programmes contenus avant leurs conteneurs, avec les mêmes contrôles qu'une désinstallation simple. Les entrées protégées (composants système, runtimes partagés, votre suite PC Tweaker) ne sont pas sélectionnables.",
     batchNotBatchable: "Protégé — indisponible pour la suppression par lot.",
@@ -1084,7 +1084,7 @@ const fr: Dictionary = {
       `Désinstallation de ${name} (${String(index)} sur ${String(total)})...`,
     batchDoneTitle: "Lot terminé",
     batchFailedNote: (count) =>
-      `${String(count)} programme(s) inachevé(s) — voir le registre pour les détails.`,
+      `Programmes non terminés : ${String(count)} — voir le registre pour les détails.`,
     familyNote:
       "Cette application fait partie de votre suite PC Tweaker. Vous pouvez la supprimer, mais les fonctions de la suite qui en dépendent cesseront de fonctionner.",
     hiddenNote:
@@ -1099,7 +1099,7 @@ const fr: Dictionary = {
     exportButton: "Exporter en JSON",
     logButton: "Ouvrir le dossier des journaux",
     logAt: (path) =>
-      `Journal de diagnostic : ${path}. Rien n'est envoye nulle part ; joignez-le a un message au support si besoin.`,
+      `Journal de diagnostic : ${path}. Rien n'est envoyé nulle part ; joignez-le à un message au support si besoin.`,
     exportedTo: (path) => `Exporté vers ${path}`,
     verifiedFreed: (size) => `${size} libérés (vérifié)`,
     estimatedOnly: (size) => `~${size} (estimation du registre)`,
@@ -1115,7 +1115,7 @@ const fr: Dictionary = {
     plans: "Uninstaller Pro",
     loyaltyTitle: "Prix fidélité de la suite",
     loyaltyHint:
-      "Déjà abonné à un plan PC Tweaker ? Uninstaller Pro coûte 4,99 €/an sur le même compte.",
+      "Déjà abonné à un plan PC Tweaker ? Uninstaller Pro coûte 4,99 €/an sur le même compte.",
     language: "Langue",
     theme: "Thème",
     openPcTweaker: "Ouvrir PC Tweaker",
@@ -1128,8 +1128,8 @@ const fr: Dictionary = {
     proInactive: "Ce compte n'a pas encore PC Tweaker Pro.",
     upsActive: "Uninstaller Pro — actif",
     upsInactive: "Uninstaller Pro — non actif",
-    upsGoPro: "Passer Pro — 9,99 € / an",
-    upsGoProLoyalty: "Passer Pro — 4,99 € / an (tarif fidélité PC Tweaker Pro)",
+    upsGoPro: "Passer à Pro — 9,99 € / an",
+    upsGoProLoyalty: "Passer à Pro — 4,99 € / an (tarif fidélité PC Tweaker Pro)",
     upsCheckoutHint:
       "Le paiement s'ouvre dans votre navigateur. Revenez ici ensuite et actualisez.",
     upsRefresh: "Paiement terminé — actualiser",
@@ -1158,24 +1158,24 @@ const fr: Dictionary = {
       "Le service de compte ne répond pas pour le moment. Réessayez dans quelques minutes.",
     errorNetwork:
       "Impossible de joindre le service de compte. Vérifiez votre connexion internet, puis réessayez.",
-    forgotPassword: "Mot de passe oublié ?",
+    forgotPassword: "Mot de passe oublié ?",
     securityTitle: "Mot de passe et e-mail",
     currentPassword: "Mot de passe actuel",
     newPassword: "Nouveau mot de passe",
     changePassword: "Changer le mot de passe",
     passwordChanged:
-      "Mot de passe modifié. Les autres PC ont été déconnectés ; celui-ci reste connecté.",
+      "Mot de passe modifié. Les autres PC ont été déconnectés ; celui-ci reste connecté.",
     newEmail: "Nouvelle adresse e-mail",
     changeEmail: "Changer d'adresse e-mail",
     changeEmailSent:
-      "Consultez la nouvelle boîte de réception : le changement a lieu quand vous confirmez le lien qu'elle contient.",
+      "Consultez la nouvelle boîte de réception : le changement a lieu quand vous confirmez le lien qu'elle contient.",
     errorCurrentPassword: "Le mot de passe actuel n'est pas correct.",
     resetSent: "Si cet e-mail a un compte, un lien de réinitialisation est en route.",
     emailUnverified: "Votre e-mail n'est pas encore vérifié.",
     resendVerification: "Renvoyer l'e-mail de vérification",
     verificationResent:
       "E-mail de vérification envoyé. Consultez votre boîte de réception et vos spams.",
-    planLifetime: "À vie",
+    planLifetime: "Lifetime",
   },
   updater: {
     title: (version) => `Mise à jour ${version} prête`,
@@ -1184,7 +1184,7 @@ const fr: Dictionary = {
     later: "Plus tard",
     downloading: (percent) => `Téléchargement… ${String(percent)}%`,
     installing: "Installation…",
-    error: (message) => `La mise à jour n'a pas pu être installée : ${message}`,
+    error: (message) => `La mise à jour n'a pas pu être installée : ${message}`,
   },
   errors: {
     generic: "Une erreur s'est produite. Veuillez réessayer.",
@@ -1194,13 +1194,13 @@ const fr: Dictionary = {
 const es: Dictionary = {
   app: {
     title: "PC Tweaker Uninstaller",
-    tagline: "Revisa tus programas. Elige qué desinstalar.",
+    tagline: "Revisa tus programas. Desinstala con confianza.",
     suiteDetected: "PC Tweaker detectado - miembro de la suite",
     suiteDetectedHint:
       "PC Tweaker está instalado en este PC. Inicia sesión con tu cuenta PC Tweaker Pro para desbloquear el precio de fidelidad.",
   },
   programs: {
-    searchPlaceholder: "Buscar por nombre o fabricante...",
+    searchPlaceholder: "Buscar por nombre o editor...",
     searchLabel: "Buscar entre los programas instalados",
     loading: "Leyendo los programas instalados...",
     countSummary: (shown, total) =>
@@ -1217,7 +1217,7 @@ const es: Dictionary = {
     retry: "Reintentar",
     columnProgram: "Programa",
     columnVersion: "Versión",
-    columnPublisher: "Fabricante",
+    columnPublisher: "Editor",
     columnSize: "Tamaño",
     columnInstalled: "Instalado",
     badgeMsi: "MSI",
@@ -1261,22 +1261,22 @@ const es: Dictionary = {
     labelSafe: "Eliminación segura",
     labelReview: "Revisar antes de eliminar",
     labelKeep: "Conservar - relacionado con el sistema",
-    disclaimer: "Basado en evidencia visible: una guía, no una certeza.",
+    disclaimer: "Basado en indicios visibles: una guía, no una certeza.",
     reasons: {
       hiddenSystem:
         "El propio Windows oculta esta entrada (componente del sistema o actualización).",
       sharedRuntime: "Runtime compartido: es probable que otros programas dependan de él.",
       driverComponent: "Paquete de controlador o chipset: quitarlo puede afectar al hardware.",
       sharedLauncher: "Launcher/tienda: el software instalado a través de él dejaría de funcionar.",
-      noPublisher: "Sin fabricante registrado: origen no verificable.",
+      noPublisher: "Sin editor registrado: origen no verificable.",
       brokenUninstaller:
         "Su comando de desinstalación está dañado y no puede ejecutarse automáticamente.",
       manualUninstaller: "Su desinstalador debe ejecutarse manualmente (basado en scripts).",
       noUninstaller: "No declara ningún comando de desinstalación.",
-      namedPublisher: "Hay un fabricante con nombre registrado.",
+      namedPublisher: "Hay un editor con nombre registrado.",
       standardUninstaller: "Tiene un desinstalador estándar MSI/EXE.",
       storeFramework: "Runtime compartido: otras aplicaciones se apoyan en él.",
-      storeOsComponent: "Forma parte de la interfaz de Windows, no es una aplicación.",
+      storeOsComponent: "Forma parte del shell de Windows, no es una aplicación.",
       storeResourcePackage: "Paquete de recursos (idioma o gráficos), no una aplicación.",
       storeNoDisplayName: "Windows no da nombre visible a este paquete: es un componente interno.",
       storeSystemSigned: "Firmado como parte de Windows: puede venir preinstalado.",
@@ -1330,20 +1330,20 @@ const es: Dictionary = {
     planFailedTitle: "No se puede desinstalar automáticamente",
     forgetOffer:
       "El desinstalador del programa ya no existe, así que nunca podrá ejecutarse. En su lugar puedes quitar la entrada de Programas instalados y después limpiar lo que quedó.",
-    forgetAction: "Quitar entrada rota",
+    forgetAction: "Quitar entrada dañada",
     forgetConfirmTitle: (name) => `¿Quitar la entrada de ${name}?`,
     forgetConfirmBody:
       "Solo se quita la entrada de Programas instalados. No se ejecuta nada ni se elimina ningún archivo; después puedes buscar restos, y todo lo que limpies va a la Papelera.",
     forgetLedgerNote:
       "Los valores del registro quitados se conservan en el Registro de eliminaciones.",
-    forgetProGate: "Quitar entradas rotas forma parte de Uninstaller Pro.",
+    forgetProGate: "Quitar entradas dañadas forma parte de Uninstaller Pro.",
     forgetRunning: "Quitando la entrada...",
     forgetDoneTitle: "Entrada quitada",
     running: (name) => `Desinstalando ${name}...`,
     runningNote:
       "El desinstalador del programa se está ejecutando. Esta ventana sigue respondiendo; algunos desinstaladores abren sus propias ventanas.",
     runningSlowNote:
-      "Esta tardando mas de lo habitual. Algunos desinstaladores abren su propia ventana, que puede estar detras de esta: revisa la barra de tareas. No se pierde nada por esperar.",
+      "Está tardando más de lo habitual. Algunos desinstaladores abren su propia ventana, que puede estar detrás de esta: revisa la barra de tareas. No se pierde nada por esperar.",
     reportSuccessTitle: "Desinstalado",
     reportFailureTitle: "La desinstalación no se completó",
     rebootNote: "Se requiere un reinicio para terminar de eliminar los archivos.",
@@ -1369,12 +1369,12 @@ const es: Dictionary = {
     residueTitle: "Restos encontrados",
     residueNone: "No se encontraron restos. Desinstalación limpia.",
     residueIntro: (count, mb) =>
-      `${String(count)} elemento(s) restantes, unos ${mb} MB. Todo lo que selecciones va a la Papelera y sigue siendo recuperable.`,
+      `Elementos restantes: ${String(count)}, unos ${mb} MB. Todo lo que selecciones va a la Papelera y sigue siendo recuperable.`,
     residueClean: "Mover selección a la Papelera",
     residueRegistryNote:
       "Las claves de registro del usuario se eliminan directamente (no recuperables); las de sistema se listan solo como referencia.",
-    residueDone: (count, mb) => `${String(count)} elemento(s) limpiados, unos ${mb} MB liberados.`,
-    residueFailed: (count) => `${String(count)} elemento(s) no se pudieron eliminar.`,
+    residueDone: (count, mb) => `Elementos limpiados: ${String(count)}, unos ${mb} MB liberados.`,
+    residueFailed: (count) => `Elementos que no se pudieron eliminar: ${String(count)}.`,
     residueKinds: {
       "install-dir": "Carpeta de instalación",
       "app-data": "Datos de la aplicación",
@@ -1385,7 +1385,7 @@ const es: Dictionary = {
     relDependentsWarning: (names) =>
       `Al eliminarlo también se eliminan los programas instalados en su carpeta: ${names}.`,
     relInstalledVia: (name) => `Instalado a través de ${name}; considera eliminarlo desde allí.`,
-    relSiblings: (count) => `Hay ${String(count)} programa(s) más de este editor instalados.`,
+    relSiblings: (count) => `Otros programas de este editor instalados: ${String(count)}.`,
     batchBar: (count, size) => `Desinstalar ${String(count)} seleccionados · ${size}`,
     batchClear: "Vaciar selección",
     batchConfirmTitle: (count) => `¿Eliminar ${String(count)} programas?`,
@@ -1396,7 +1396,7 @@ const es: Dictionary = {
       `Desinstalando ${name} (${String(index)} de ${String(total)})...`,
     batchDoneTitle: "Lote completado",
     batchFailedNote: (count) =>
-      `${String(count)} programa(s) no completados — consulta el registro para más detalles.`,
+      `Programas no completados: ${String(count)} — consulta el registro para más detalles.`,
     familyNote:
       "Esta aplicación forma parte de tu suite PC Tweaker. Puedes eliminarla, pero las funciones de la suite que dependen de ella dejarán de funcionar.",
     hiddenNote:
@@ -1411,7 +1411,7 @@ const es: Dictionary = {
     exportButton: "Exportar JSON",
     logButton: "Abrir la carpeta de registros",
     logAt: (path) =>
-      `Registro de diagnostico: ${path}. No se envia a ninguna parte; adjuntalo a un mensaje de soporte si lo necesitas.`,
+      `Registro de diagnóstico: ${path}. No se envía a ninguna parte; adjúntalo a un mensaje de soporte si lo necesitas.`,
     exportedTo: (path) => `Exportado a ${path}`,
     verifiedFreed: (size) => `${size} liberados (verificado)`,
     estimatedOnly: (size) => `~${size} (estimación del registro)`,
@@ -1455,7 +1455,7 @@ const es: Dictionary = {
     checkFailed: "No se pudo verificar la cuenta en este momento. Inténtalo de nuevo en breve.",
     createAccount: "Crear cuenta",
     firstNameLabel: "Nombre",
-    lastNameLabel: "Apellido",
+    lastNameLabel: "Apellidos",
     birthDateLabel: "Fecha de nacimiento",
     verifyEmail: "Revisa tu correo para verificar tu dirección.",
     verifyEmailFailed:
@@ -1486,7 +1486,7 @@ const es: Dictionary = {
     emailUnverified: "Tu correo aún no está verificado.",
     resendVerification: "Reenviar el correo de verificación",
     verificationResent: "Correo de verificación enviado. Revisa la bandeja de entrada y el spam.",
-    planLifetime: "De por vida",
+    planLifetime: "Lifetime",
   },
   updater: {
     title: (version) => `Actualización ${version} lista`,
@@ -1505,13 +1505,13 @@ const es: Dictionary = {
 const de: Dictionary = {
   app: {
     title: "PC Tweaker Uninstaller",
-    tagline: "Installierte Programme prüfen. Bewusst deinstallieren.",
-    suiteDetected: "PC Tweaker erkannt - Suite-Mitglied",
+    tagline: "Installierte Programme prüfen. Sicher deinstallieren.",
+    suiteDetected: "PC Tweaker erkannt – Suite-Mitglied",
     suiteDetectedHint:
       "PC Tweaker ist auf diesem PC installiert. Melden Sie sich mit Ihrem PC-Tweaker-Pro-Konto an, um den Treuepreis freizuschalten.",
   },
   programs: {
-    searchPlaceholder: "Nach Name oder Hersteller suchen...",
+    searchPlaceholder: "Nach Name oder Herausgeber suchen...",
     searchLabel: "Installierte Programme durchsuchen",
     loading: "Installierte Programme werden gelesen...",
     countSummary: (shown, total) =>
@@ -1521,28 +1521,29 @@ const de: Dictionary = {
     statTotalSize: "auf der Festplatte",
     emptyTitle: "Keine Programme gefunden",
     emptyBody:
-      "In der Windows-Registrierung wurden keine deinstallierbaren Programme gefunden. Das ist ungewöhnlich - wenn Sie glauben, dass das ein Fehler ist, melden Sie es bitte.",
+      "In der Windows-Registrierung wurden keine deinstallierbaren Programme gefunden. Das ist ungewöhnlich – wenn Sie glauben, dass das ein Fehler ist, melden Sie es bitte.",
     noMatchesTitle: "Keine Treffer",
     noMatchesBody: "Kein installiertes Programm entspricht Ihrer Suche.",
     errorTitle: "Installierte Programme konnten nicht gelesen werden",
     retry: "Erneut versuchen",
     columnProgram: "Programm",
     columnVersion: "Version",
-    columnPublisher: "Hersteller",
+    columnPublisher: "Herausgeber",
     columnSize: "Größe",
     columnInstalled: "Installiert",
     badgeMsi: "MSI",
     badgeExecutable: "EXE",
     badgeManualOnly: "Manuell",
-    badgeNone: "Kein Uninstaller",
+    badgeNone: "Kein Deinstallationsprogramm",
     badgeInvalid: "Defekter Eintrag",
     badgeManualOnlyHint:
       "Der Deinstallationsbefehl nutzt einen Skript-Interpreter und muss aus Sicherheitsgründen manuell ausgeführt werden.",
     badgeNoneHint: "Dieser Registrierungseintrag deklariert keinen Deinstallationsbefehl.",
-    badgeInvalidHint: "Der Deinstallationsbefehl dieses Programms war unverständlich.",
-    badgeMissing: "Uninstaller fehlt",
+    badgeInvalidHint:
+      "Der Deinstallationsbefehl dieses Programms konnte nicht interpretiert werden.",
+    badgeMissing: "Deinstallationsprogramm fehlt",
     badgeMissingHint:
-      "Der Uninstaller, auf den dieser Eintrag verweist, existiert nicht mehr auf dem Datenträger. Der Eintrag kann aus der Liste entfernt werden.",
+      "Das Deinstallationsprogramm, auf das dieser Eintrag verweist, existiert nicht mehr auf dem Datenträger. Der Eintrag kann aus der Liste entfernt werden.",
     badgeStore: "Store",
     badgeStoreHint:
       "Als MSIX-Paket installiert. Windows übernimmt die Entfernung und hinterlässt nichts.",
@@ -1550,13 +1551,13 @@ const de: Dictionary = {
     badgeUserHint: "Nur für diesen Benutzer installiert, nicht PC-weit.",
     badgeHidden: "Verborgen",
     badgeHiddenHint:
-      "Windows verbirgt diesen Eintrag normalerweise (Systemkomponente oder Unter-Update). Das Entfernen kann andere Software beeinträchtigen - stellen Sie sicher, dass Sie wissen, was es ist.",
+      "Windows verbirgt diesen Eintrag normalerweise (Systemkomponente oder Unter-Update). Das Entfernen kann andere Software beeinträchtigen – stellen Sie sicher, dass Sie wissen, was es ist.",
     badgeSuite: "Suite",
     badgeSuiteHint: "Teil Ihrer PC-Tweaker-Suite.",
     filterAll: "Alle",
     filterLarge: "Groß",
     filterRecent: "Neu",
-    showHidden: "Verborgene zeigen",
+    showHidden: "Verborgene anzeigen",
     detailSource: "Bereich",
     detailKey: "Registrierungseintrag",
     detailPackageName: "Paketname",
@@ -1571,8 +1572,8 @@ const de: Dictionary = {
   confidence: {
     labelSafe: "Sicher entfernbar",
     labelReview: "Vor dem Entfernen prüfen",
-    labelKeep: "Behalten - systemnah",
-    disclaimer: "Basierend auf sichtbaren Belegen: ein Leitfaden, keine Gewissheit.",
+    labelKeep: "Behalten – systemnah",
+    disclaimer: "Beruht auf sichtbaren Hinweisen: eine Orientierung, keine Gewissheit.",
     reasons: {
       hiddenSystem: "Windows selbst verbirgt diesen Eintrag (Systemkomponente oder Unter-Update).",
       sharedRuntime:
@@ -1581,20 +1582,21 @@ const de: Dictionary = {
         "Treiber- oder Chipsatzpaket: das Entfernen kann die Hardware beeinträchtigen.",
       sharedLauncher:
         "Launcher/Store: darüber installierte Software würde nicht mehr funktionieren.",
-      noPublisher: "Kein Hersteller erfasst - Herkunft nicht überprüfbar.",
+      noPublisher: "Kein Herausgeber erfasst – Herkunft nicht überprüfbar.",
       brokenUninstaller:
         "Der Deinstallationsbefehl ist defekt und kann nicht automatisch ausgeführt werden.",
-      manualUninstaller: "Der Uninstaller muss manuell ausgeführt werden (skriptbasiert).",
+      manualUninstaller:
+        "Das Deinstallationsprogramm muss manuell ausgeführt werden (skriptbasiert).",
       noUninstaller: "Es ist überhaupt kein Deinstallationsbefehl deklariert.",
-      namedPublisher: "Ein benannter Hersteller ist erfasst.",
-      standardUninstaller: "Es gibt einen Standard-Uninstaller (MSI/EXE).",
+      namedPublisher: "Ein benannter Herausgeber ist erfasst.",
+      standardUninstaller: "Es gibt ein Standard-Deinstallationsprogramm (MSI/EXE).",
       storeFramework: "Gemeinsame Laufzeit: andere Apps bauen darauf auf.",
-      storeOsComponent: "Teil der Windows-Oberfläche, keine Anwendung.",
+      storeOsComponent: "Teil der Windows-Shell, keine Anwendung.",
       storeResourcePackage: "Ressourcenpaket (Sprache oder Grafik), keine App.",
       storeNoDisplayName:
-        "Windows gibt diesem Paket keinen Anzeigenamen - es ist eine interne Komponente.",
-      storeSystemSigned: "Als Teil von Windows signiert - möglicherweise vorinstalliert.",
-      storeNoPublisher: "Kein Herausgeber hinterlegt - die Herkunft ist nicht prüfbar.",
+        "Windows gibt diesem Paket keinen Anzeigenamen – es ist eine interne Komponente.",
+      storeSystemSigned: "Als Teil von Windows signiert – möglicherweise vorinstalliert.",
+      storeNoPublisher: "Kein Herausgeber hinterlegt – die Herkunft ist nicht prüfbar.",
       storeFromStore: "Vom Microsoft Store signiert.",
       storeCleanRemoval:
         "MSIX-Paket: die Entfernung hinterlässt nichts und es lässt sich aus dem Store neu installieren.",
@@ -1613,7 +1615,7 @@ const de: Dictionary = {
     action: "Deinstallieren",
     confirmTitle: (name) => `${name} deinstallieren?`,
     confirmBody:
-      "Es wird genau der folgende Befehl ausgeführt - nichts anderes. Er wurde aus der Windows-Registrierung neu aufgebaut und wird im Moment der Ausführung erneut geprüft.",
+      "Es wird genau der folgende Befehl ausgeführt – nichts anderes. Er wurde aus der Windows-Registrierung neu aufgebaut und wird im Moment der Ausführung erneut geprüft.",
     commandLabel: "Befehl",
     storeConfirmBody:
       "Windows entfernt dieses Paket für den aktuellen Benutzer. Es bleibt nichts zum Aufräumen und Sie können es jederzeit aus dem Microsoft Store neu installieren.",
@@ -1621,7 +1623,7 @@ const de: Dictionary = {
     storeRemoved: (name: string) => `${name} wurde entfernt.`,
     methodLabel: "Methode",
     methodMsi: "Windows Installer (still)",
-    methodExe: "Der Uninstaller des Programms selbst",
+    methodExe: "Das Deinstallationsprogramm des Programms selbst",
     privilegesLabel: "Berechtigungen",
     privilegesAdmin: "Administrator (eine UAC-Abfrage)",
     privilegesUser: "Aktueller Benutzer",
@@ -1643,7 +1645,7 @@ const de: Dictionary = {
     planning: "Es wird geprüft, was ausgeführt würde...",
     planFailedTitle: "Automatische Deinstallation nicht möglich",
     forgetOffer:
-      "Der Uninstaller des Programms existiert nicht mehr und kann daher nie ausgeführt werden. Stattdessen können Sie den Eintrag aus den installierten Programmen entfernen und anschließend die Reste bereinigen.",
+      "Das Deinstallationsprogramm des Programms existiert nicht mehr und kann daher nie ausgeführt werden. Stattdessen können Sie den Eintrag aus den installierten Programmen entfernen und anschließend die Reste bereinigen.",
     forgetAction: "Defekten Eintrag entfernen",
     forgetConfirmTitle: (name) => `Eintrag für ${name} entfernen?`,
     forgetConfirmBody:
@@ -1655,9 +1657,9 @@ const de: Dictionary = {
     forgetDoneTitle: "Eintrag entfernt",
     running: (name) => `${name} wird deinstalliert...`,
     runningNote:
-      "Der Uninstaller des Programms läuft. Dieses Fenster bleibt bedienbar; manche Uninstaller öffnen eigene Fenster.",
+      "Das Deinstallationsprogramm des Programms läuft. Dieses Fenster bleibt bedienbar; manche Deinstallationsprogramme öffnen eigene Fenster.",
     runningSlowNote:
-      "Das dauert länger als üblich. Manche Deinstallationsprogramme öffnen ein eigenes Fenster, das hinter diesem liegen kann - sehen Sie in der Taskleiste nach. Es geht nichts verloren, wenn Sie warten.",
+      "Das dauert länger als üblich. Manche Deinstallationsprogramme öffnen ein eigenes Fenster, das hinter diesem liegen kann – sehen Sie in der Taskleiste nach. Es geht nichts verloren, wenn Sie warten.",
     reportSuccessTitle: "Deinstalliert",
     reportFailureTitle: "Deinstallation nicht abgeschlossen",
     rebootNote: "Ein Neustart ist nötig, um die Dateien vollständig zu entfernen.",
@@ -1667,8 +1669,8 @@ const de: Dictionary = {
       `Wiederherstellungspunkt: kein neuer. Windows hat den vom ${when} wiederverwendet. Wird er wiederhergestellt, wird auch alles rückgängig gemacht, was seitdem geändert wurde.`,
     restorePointUnverified:
       "Wiederherstellungspunkt: Windows hat die Anfrage angenommen, aber die App konnte nicht bestätigen, dass ein neuer Punkt existiert. Prüfen Sie es unter Wiederherstellungspunkte verwalten.",
-    restorePointSkipped: (reason) => `Wiederherstellungspunkt: übersprungen - ${reason}`,
-    restorePointFailed: (reason) => `Wiederherstellungspunkt: nicht erstellt - ${reason}`,
+    restorePointSkipped: (reason) => `Wiederherstellungspunkt: übersprungen – ${reason}`,
+    restorePointFailed: (reason) => `Wiederherstellungspunkt: nicht erstellt – ${reason}`,
     restorePointCauses: {
       disabled: "der Computerschutz ist ausgeschaltet.",
       diskSpace: "es ist nicht genug freier Speicherplatz vorhanden.",
@@ -1683,12 +1685,12 @@ const de: Dictionary = {
     residueTitle: "Reste gefunden",
     residueNone: "Keine Reste gefunden. Saubere Deinstallation.",
     residueIntro: (count, mb) =>
-      `${String(count)} Element(e) übrig, etwa ${mb} MB. Alles Ausgewählte wandert in den Papierkorb und bleibt wiederherstellbar.`,
+      `Übrig gebliebene Elemente: ${String(count)}, etwa ${mb} MB. Alles Ausgewählte wandert in den Papierkorb und bleibt wiederherstellbar.`,
     residueClean: "Auswahl in den Papierkorb verschieben",
     residueRegistryNote:
-      "Benutzer-Registrierungsschlüssel werden direkt gelöscht (nicht wiederherstellbar); Maschinenschlüssel werden nur aufgelistet.",
-    residueDone: (count, mb) => `${String(count)} Element(e) bereinigt, etwa ${mb} MB freigegeben.`,
-    residueFailed: (count) => `${String(count)} Element(e) konnten nicht entfernt werden.`,
+      "Benutzer-Registrierungsschlüssel werden direkt gelöscht (nicht wiederherstellbar); systemweite Schlüssel werden nur zur Information aufgelistet.",
+    residueDone: (count, mb) => `Bereinigte Elemente: ${String(count)}, etwa ${mb} MB freigegeben.`,
+    residueFailed: (count) => `Nicht entfernte Elemente: ${String(count)}.`,
     residueKinds: {
       "install-dir": "Installationsordner",
       "app-data": "Anwendungsdaten",
@@ -1698,20 +1700,19 @@ const de: Dictionary = {
     },
     relDependentsWarning: (names) =>
       `Beim Entfernen werden auch Programme in seinem Ordner entfernt: ${names}.`,
-    relInstalledVia: (name) => `Installiert über ${name} — besser dort entfernen.`,
-    relSiblings: (count) =>
-      `${String(count)} weitere(s) Programm(e) dieses Herausgebers sind installiert.`,
+    relInstalledVia: (name) => `Installiert über ${name} – besser dort entfernen.`,
+    relSiblings: (count) => `Weitere installierte Programme dieses Herausgebers: ${String(count)}.`,
     batchBar: (count, size) => `${String(count)} ausgewählte deinstallieren · ${size}`,
     batchClear: "Auswahl leeren",
     batchConfirmTitle: (count) => `${String(count)} Programme entfernen?`,
     batchConfirmBody:
       "Sie laufen nacheinander, enthaltene Programme vor ihren Containern, mit denselben Prüfungen wie eine einzelne Deinstallation. Geschützte Einträge (Systemkomponenten, gemeinsame Runtimes, Ihre PC-Tweaker-Suite) sind nicht auswählbar.",
-    batchNotBatchable: "Geschützt — nicht für Stapelentfernung verfügbar.",
+    batchNotBatchable: "Geschützt – nicht für Stapelentfernung verfügbar.",
     batchRunningStep: (name, index, total) =>
       `${name} wird deinstalliert (${String(index)} von ${String(total)})...`,
     batchDoneTitle: "Stapel abgeschlossen",
     batchFailedNote: (count) =>
-      `${String(count)} Programm(e) nicht abgeschlossen — Details im Protokoll.`,
+      `Nicht abgeschlossene Programme: ${String(count)} – Details im Protokoll.`,
     familyNote:
       "Diese App gehört zu Ihrer PC-Tweaker-Suite. Sie können sie entfernen, aber davon abhängige Suite-Funktionen hören auf zu funktionieren.",
     hiddenNote:
@@ -1721,7 +1722,7 @@ const de: Dictionary = {
     open: "Verlauf",
     title: "Entfernungsprotokoll",
     subtitle:
-      "Eine lokale Quittung für jede Entfernung, die diese App ausgeführt hat - Erfolge wie Fehlschläge. Auf diesem PC gespeichert, nie hochgeladen.",
+      "Eine lokale Quittung für jede Entfernung, die diese App ausgeführt hat – Erfolge wie Fehlschläge. Auf diesem PC gespeichert, nie hochgeladen.",
     empty:
       "Noch keine Entfernungen aufgezeichnet. Ihre erste Deinstallation hinterlässt hier ihre Quittung.",
     exportButton: "Als JSON exportieren",
@@ -1752,18 +1753,18 @@ const de: Dictionary = {
     signInButton: "Anmelden",
     signingIn: "Anmeldung läuft...",
     signOut: "Abmelden",
-    proActive: "PC Tweaker Pro - auf diesem Konto aktiv",
+    proActive: "PC Tweaker Pro – auf diesem Konto aktiv",
     proInactive: "Dieses Konto hat noch kein PC Tweaker Pro.",
-    upsActive: "Uninstaller Pro — aktiv",
-    upsInactive: "Uninstaller Pro — nicht aktiv",
-    upsGoPro: "Pro werden — 9,99 € / Jahr",
-    upsGoProLoyalty: "Pro werden — 4,99 € / Jahr (PC-Tweaker-Pro-Treuepreis)",
+    upsActive: "Uninstaller Pro – aktiv",
+    upsInactive: "Uninstaller Pro – nicht aktiv",
+    upsGoPro: "Auf Pro wechseln – 9,99 € / Jahr",
+    upsGoProLoyalty: "Auf Pro wechseln – 4,99 € / Jahr (PC-Tweaker-Pro-Treuepreis)",
     upsCheckoutHint:
       "Die Zahlung öffnet sich im Browser. Danach hierher zurückkehren und aktualisieren.",
-    upsRefresh: "Zahlung abgeschlossen — aktualisieren",
+    upsRefresh: "Zahlung abgeschlossen – aktualisieren",
     upsError: "Die Zahlung konnte nicht gestartet werden. Bitte erneut versuchen.",
     proGateResidue:
-      "Das Bereinigen von Resten ist eine Uninstaller-Pro-Funktion. Der Scan oben ist kostenlos — das Entfernen der Funde erfordert Pro.",
+      "Das Bereinigen von Resten ist eine Uninstaller-Pro-Funktion. Der Scan oben ist kostenlos – das Entfernen der Funde erfordert Pro.",
     proGateBatch:
       "Die Stapelentfernung ist eine Uninstaller-Pro-Funktion. Einzelne Deinstallationen bleiben immer kostenlos.",
     proGateSignIn: "Zuerst über das Kontomenü anmelden, dann Pro freischalten.",
@@ -1803,11 +1804,11 @@ const de: Dictionary = {
     resendVerification: "Bestätigungs-E-Mail erneut senden",
     verificationResent:
       "Bestätigungs-E-Mail gesendet. Bitte prüfen Sie Ihr Postfach und den Spam-Ordner.",
-    planLifetime: "Lebenslang",
+    planLifetime: "Lifetime",
   },
   updater: {
     title: (version) => `Update ${version} ist bereit`,
-    body: "Ein neuer signierter Build ist verfügbar. Er installiert sich in Sekunden und die App startet von selbst neu.",
+    body: "Eine neue signierte Version ist verfügbar. Sie installiert sich in Sekunden und die App startet von selbst neu.",
     install: "Jetzt installieren",
     later: "Später",
     downloading: (percent) => `Wird heruntergeladen… ${String(percent)}%`,
@@ -1886,10 +1887,10 @@ const pt: Dictionary = {
     sourceStore: "Microsoft Store (MSIX)",
   },
   confidence: {
-    labelSafe: "Seguro remover",
+    labelSafe: "Remoção segura",
     labelReview: "Rever antes de remover",
     labelKeep: "Manter - relacionado com o sistema",
-    disclaimer: "Com base nas provas visíveis - uma orientação, não uma certeza.",
+    disclaimer: "Com base em indícios visíveis: uma orientação, não uma certeza.",
     reasons: {
       hiddenSystem:
         "O próprio Windows oculta esta entrada (componente de sistema ou atualização dependente).",
@@ -1904,7 +1905,7 @@ const pt: Dictionary = {
       namedPublisher: "Está registado um editor identificado.",
       standardUninstaller: "Tem um desinstalador MSI/EXE padrão.",
       storeFramework: "Pacote de runtime partilhado: outras aplicações assentam nele.",
-      storeOsComponent: "Faz parte da interface do Windows, não é uma aplicação.",
+      storeOsComponent: "Faz parte da shell do Windows, não é uma aplicação.",
       storeResourcePackage:
         "Um pacote de recursos (idioma ou elementos gráficos), não uma aplicação.",
       storeNoDisplayName:
@@ -1948,7 +1949,7 @@ const pt: Dictionary = {
       "Não é removido automaticamente: ficheiros, pastas e entradas de registo residuais. Pode procurá-los logo após a desinstalação, e nada é apagado sem perguntar.",
     elevationNote: "O Windows pedirá primeiro a aprovação de administrador (UAC).",
     restorePointNote:
-      "Antes de qualquer execução, é pedido ao Windows um novo ponto de Restauro do Sistema. Se não o conseguir criar, a remoção continua na mesma e o relatório indica-o.",
+      "Antes de qualquer execução, é pedido ao Windows um novo ponto de restauro. Se não o conseguir criar, a remoção continua na mesma e o relatório indica-o.",
     restoreForecastReuse: (when) =>
       `O Windows já criou um ponto de restauro em ${when} e cria no máximo um por dia, por isso deverá reutilizar esse: não será criado um ponto novo imediatamente antes desta remoção.`,
     restoreForecastOff:
@@ -1977,13 +1978,13 @@ const pt: Dictionary = {
     reportFailureTitle: "A desinstalação não foi concluída",
     rebootNote: "É necessário reiniciar para terminar a remoção dos ficheiros.",
     restorePointCreated: (when) =>
-      `Ponto de Restauro do Sistema: criado em ${when}, imediatamente antes da remoção.`,
+      `Ponto de restauro: criado em ${when}, imediatamente antes da remoção.`,
     restorePointReused: (when) =>
-      `Ponto de Restauro do Sistema: nenhum novo. O Windows reutilizou o de ${when}; restaurá-lo também anula tudo o que foi alterado desde então.`,
+      `Ponto de restauro: nenhum novo. O Windows reutilizou o de ${when}; restaurá-lo também anula tudo o que foi alterado desde então.`,
     restorePointUnverified:
-      "Ponto de Restauro do Sistema: o Windows aceitou o pedido, mas a aplicação não conseguiu confirmar que existe um ponto novo. Verifique em Gerir pontos de restauro.",
-    restorePointSkipped: (reason) => `Ponto de Restauro do Sistema: ignorado - ${reason}`,
-    restorePointFailed: (reason) => `Ponto de Restauro do Sistema: não criado - ${reason}`,
+      "Ponto de restauro: o Windows aceitou o pedido, mas a aplicação não conseguiu confirmar que existe um ponto novo. Verifique em Gerir pontos de restauro.",
+    restorePointSkipped: (reason) => `Ponto de restauro: ignorado - ${reason}`,
+    restorePointFailed: (reason) => `Ponto de restauro: não criado - ${reason}`,
     restorePointCauses: {
       disabled: "o Restauro do Sistema está desativado.",
       diskSpace: "não há espaço livre suficiente no disco.",
@@ -1998,12 +1999,12 @@ const pt: Dictionary = {
     residueTitle: "Resíduos encontrados",
     residueNone: "Nenhum resíduo encontrado. Remoção limpa.",
     residueIntro: (count, mb) =>
-      `${String(count)} item(ns) deixado(s) para trás, cerca de ${mb} MB. Tudo o que selecionar vai para a Reciclagem, por isso continua recuperável.`,
+      `Itens deixados para trás: ${String(count)}, cerca de ${mb} MB. Tudo o que selecionar vai para a Reciclagem, por isso continua recuperável.`,
     residueClean: "Mover selecionados para a Reciclagem",
     residueRegistryNote:
       "As chaves de registo do utilizador são apagadas diretamente (não recuperáveis); as chaves de todo o computador são apresentadas apenas como referência.",
-    residueDone: (count, mb) => `${String(count)} item(ns) limpo(s), cerca de ${mb} MB libertados.`,
-    residueFailed: (count) => `Não foi possível remover ${String(count)} item(ns).`,
+    residueDone: (count, mb) => `Itens limpos: ${String(count)}, cerca de ${mb} MB libertados.`,
+    residueFailed: (count) => `Itens que não foi possível remover: ${String(count)}.`,
     residueKinds: {
       "install-dir": "Pasta de instalação",
       "app-data": "Dados da aplicação",
@@ -2012,9 +2013,9 @@ const pt: Dictionary = {
       "registry-machine": "Registo (computador)",
     },
     relDependentsWarning: (names) =>
-      `Remover isto também remove os programas instalados dentro da sua pasta: ${names}.`,
+      `Remover este programa também remove os programas instalados dentro da sua pasta: ${names}.`,
     relInstalledVia: (name) => `Instalado através de ${name} — considere removê-lo a partir daí.`,
-    relSiblings: (count) => `Estão instalados mais ${String(count)} programa(s) deste editor.`,
+    relSiblings: (count) => `Outros programas deste editor instalados: ${String(count)}.`,
     batchBar: (count, size) => `Desinstalar ${String(count)} selecionados · ${size}`,
     batchClear: "Limpar seleção",
     batchConfirmTitle: (count) => `Remover ${String(count)} programas?`,
@@ -2025,7 +2026,7 @@ const pt: Dictionary = {
       `A desinstalar ${name} (${String(index)} de ${String(total)})...`,
     batchDoneTitle: "Lote concluído",
     batchFailedNote: (count) =>
-      `${String(count)} programa(s) não foram concluídos — consulte o registo para mais detalhes.`,
+      `Programas não concluídos: ${String(count)} — consulte o registo para mais detalhes.`,
     familyNote:
       "Esta aplicação faz parte da sua suite PC Tweaker. Pode removê-la, mas as funcionalidades da suite que dependem dela deixarão de funcionar.",
     hiddenNote:
@@ -2115,7 +2116,7 @@ const pt: Dictionary = {
     emailUnverified: "O seu e-mail ainda não foi verificado.",
     resendVerification: "Reenviar o e-mail de verificação",
     verificationResent: "E-mail de verificação enviado. Verifique a caixa de entrada e o spam.",
-    planLifetime: "Vitalício",
+    planLifetime: "Lifetime",
   },
   updater: {
     title: (version) => `A atualização ${version} está pronta`,

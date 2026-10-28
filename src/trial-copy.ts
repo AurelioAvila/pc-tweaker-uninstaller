@@ -70,9 +70,9 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     subscribe: "Abbonati",
     subscribeNowNote: "Oppure abbonati subito: {price} addebitati oggi, senza prova.",
     thenYear:
-      "Poi {price} ogni anno, primo addebito il {date}. Disdici quando vuoi dal portale di pagamento.",
+      "Poi {price} ogni anno, primo addebito il {date}. Disdici quando vuoi dal portale di fatturazione.",
     thenYearPromo:
-      "Poi {price} il primo anno, addebitati il {date}, e {regular} all'anno in seguito. Disdici quando vuoi dal portale di pagamento.",
+      "Poi {price} il primo anno, addebitati il {date}, e {regular} all'anno in seguito. Disdici quando vuoi dal portale di fatturazione.",
     used: "Questo account ha già usato la sua prova gratuita. Il piano parte subito come abbonamento a pagamento.",
     trial: "Prova gratuita",
     leftDays: "Mancano {days} g {hours} h",
@@ -100,7 +100,7 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     start: "Commencer l'essai gratuit de {days} jours",
     subscribeNow: "S'abonner maintenant",
     subscribe: "S'abonner",
-    subscribeNowNote: "Ou abonnez-vous maintenant : {price} prélevés aujourd'hui, sans essai.",
+    subscribeNowNote: "Ou abonnez-vous maintenant : {price} prélevés aujourd'hui, sans essai.",
     thenYear:
       "Ensuite {price} par an, premier prélèvement le {date}. Résiliable à tout moment depuis le portail de facturation.",
     thenYearPromo:
@@ -111,7 +111,7 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     leftHours: "Encore {hours} h {minutes} min",
     leftMinutes: "Encore {minutes} min",
     firstCharge: "Premier prélèvement le {date}",
-    noCharge: "Résilié : fin le {date}, aucun prélèvement",
+    noCharge: "Résilié : fin le {date}, aucun prélèvement",
     paymentFailed: "Paiement refusé",
     paymentFailedHint: "Mettez à jour votre moyen de paiement pour réactiver Pro.",
     updatePayment: "Mettre à jour le moyen de paiement",
@@ -119,12 +119,12 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     trialUsed: "Essai gratuit déjà utilisé",
     pausedTitle: "Pro est en pause",
     pausedBody:
-      "Le dernier paiement n'a pas abouti : le nettoyage des restes et la désinstallation groupée restent verrouillés jusqu'à ce qu'il réussisse. Les programmes déjà supprimés le restent, et ce qui a été placé dans la Corbeille peut toujours y être restauré.",
+      "Le dernier paiement n'a pas abouti : le nettoyage des restes et la suppression par lot restent verrouillés jusqu'à ce qu'il réussisse. Les programmes déjà supprimés le restent, et ce qui a été placé dans la Corbeille peut toujours y être restauré.",
     trialEndedTitle: "Votre essai gratuit est terminé",
     endedTitle: "Votre offre Pro est terminée",
     endedBody:
-      "Le nettoyage des restes et la désinstallation groupée sont maintenant verrouillés. Les désinstallations individuelles, la recherche de restes et le Registre des suppressions restent gratuits, et ce qui a été placé dans la Corbeille peut toujours y être restauré.",
-    converted: "Votre essai gratuit est devenu un abonnement Pro. Merci !",
+      "Le nettoyage des restes et la suppression par lot sont maintenant verrouillés. Les désinstallations individuelles, la recherche de restes et le Registre des suppressions restent gratuits, et ce qui a été placé dans la Corbeille peut toujours y être restauré.",
+    converted: "Votre essai gratuit est devenu un abonnement Pro. Merci !",
     seePlans: "Voir les offres",
     notNow: "Plus tard",
   },
@@ -134,9 +134,9 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     subscribe: "Suscribirse",
     subscribeNowNote: "O suscríbete ahora: {price} con cargo hoy, sin prueba.",
     thenYear:
-      "Después, {price} al año, con el primer cargo el {date}. Cancela cuando quieras desde el portal de pagos.",
+      "Después, {price} al año, con el primer cargo el {date}. Cancela cuando quieras desde el portal de facturación.",
     thenYearPromo:
-      "Después, {price} el primer año, con cargo el {date}, y {regular} al año a partir de entonces. Cancela cuando quieras desde el portal de pagos.",
+      "Después, {price} el primer año, con cargo el {date}, y {regular} al año a partir de entonces. Cancela cuando quieras desde el portal de facturación.",
     used: "Esta cuenta ya ha usado su prueba gratuita. El plan empieza directamente como suscripción de pago.",
     trial: "Prueba gratuita",
     leftDays: "Quedan {days} d {hours} h",
@@ -151,11 +151,11 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     trialUsed: "Prueba gratuita ya usada",
     pausedTitle: "Pro está en pausa",
     pausedBody:
-      "El último pago no se ha completado, así que la limpieza de restos y la desinstalación por lotes quedan bloqueadas hasta que se complete. Los programas que ya quitaste siguen quitados y lo que se movió a la Papelera aún se puede restaurar desde allí.",
+      "El último pago no se ha completado, así que la limpieza de restos y la eliminación por lotes quedan bloqueadas hasta que se complete. Los programas que ya quitaste siguen quitados y lo que se movió a la Papelera aún se puede restaurar desde allí.",
     trialEndedTitle: "Tu prueba gratuita ha terminado",
     endedTitle: "Tu plan Pro ha terminado",
     endedBody:
-      "La limpieza de restos y la desinstalación por lotes ya están bloqueadas. Las desinstalaciones individuales, la búsqueda de restos y el Registro de eliminaciones siguen siendo gratis, y lo que se movió a la Papelera aún se puede restaurar desde allí.",
+      "La limpieza de restos y la eliminación por lotes ya están bloqueadas. Las desinstalaciones individuales, la búsqueda de restos y el Registro de eliminaciones siguen siendo gratis, y lo que se movió a la Papelera aún se puede restaurar desde allí.",
     converted: "Tu prueba gratuita ya es una suscripción Pro. ¡Gracias!",
     seePlans: "Ver planes",
     notNow: "Ahora no",
@@ -166,9 +166,9 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     subscribe: "Abonnieren",
     subscribeNowNote: "Oder jetzt abonnieren: {price} werden heute abgebucht, ohne Testphase.",
     thenYear:
-      "Danach {price} pro Jahr, erste Abbuchung am {date}. Jederzeit im Kundenportal kündbar.",
+      "Danach {price} pro Jahr, erste Abbuchung am {date}. Jederzeit im Abrechnungsportal kündbar.",
     thenYearPromo:
-      "Danach {price} für das erste Jahr, abgebucht am {date}, anschließend {regular} pro Jahr. Jederzeit im Kundenportal kündbar.",
+      "Danach {price} für das erste Jahr, abgebucht am {date}, anschließend {regular} pro Jahr. Jederzeit im Abrechnungsportal kündbar.",
     used: "Dieses Konto hat seine kostenlose Testphase bereits genutzt. Der Tarif startet sofort als kostenpflichtiges Abonnement.",
     trial: "Kostenlose Testphase",
     leftDays: "Noch {days} T. {hours} Std.",
@@ -183,11 +183,11 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     trialUsed: "Kostenlose Testphase bereits genutzt",
     pausedTitle: "Pro ist pausiert",
     pausedBody:
-      "Die letzte Zahlung ist nicht durchgegangen, daher bleiben die Bereinigung von Resten und die Sammeldeinstallation gesperrt, bis sie gelingt. Bereits entfernte Programme bleiben entfernt, und was in den Papierkorb verschoben wurde, lässt sich dort weiterhin wiederherstellen.",
+      "Die letzte Zahlung ist nicht durchgegangen, daher bleiben die Bereinigung von Resten und die Stapelentfernung gesperrt, bis sie gelingt. Bereits entfernte Programme bleiben entfernt, und was in den Papierkorb verschoben wurde, lässt sich dort weiterhin wiederherstellen.",
     trialEndedTitle: "Ihre kostenlose Testphase ist beendet",
     endedTitle: "Ihr Pro-Tarif ist beendet",
     endedBody:
-      "Die Bereinigung von Resten und die Sammeldeinstallation sind jetzt gesperrt. Einzelne Deinstallationen, die Restesuche und das Entfernungsprotokoll bleiben kostenlos, und was in den Papierkorb verschoben wurde, lässt sich dort weiterhin wiederherstellen.",
+      "Die Bereinigung von Resten und die Stapelentfernung sind jetzt gesperrt. Einzelne Deinstallationen, die Restesuche und das Entfernungsprotokoll bleiben kostenlos, und was in den Papierkorb verschoben wurde, lässt sich dort weiterhin wiederherstellen.",
     converted: "Ihre kostenlose Testphase ist jetzt ein Pro-Abo. Vielen Dank!",
     seePlans: "Tarife ansehen",
     notNow: "Nicht jetzt",
@@ -219,7 +219,7 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     trialEndedTitle: "A sua avaliação gratuita terminou",
     endedTitle: "O seu plano Pro terminou",
     endedBody:
-      "A limpeza de resíduos e a remoção em lote estão agora bloqueadas. As desinstalações individuais, a procura de resíduos e o Registo de remoções continuam gratuitos, e o que foi para a Reciclagem ainda pode ser restaurado a partir de lá.",
+      "A limpeza de resíduos e a remoção em lote estão agora bloqueadas. As desinstalações individuais, a análise de resíduos e o Registo de remoções continuam gratuitos, e o que foi para a Reciclagem ainda pode ser restaurado a partir de lá.",
     converted: "A sua avaliação gratuita passou a ser uma subscrição Pro. Obrigado!",
     seePlans: "Ver planos",
     notNow: "Agora não",
