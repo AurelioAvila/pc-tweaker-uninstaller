@@ -35,15 +35,15 @@ activated on first sign-in to Uninstaller with the same account. This is a
 separate, time-limited entitlement, not a perpetual Uninstaller license.
 
 **[Download latest signed version](../../releases/latest)** for Windows 10/11 x64.
-The [0.13.8 setup EXE](../../releases/tag/v0.13.8) was checked on October 24, 2026,
+The [0.13.9 setup EXE](../../releases/tag/v0.13.9) was checked on October 29, 2026,
 after downloading it again from the published release: its Authenticode signature
 identifies **Aurelio Avila** and includes a trusted DigiCert timestamp.
-Its SHA-256 is `b5e6385b13c141f7a850cf791971e08e8a25e09b1d699cfebadd89eb6b980914`.
+Its SHA-256 is `f07b0213f1007027a3790af7407212ea04cf2d0f6c23e83e105007bf7a0f7f65`.
 This check applies to that specific setup EXE, not every asset or future build.
 Historical version 0.8.2 remains unsigned; use current official downloads.
 
-**WinGet status (October 24, 2026):** the latest stable release is 0.13.8. The [new-package submission](https://github.com/microsoft/winget-pkgs/pull/434135),
-now carrying 0.13.8, is awaiting manual review. Passing automated checks is not catalog approval.
+**WinGet status (October 29, 2026):** the latest stable release is 0.13.9. The [new-package submission](https://github.com/microsoft/winget-pkgs/pull/434135),
+now carrying 0.13.9, is awaiting manual review. Passing automated checks is not catalog approval.
 Use the GitHub release download until the package is accepted.
 
 Signing identifies the publisher and protects file integrity; neither code signing
