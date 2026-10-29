@@ -1532,6 +1532,7 @@ export default function App() {
                       submitLogin();
                     }}
                   >
+                    <p className="menu-hint">{text.menu.sharedAccount}</p>
                     <input
                       ref={emailField}
                       type="email"
