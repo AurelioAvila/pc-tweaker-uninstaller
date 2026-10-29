@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.13.9
+
+Clearer, more accurate translations in every language.
+
 ## 0.13.8
 
 PC Tweaker Uninstaller 0.13.8 tells you exactly what Windows did about the System Restore point before a removal.
