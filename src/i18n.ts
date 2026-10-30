@@ -223,6 +223,7 @@ export type Dictionary = {
     readonly loyaltyLocked: string;
     readonly checkFailed: string;
     readonly createAccount: string;
+    readonly sharedAccount: string;
     readonly firstNameLabel: string;
     readonly lastNameLabel: string;
     readonly birthDateLabel: string;
@@ -524,6 +525,8 @@ const en: Dictionary = {
     loyaltyLocked: "Sign in with your PC Tweaker Pro account to unlock the loyalty price.",
     checkFailed: "Could not verify your account right now. Try again shortly.",
     createAccount: "Create account",
+    sharedAccount:
+      "One account for PC Tweaker, PC Tweaker Uninstaller and Tweaky Driver. Already have a PC Tweaker or Tweaky Driver account? Sign in with it.",
     firstNameLabel: "First name",
     lastNameLabel: "Last name",
     birthDateLabel: "Date of birth",
@@ -831,6 +834,8 @@ const it: Dictionary = {
     loyaltyLocked: "Accedi con il tuo account PC Tweaker Pro per sbloccare il prezzo fedeltà.",
     checkFailed: "Impossibile verificare l'account in questo momento. Riprova tra poco.",
     createAccount: "Crea account",
+    sharedAccount:
+      "Un solo account per PC Tweaker, PC Tweaker Uninstaller e Tweaky Driver. Hai già un account PC Tweaker o Tweaky Driver? Accedi con quello.",
     firstNameLabel: "Nome",
     lastNameLabel: "Cognome",
     birthDateLabel: "Data di nascita",
@@ -1143,6 +1148,8 @@ const fr: Dictionary = {
       "Connectez-vous avec votre compte PC Tweaker Pro pour débloquer le prix fidélité.",
     checkFailed: "Impossible de vérifier le compte pour le moment. Réessayez bientôt.",
     createAccount: "Créer un compte",
+    sharedAccount:
+      "Un seul compte pour PC Tweaker, PC Tweaker Uninstaller et Tweaky Driver. Vous avez déjà un compte PC Tweaker ou Tweaky Driver ? Connectez-vous avec celui-ci.",
     firstNameLabel: "Prénom",
     lastNameLabel: "Nom",
     birthDateLabel: "Date de naissance",
@@ -1454,6 +1461,8 @@ const es: Dictionary = {
       "Inicia sesión con tu cuenta PC Tweaker Pro para desbloquear el precio de fidelidad.",
     checkFailed: "No se pudo verificar la cuenta en este momento. Inténtalo de nuevo en breve.",
     createAccount: "Crear cuenta",
+    sharedAccount:
+      "Una sola cuenta para PC Tweaker, PC Tweaker Uninstaller y Tweaky Driver. ¿Ya tienes una cuenta de PC Tweaker o Tweaky Driver? Inicia sesión con ella.",
     firstNameLabel: "Nombre",
     lastNameLabel: "Apellidos",
     birthDateLabel: "Fecha de nacimiento",
@@ -1772,6 +1781,8 @@ const de: Dictionary = {
       "Melden Sie sich mit Ihrem PC-Tweaker-Pro-Konto an, um den Treuepreis freizuschalten.",
     checkFailed: "Konto konnte gerade nicht überprüft werden. Versuchen Sie es gleich noch einmal.",
     createAccount: "Konto erstellen",
+    sharedAccount:
+      "Ein Konto für PC Tweaker, PC Tweaker Uninstaller und Tweaky Driver. Sie haben bereits ein Konto bei PC Tweaker oder Tweaky Driver? Dann melden Sie sich damit an.",
     firstNameLabel: "Vorname",
     lastNameLabel: "Nachname",
     birthDateLabel: "Geburtsdatum",
@@ -2084,6 +2095,8 @@ const pt: Dictionary = {
     checkFailed:
       "Não foi possível verificar a sua conta neste momento. Tente novamente daqui a pouco.",
     createAccount: "Criar conta",
+    sharedAccount:
+      "Uma só conta para o PC Tweaker, o PC Tweaker Uninstaller e o Tweaky Driver. Já tem uma conta do PC Tweaker ou do Tweaky Driver? Inicie sessão com ela.",
     firstNameLabel: "Nome",
     lastNameLabel: "Apelido",
     birthDateLabel: "Data de nascimento",
