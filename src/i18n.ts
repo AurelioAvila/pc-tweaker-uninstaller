@@ -232,6 +232,8 @@ export type Dictionary = {
     readonly errorCredentials: string;
     readonly errorAlreadyRegistered: string;
     readonly errorRateLimited: string;
+    /** The same, when the service said how long to wait ("3 minutes"). */
+    readonly errorRateLimitedWait: (wait: string) => string;
     readonly errorInvalid: string;
     readonly errorServer: string;
     readonly errorNetwork: string;
@@ -544,6 +546,7 @@ const en: Dictionary = {
     errorAlreadyRegistered:
       "This email already has an account, perhaps from PC Tweaker or Tweaky Driver. Sign in with it, or reset the password.",
     errorRateLimited: "Too many attempts. Wait 15 minutes and try again.",
+    errorRateLimitedWait: (wait) => `Too many attempts. Wait ${wait} and try again.`,
     errorInvalid: "Check the details you entered and try again.",
     errorServer: "The account service is not responding right now. Try again in a few minutes.",
     errorNetwork:
@@ -866,6 +869,7 @@ const it: Dictionary = {
     errorAlreadyRegistered:
       "Questa email ha già un account, magari creato in PC Tweaker o Tweaky Driver. Accedi con quello oppure reimposta la password.",
     errorRateLimited: "Troppi tentativi. Attendi 15 minuti e riprova.",
+    errorRateLimitedWait: (wait) => `Troppi tentativi. Attendi ${wait} e riprova.`,
     errorInvalid: "Controlla i dati inseriti e riprova.",
     errorServer: "Il servizio account non risponde in questo momento. Riprova tra qualche minuto.",
     errorNetwork:
@@ -1193,6 +1197,7 @@ const fr: Dictionary = {
     errorAlreadyRegistered:
       "Cet e-mail a déjà un compte, peut-être créé dans PC Tweaker ou Tweaky Driver. Connectez-vous avec celui-ci ou réinitialisez le mot de passe.",
     errorRateLimited: "Trop de tentatives. Patientez 15 minutes, puis réessayez.",
+    errorRateLimitedWait: (wait) => `Trop de tentatives. Patientez ${wait}, puis réessayez.`,
     errorInvalid: "Vérifiez les informations saisies, puis réessayez.",
     errorServer:
       "Le service de compte ne répond pas pour le moment. Réessayez dans quelques minutes.",
@@ -1519,6 +1524,7 @@ const es: Dictionary = {
     errorAlreadyRegistered:
       "Este correo ya tiene una cuenta, quizá creada en PC Tweaker o Tweaky Driver. Inicia sesión con ella o restablece la contraseña.",
     errorRateLimited: "Demasiados intentos. Espera 15 minutos y vuelve a intentarlo.",
+    errorRateLimitedWait: (wait) => `Demasiados intentos. Espera ${wait} y vuelve a intentarlo.`,
     errorInvalid: "Revisa los datos introducidos y vuelve a intentarlo.",
     errorServer:
       "El servicio de cuentas no responde en este momento. Inténtalo de nuevo en unos minutos.",
@@ -1852,6 +1858,8 @@ const de: Dictionary = {
     errorAlreadyRegistered:
       "Für diese E-Mail-Adresse gibt es bereits ein Konto, vielleicht aus PC Tweaker oder Tweaky Driver. Melden Sie sich damit an oder setzen Sie das Passwort zurück.",
     errorRateLimited: "Zu viele Versuche. Bitte warten Sie 15 Minuten und versuchen Sie es erneut.",
+    errorRateLimitedWait: (wait) =>
+      `Zu viele Versuche. Bitte warten Sie ${wait} und versuchen Sie es erneut.`,
     errorInvalid: "Bitte prüfen Sie Ihre Eingaben und versuchen Sie es erneut.",
     errorServer:
       "Der Kontodienst antwortet gerade nicht. Bitte versuchen Sie es in einigen Minuten erneut.",
@@ -2180,6 +2188,7 @@ const pt: Dictionary = {
     errorAlreadyRegistered:
       "Este e-mail já tem uma conta, talvez criada no PC Tweaker ou no Tweaky Driver. Inicie sessão com ela ou reponha a palavra-passe.",
     errorRateLimited: "Demasiadas tentativas. Aguarde 15 minutos e tente novamente.",
+    errorRateLimitedWait: (wait) => `Demasiadas tentativas. Aguarde ${wait} e tente novamente.`,
     errorInvalid: "Verifique os dados introduzidos e tente novamente.",
     errorServer:
       "O serviço de contas não está a responder neste momento. Tente novamente dentro de alguns minutos.",

@@ -1,14 +1,18 @@
 //! Phase 3: the uninstall executor — dry-run plan, restore point, allowlisted
 //! execution, report.
 //!
-//! Trust model. The webview supplies exactly two strings: a `source` view
-//! name and a registry key name. Both are validated by shape, then EVERYTHING
-//! else — the command, the arguments, whether execution is allowed at all —
-//! is re-derived fresh from the registry at execution time, behind the same
-//! fail-closed parser the listing uses ([`crate::uninstall_command`]). The
-//! preview the user confirmed is never itself executed; it is rebuilt, so the
-//! webview can never supply a command. (A registry change made after the
-//! preview is what runs, as it would from Windows Settings.)
+//! Trust model. The webview supplies a `source` view name, a registry key
+//! name and the fingerprint of the plan the user confirmed. The first two are
+//! validated by shape, then EVERYTHING else — the command, the arguments,
+//! whether execution is allowed at all — is re-derived fresh from the
+//! registry at execution time, behind the same fail-closed parser the listing
+//! uses ([`crate::uninstall_command`]). The preview the user confirmed is
+//! never itself executed; it is rebuilt, so the webview can never supply a
+//! command. The rebuilt plan must carry the confirmed fingerprint (the
+//! entry's uninstall strings and the command derived from them), checked
+//! here and again inside the elevated child: a registry change made after the
+//! confirmation, even during the UAC prompt, stops the removal instead of
+//! running a command nobody saw.
 //!
 //! Execution rules, in order:
 //! - MSI: the command line is rebuilt from scratch as
@@ -21,9 +25,9 @@
 //! - Everything else (interpreters, non-.exe, unparsable): refused.
 //!
 //! Elevation. Machine-wide uninstalls relaunch this executable elevated in a
-//! headless mode (`--elevated-uninstall <source> <id>`): one UAC consent per
-//! action, and the elevated child re-validates and re-derives everything —
-//! it trusts nothing from the parent but those two validated strings. It
+//! headless mode (`--elevated-uninstall <source> <id> <fingerprint>`): one
+//! UAC consent per action, and the elevated child re-validates and re-derives
+//! everything — it trusts nothing from the parent but those values. It
 //! sends its report back over a pipe the parent created (elevation.rs) and
 //! writes nothing to disk; the folders it relies on come from Windows, not
 //! from environment variables the user's programs can change.
@@ -79,21 +83,209 @@ fn needs_elevation(source: &str) -> bool {
 /// Per-user entries live in HKCU, which any program running as this user can
 /// write. Elevating such an entry would let that program borrow this app's
 /// signed UAC prompt to start whatever it registered. A per-user uninstaller
-/// is therefore run elevated only when its executable sits in a folder a
-/// standard user cannot write to.
-fn elevation_permitted(source: &str, kind: &PlanKind, command: &[String]) -> bool {
+/// is therefore run elevated only when its executable sits under Program
+/// Files AND only administrators can change it and every folder between it
+/// and Program Files: an installer that loosened its folder's permissions
+/// (Users: Modify is common) leaves a place where anyone can swap the
+/// uninstaller or drop a DLL beside it. `None` when elevation may go ahead,
+/// else the reason shown to the user.
+fn elevation_refusal(source: &str, kind: &PlanKind, command: &[String]) -> Option<&'static str> {
     if source != "user" {
-        return true;
+        return None;
     }
-    match kind {
-        PlanKind::Msi => false,
-        // Windows' own folder is left out on purpose: its tools are signed
-        // and protected, but a per-user entry can still point one of them at
-        // a script, and elevating that would run the script as administrator.
-        PlanKind::Executable => command
-            .first()
-            .is_some_and(|exe| is_under_protected_root(exe, &program_roots())),
+    // Windows' own folder is left out on purpose: its tools are signed and
+    // protected, but a per-user entry can still point one of them at a
+    // script, and elevating that would run the script as administrator.
+    let exe = match kind {
+        PlanKind::Msi => None,
+        PlanKind::Executable => command.first(),
+    };
+    let roots = program_roots();
+    match exe {
+        Some(exe) if is_under_protected_root(exe, &roots) => {
+            (!admin_only_path(exe, &roots)).then_some(PER_USER_ELEVATION_WRITABLE)
+        }
+        _ => Some(PER_USER_ELEVATION_REFUSED),
     }
+}
+
+/// Windows' well-known accounts that may change an elevated uninstaller:
+/// SYSTEM, Administrators and TrustedInstaller, plus CREATOR OWNER and OWNER
+/// RIGHTS, which only ever stand for an owner that must itself be one of the
+/// first three.
+const ADMIN_SIDS: &[&str] = &[
+    "S-1-5-18",
+    "S-1-5-32-544",
+    "S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464",
+    "S-1-3-0",
+    "S-1-3-4",
+];
+/// Rights that let someone replace a file or folder, add one beside it, or
+/// take it over: write/add file, append/add folder, delete child, delete,
+/// change permissions, take ownership, and the generic write/all bits.
+const CHANGE_RIGHTS: u32 =
+    0x2 | 0x4 | 0x40 | 0x1_0000 | 0x4_0000 | 0x8_0000 | 0x1000_0000 | 0x4000_0000;
+
+/// One entry of an access list as [`read_access`] reports it. Entry types
+/// other than plain allow and deny are reported as an allow of everything to
+/// nobody known, so they count against the path.
+#[derive(Debug, Clone)]
+pub struct AccessEntry {
+    pub allow: bool,
+    pub inherit_only: bool,
+    pub mask: u32,
+    pub sid: String,
+}
+
+/// The pure rule: the owner is SYSTEM, Administrators or TrustedInstaller,
+/// and no entry that applies to this object lets anyone else change it. No
+/// access list at all means everyone may do anything. Deny entries are
+/// ignored, which can only make the answer stricter.
+pub fn only_admins_can_change(owner: &str, dacl: Option<&[AccessEntry]>) -> bool {
+    let Some(entries) = dacl else {
+        return false;
+    };
+    ADMIN_SIDS[..3].contains(&owner)
+        && entries.iter().all(|e| {
+            !e.allow
+                || e.inherit_only
+                || e.mask & CHANGE_RIGHTS == 0
+                || ADMIN_SIDS.contains(&e.sid.as_str())
+        })
+}
+
+/// True when the real file behind `exe` (links resolved) is still under one
+/// of `roots`, and it and every folder up to that root pass
+/// [`only_admins_can_change`]. Anything unreadable counts as changeable.
+fn admin_only_path(exe: &str, roots: &[String]) -> bool {
+    let Ok(real) = std::fs::canonicalize(exe) else {
+        return false;
+    };
+    let real = real.to_string_lossy();
+    let real = real.strip_prefix(r"\\?\").unwrap_or(&real).to_string();
+    let Some(root) = roots
+        .iter()
+        .find(|root| is_under_protected_root(&real, std::slice::from_ref(root)))
+    else {
+        return false;
+    };
+    let root = root.trim_end_matches('\\').to_lowercase();
+    let mut path = std::path::Path::new(&real);
+    while path.to_string_lossy().to_lowercase() != root {
+        match read_access(path) {
+            Some((owner, dacl)) if only_admins_can_change(&owner, dacl.as_deref()) => {}
+            _ => return false,
+        }
+        let Some(parent) = path.parent() else {
+            return false;
+        };
+        path = parent;
+    }
+    true
+}
+
+/// The owner and access list of a file or folder, SIDs as `S-1-…` strings.
+/// `None` when they cannot be read; an inner `None` is a NULL access list.
+#[cfg(windows)]
+#[allow(clippy::type_complexity)]
+pub fn read_access(path: &std::path::Path) -> Option<(String, Option<Vec<AccessEntry>>)> {
+    use std::os::windows::ffi::OsStrExt;
+    use windows_sys::Win32::{
+        Foundation::{LocalFree, ERROR_SUCCESS},
+        Security::{
+            AclSizeInformation,
+            Authorization::{ConvertSidToStringSidW, GetNamedSecurityInfoW, SE_FILE_OBJECT},
+            GetAce, GetAclInformation, ACE_HEADER, ACL, ACL_SIZE_INFORMATION,
+            DACL_SECURITY_INFORMATION, INHERIT_ONLY_ACE, OWNER_SECURITY_INFORMATION, PSID,
+        },
+    };
+    // SAFETY: a NUL-terminated SID string Windows allocated; freed with
+    // LocalFree as documented.
+    unsafe fn sid_string(sid: PSID) -> Option<String> {
+        let mut raw: *mut u16 = std::ptr::null_mut();
+        if sid.is_null() || ConvertSidToStringSidW(sid, &mut raw) == 0 || raw.is_null() {
+            return None;
+        }
+        let len = (0..).take_while(|&i| *raw.add(i) != 0).count();
+        let text = String::from_utf16_lossy(std::slice::from_raw_parts(raw, len));
+        LocalFree(raw as _);
+        Some(text)
+    }
+    let wide: Vec<u16> = path.as_os_str().encode_wide().chain([0]).collect();
+    let mut owner: PSID = std::ptr::null_mut();
+    let mut dacl: *mut ACL = std::ptr::null_mut();
+    let mut descriptor = std::ptr::null_mut();
+    // SAFETY: valid out pointers; owner and dacl point into `descriptor`,
+    // which is freed with LocalFree after the last read, also on failure.
+    unsafe {
+        let status = GetNamedSecurityInfoW(
+            wide.as_ptr(),
+            SE_FILE_OBJECT,
+            OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION,
+            &mut owner,
+            std::ptr::null_mut(),
+            &mut dacl,
+            std::ptr::null_mut(),
+            &mut descriptor,
+        );
+        let result = (|| {
+            if status != ERROR_SUCCESS {
+                return None;
+            }
+            let owner = sid_string(owner)?;
+            if dacl.is_null() {
+                return Some((owner, None));
+            }
+            let mut info: ACL_SIZE_INFORMATION = std::mem::zeroed();
+            if GetAclInformation(
+                dacl,
+                &mut info as *mut _ as *mut _,
+                std::mem::size_of::<ACL_SIZE_INFORMATION>() as u32,
+                AclSizeInformation,
+            ) == 0
+            {
+                return None;
+            }
+            let mut entries = Vec::new();
+            for index in 0..info.AceCount {
+                let mut ace: *mut std::ffi::c_void = std::ptr::null_mut();
+                if GetAce(dacl, index, &mut ace) == 0 || ace.is_null() {
+                    return None;
+                }
+                let header = &*(ace as *const ACE_HEADER);
+                let inherit_only = u32::from(header.AceFlags) & INHERIT_ONLY_ACE != 0;
+                // ACCESS_ALLOWED_ACE_TYPE 0 and ACCESS_DENIED_ACE_TYPE 1 share
+                // one layout: header, mask, then the SID.
+                entries.push(match header.AceType {
+                    0 | 1 => {
+                        let mask =
+                            std::ptr::read_unaligned((ace as *const u8).add(4).cast::<u32>());
+                        AccessEntry {
+                            allow: header.AceType == 0,
+                            inherit_only,
+                            mask,
+                            sid: sid_string((ace as *mut u8).add(8) as PSID)?,
+                        }
+                    }
+                    _ => AccessEntry {
+                        allow: true,
+                        inherit_only,
+                        mask: u32::MAX,
+                        sid: String::new(),
+                    },
+                });
+            }
+            Some((owner, Some(entries)))
+        })();
+        LocalFree(descriptor as _);
+        result
+    }
+}
+
+#[cfg(not(windows))]
+#[allow(clippy::type_complexity)]
+pub fn read_access(_path: &std::path::Path) -> Option<(String, Option<Vec<AccessEntry>>)> {
+    None
 }
 
 /// From Windows, not `%ProgramFiles%`: the elevated child re-checks this, and
@@ -133,6 +325,15 @@ const PER_USER_ELEVATION_REFUSED: &str =
     uninstaller asks for administrator rights from a folder your account can change. It was not \
     started with elevation. If you trust it, run its uninstaller from Windows Settings.";
 
+const PER_USER_ELEVATION_WRITABLE: &str =
+    "This program was installed for your account only, and its \
+    uninstaller asks for administrator rights. Its folder is under Program Files, but accounts \
+    without administrator rights can change it, so it was not started with elevation. If you \
+    trust it, run its uninstaller from Windows Settings.";
+
+const COMMAND_CHANGED: &str = "This program's uninstall command changed after you confirmed it, \
+    so it was not run. Start the removal again to review the new command.";
+
 // ---- Plan (dry run) --------------------------------------------------------
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
@@ -158,6 +359,37 @@ pub struct UninstallPlan {
     pub confidence: crate::confidence::Confidence,
     /// The registry's own size claim — an estimate, labeled as one.
     pub estimated_size_kb: Option<u32>,
+    /// What confirming this plan binds the run to ([`command_fingerprint`]):
+    /// `execute_uninstall` and the elevated child refuse any other.
+    pub fingerprint: String,
+}
+
+/// SHA-256 over the entry's uninstall strings exactly as the registry holds
+/// them and the command derived from them, with the entry's identity. Any
+/// change to either string, or to how it parses, changes the fingerprint.
+pub fn command_fingerprint(source: &str, id: &str, entry: &RawEntry, command: &[String]) -> String {
+    use sha2::{Digest, Sha256};
+    let material = serde_json::json!([
+        source,
+        id,
+        entry.uninstall_string,
+        entry.quiet_uninstall_string,
+        command
+    ]);
+    format!("{:x}", Sha256::digest(material.to_string()))
+}
+
+/// The plan as rebuilt now must be the one the user confirmed.
+fn check_confirmed(plan: &UninstallPlan, confirmed: &str) -> Result<(), String> {
+    if plan.fingerprint == confirmed {
+        Ok(())
+    } else {
+        crate::applog::line(&format!(
+            "uninstall command changed after confirmation: {}",
+            plan.program_name
+        ));
+        Err(COMMAND_CHANGED.to_string())
+    }
 }
 
 /// Picks the command execution will use: the quiet string when it parses to
@@ -271,6 +503,7 @@ fn build_plan(source: &str, id: &str) -> Result<UninstallPlan, String> {
         crate::confidence::assess(&entry, hidden, &programs::summarize_uninstall(&entry));
     let estimated_size_kb = entry.estimated_size_kb;
     let (kind, command) = derive_argv(&entry)?;
+    let fingerprint = command_fingerprint(source, id, &entry, &command);
 
     let elevated = needs_elevation(source);
     let mut warnings = Vec::new();
@@ -298,6 +531,7 @@ fn build_plan(source: &str, id: &str) -> Result<UninstallPlan, String> {
         warnings,
         confidence,
         estimated_size_kb,
+        fingerprint,
     })
 }
 
@@ -387,11 +621,11 @@ pub fn dir_size_capped(path: &std::path::Path, cap: &mut u32) -> Option<u64> {
     Some(total)
 }
 
-/// Measures the entry's install folder, if it records one that exists.
-fn measure_install_dir(source: &str, id: &str) -> Option<u64> {
-    let entry = programs::read_raw_entry(source, id).ok()?;
-    let location = entry.install_location?;
-    let path = std::path::Path::new(&location);
+/// Measures the install folder the entry recorded before the removal, if it
+/// exists. After the removal the entry is gone, so the same recorded path is
+/// measured again: a folder still there yields its remaining size.
+fn measure_install_dir(location: Option<&str>) -> Option<u64> {
+    let path = std::path::Path::new(location?);
     if !path.is_dir() {
         return None;
     }
@@ -555,9 +789,9 @@ const ELEVATION_REQUIRED: i32 = 740;
 const NEEDS_ELEVATION_MARKER: &str = "__needs_elevation__";
 
 /// The elevated flow: relaunch self elevated and headless, then take the
-/// report the child sent back.
-fn run_via_elevation(source: &str, id: &str) -> Result<UninstallReport, String> {
-    run_elevated_flag("--elevated-uninstall", source, id)
+/// report the child sent back. The child checks the fingerprint itself.
+fn run_via_elevation(source: &str, id: &str, confirmed: &str) -> Result<UninstallReport, String> {
+    run_elevated_flag("--elevated-uninstall", source, id, &[confirmed])
 }
 
 /// Serializes every registry-changing action this app runs: uninstallers
@@ -571,9 +805,18 @@ pub fn lock_exec() -> Result<std::sync::MutexGuard<'static, ()>, String> {
 /// Relaunches this executable elevated for one headless action and returns
 /// the report it sent back. The child keeps no log of its own (it writes
 /// nothing to disk), so its outcome is recorded here.
-pub fn run_elevated_flag(flag: &str, source: &str, id: &str) -> Result<UninstallReport, String> {
+pub fn run_elevated_flag(
+    flag: &str,
+    source: &str,
+    id: &str,
+    extra: &[&str],
+) -> Result<UninstallReport, String> {
     crate::applog::line(&format!("elevating for {source}:{id}"));
-    let bytes = crate::elevation::run_elevated_args(flag, &[source, id]).map_err(|e| {
+    let values: Vec<&str> = [source, id]
+        .into_iter()
+        .chain(extra.iter().copied())
+        .collect();
+    let bytes = crate::elevation::run_elevated_args(flag, &values).map_err(|e| {
         crate::applog::line(&format!("elevation failed for {source}:{id}: {e}"));
         format!("The uninstall did not run: {e}. No changes were made by this app.")
     })?;
@@ -585,14 +828,16 @@ pub fn run_elevated_flag(flag: &str, source: &str, id: &str) -> Result<Uninstall
     Ok(report)
 }
 
-fn execute_sync(source: &str, id: &str) -> Result<UninstallReport, String> {
+fn execute_sync(source: &str, id: &str, confirmed: &str) -> Result<UninstallReport, String> {
     let _guard = lock_exec()?;
 
-    // Re-derive everything fresh; the previewed plan is display-only.
+    // Re-derive everything fresh; the previewed plan is display-only, but it
+    // must still be the one that was confirmed.
     let plan = build_plan(source, id)?;
+    check_confirmed(&plan, confirmed)?;
 
     if plan.needs_elevation {
-        return run_via_elevation(source, id);
+        return run_via_elevation(source, id, confirmed);
     }
 
     let skipped = RestorePointOutcome::Skipped {
@@ -605,28 +850,32 @@ fn execute_sync(source: &str, id: &str) -> Result<UninstallReport, String> {
             // The target's manifest demands admin: one UAC consent, retry,
             // unless the entry could have been planted without admin rights.
             let plan = build_plan(source, id)?;
-            if !elevation_permitted(source, &plan.kind, &plan.command) {
+            check_confirmed(&plan, confirmed)?;
+            if let Some(reason) = elevation_refusal(source, &plan.kind, &plan.command) {
                 crate::applog::line(&format!("per-user elevation refused for {source}:{id}"));
-                return Err(PER_USER_ELEVATION_REFUSED.to_string());
+                return Err(reason.to_string());
             }
-            run_via_elevation(source, id)
+            run_via_elevation(source, id, confirmed)
         }
         other => other,
     }
 }
 
 /// Entry point for the headless elevated child (`main.rs` routes here for
-/// `--elevated-uninstall <source> <id> <pipe>`). Re-validates and re-derives
-/// everything from the first two arguments and sends the report into the
-/// parent's pipe. The process exit code only says "the report was handed
-/// over" — the uninstall's own outcome lives inside the report.
-pub fn run_elevated_child(source: &str, id: &str, pipe: &str) -> i32 {
+/// `--elevated-uninstall <source> <id> <fingerprint> <pipe>`). Re-validates
+/// and re-derives everything from source and id, runs only the plan whose
+/// fingerprint the user confirmed, and sends the report into the parent's
+/// pipe. The process exit code only says "the report was handed over" — the
+/// uninstall's own outcome lives inside the report.
+pub fn run_elevated_child(source: &str, id: &str, confirmed: &str, pipe: &str) -> i32 {
     let report = (|| -> Result<UninstallReport, String> {
         let plan = build_plan(source, id)?;
         // Re-checked here: the child is a plain CLI entry point and must not
-        // trust that its caller was this app.
-        if !elevation_permitted(source, &plan.kind, &plan.command) {
-            return Err(PER_USER_ELEVATION_REFUSED.to_string());
+        // trust that its caller was this app, and the UAC prompt may have
+        // waited long enough for the entry to change.
+        check_confirmed(&plan, confirmed)?;
+        if let Some(reason) = elevation_refusal(source, &plan.kind, &plan.command) {
+            return Err(reason.to_string());
         }
         let restore = restore_point::create_restore_point();
         run_and_report(plan.program_name, plan.kind, plan.command, restore)
@@ -668,18 +917,24 @@ pub fn plan_uninstall(source: String, id: String) -> Result<UninstallPlan, Strin
     build_plan(&source, &id)
 }
 
-/// Executes the uninstall. Blocking work runs off the async runtime's core
-/// threads; the webview stays responsive for the duration. The install folder
-/// is measured before and after so the ledger's "space freed" is verified,
-/// not just the registry's claim.
+/// Executes the uninstall the user confirmed (`fingerprint` from its plan).
+/// Blocking work runs off the async runtime's core threads; the webview stays
+/// responsive for the duration. The install folder is measured before and
+/// after so the ledger's "space freed" is verified, not just the registry's
+/// claim. The entry as read before the run is what the leftover scan uses
+/// afterwards (residue.rs), never a path from the webview.
 #[tauri::command]
-pub async fn execute_uninstall(source: String, id: String) -> Result<UninstallReport, String> {
+pub async fn execute_uninstall(
+    source: String,
+    id: String,
+    fingerprint: String,
+) -> Result<UninstallReport, String> {
     tauri::async_runtime::spawn_blocking(move || {
-        let estimated_size_kb = programs::read_raw_entry(&source, &id)
-            .ok()
-            .and_then(|e| e.estimated_size_kb);
-        let pre = measure_install_dir(&source, &id);
-        let result = execute_sync(&source, &id);
+        let entry = programs::read_raw_entry(&source, &id).ok();
+        let location = entry.as_ref().and_then(|e| e.install_location.clone());
+        let estimated_size_kb = entry.as_ref().and_then(|e| e.estimated_size_kb);
+        let pre = measure_install_dir(location.as_deref());
+        let result = execute_sync(&source, &id, &fingerprint);
         if let Ok(report) = &result {
             // Executable-kind uninstallers can report success before the
             // registry key is actually gone (see `wait_for_removal`); give
@@ -692,8 +947,11 @@ pub async fn execute_uninstall(source: String, id: String) -> Result<UninstallRe
             if report.success && !is_msi {
                 wait_for_removal(&source, &id);
             }
-            let post = measure_install_dir(&source, &id);
+            let post = measure_install_dir(location.as_deref());
             record_receipt(&source, report, pre, post, estimated_size_kb);
+            if let (true, Some(entry)) = (report.success, &entry) {
+                crate::residue::remember_removed(&source, &id, entry);
+            }
         }
         result
     })
@@ -745,28 +1003,186 @@ mod tests {
     #[test]
     fn machine_entries_may_always_elevate() {
         let cmd = vec![r"D:\Anywhere\uninst.exe".to_string()];
-        assert!(elevation_permitted(
-            "machine64",
-            &PlanKind::Executable,
-            &cmd
-        ));
-        assert!(elevation_permitted(
-            "machine32",
-            &PlanKind::Executable,
-            &cmd
-        ));
+        assert!(elevation_refusal("machine64", &PlanKind::Executable, &cmd).is_none());
+        assert!(elevation_refusal("machine32", &PlanKind::Executable, &cmd).is_none());
     }
 
     #[test]
     fn per_user_entries_outside_protected_folders_never_elevate() {
         let cmd = vec![r"C:\Users\me\AppData\Local\Evil\uninst.exe".to_string()];
-        assert!(!elevation_permitted("user", &PlanKind::Executable, &cmd));
-        assert!(!elevation_permitted("user", &PlanKind::Msi, &[]));
-        assert!(!elevation_permitted("user", &PlanKind::Executable, &[]));
+        for (kind, cmd) in [
+            (PlanKind::Executable, cmd),
+            (PlanKind::Msi, Vec::new()),
+            (PlanKind::Executable, Vec::new()),
+        ] {
+            assert_eq!(
+                elevation_refusal("user", &kind, &cmd),
+                Some(PER_USER_ELEVATION_REFUSED)
+            );
+        }
         if let Ok(root) = std::env::var("SystemRoot") {
             let tool = vec![format!(r"{root}\System32\diskpart.exe")];
-            assert!(!elevation_permitted("user", &PlanKind::Executable, &tool));
+            assert!(elevation_refusal("user", &PlanKind::Executable, &tool).is_some());
         }
+    }
+
+    fn ace(allow: bool, inherit_only: bool, mask: u32, sid: &str) -> AccessEntry {
+        AccessEntry {
+            allow,
+            inherit_only,
+            mask,
+            sid: sid.into(),
+        }
+    }
+
+    const ADMINS: &str = "S-1-5-32-544";
+    const USERS: &str = "S-1-5-32-545";
+    const TRUSTED_INSTALLER: &str =
+        "S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464";
+
+    /// The access list Program Files folders normally carry: full control for
+    /// TrustedInstaller, SYSTEM and Administrators, read and run for Users,
+    /// full control for CREATOR OWNER on what is created inside only.
+    fn program_files_acl() -> Vec<AccessEntry> {
+        vec![
+            ace(true, false, 0x1F_01FF, TRUSTED_INSTALLER),
+            ace(true, false, 0x1F_01FF, "S-1-5-18"),
+            ace(true, false, 0x1F_01FF, ADMINS),
+            ace(true, false, 0x12_00A9, USERS),
+            ace(true, true, 0x1000_0000, "S-1-3-0"),
+            ace(true, false, 0x12_00A9, "S-1-15-2-1"),
+        ]
+    }
+
+    #[test]
+    fn an_admin_only_folder_may_hold_an_elevated_uninstaller() {
+        let acl = program_files_acl();
+        assert!(only_admins_can_change(TRUSTED_INSTALLER, Some(&acl)));
+        assert!(only_admins_can_change(ADMINS, Some(&acl)));
+        // A deny entry can only take rights away.
+        let mut denied = acl.clone();
+        denied.push(ace(false, false, 0x1F_01FF, USERS));
+        assert!(only_admins_can_change("S-1-5-18", Some(&denied)));
+    }
+
+    #[test]
+    fn a_folder_others_can_change_never_holds_an_elevated_uninstaller() {
+        // Users: Modify, the loosened permission some installers set.
+        let mut modify = program_files_acl();
+        modify.push(ace(true, false, 0x13_01BF, USERS));
+        assert!(!only_admins_can_change(ADMINS, Some(&modify)));
+        // Only "create files" for Authenticated Users is enough to plant a DLL.
+        let mut add_file = program_files_acl();
+        add_file.push(ace(true, false, 0x2, "S-1-5-11"));
+        assert!(!only_admins_can_change(ADMINS, Some(&add_file)));
+        // So are delete, change permissions and take ownership, and generic write.
+        for mask in [0x1_0000, 0x4_0000, 0x8_0000, 0x4000_0000, 0x40] {
+            let mut acl = program_files_acl();
+            acl.push(ace(true, false, mask, "S-1-1-0"));
+            assert!(!only_admins_can_change(ADMINS, Some(&acl)), "{mask:#x}");
+        }
+        // An owner who is a standard user can rewrite the list at will.
+        let user = "S-1-5-21-1-2-3-1001";
+        assert!(!only_admins_can_change(user, Some(&program_files_acl())));
+        // No access list at all lets everyone in.
+        assert!(!only_admins_can_change(ADMINS, None));
+        // An entry type this app does not parse counts against the folder.
+        let mut unknown = program_files_acl();
+        unknown.push(ace(true, false, u32::MAX, ""));
+        assert!(!only_admins_can_change(ADMINS, Some(&unknown)));
+        // An inherit-only grant does not apply to the folder itself.
+        let mut inherit_only = program_files_acl();
+        inherit_only.push(ace(true, true, 0x1F_01FF, USERS));
+        assert!(only_admins_can_change(ADMINS, Some(&inherit_only)));
+    }
+
+    /// The real access lists: Windows' own msiexec.exe and its folders are
+    /// administrator-only; a folder this test creates in the user's temporary
+    /// folder is not, so an uninstaller there would never be elevated even if
+    /// that folder were treated as a protected root.
+    #[cfg(windows)]
+    #[test]
+    fn real_access_lists_are_read_and_judged() {
+        let windows =
+            crate::elevation::known_folder(&windows_sys::Win32::UI::Shell::FOLDERID_Windows)
+                .unwrap();
+        let msiexec = format!(r"{windows}\System32\msiexec.exe");
+        assert!(admin_only_path(&msiexec, std::slice::from_ref(&windows)));
+
+        let dir = std::env::temp_dir().join(format!("pcu-acl-{}", std::process::id()));
+        std::fs::create_dir_all(dir.join("Vendor")).unwrap();
+        let exe = dir.join(r"Vendor\uninst.exe");
+        std::fs::write(&exe, b"MZ").unwrap();
+        let root = dir.to_string_lossy().into_owned();
+        let exe = exe.to_string_lossy().into_owned();
+        assert!(is_under_protected_root(&exe, std::slice::from_ref(&root)));
+        assert!(!admin_only_path(&exe, std::slice::from_ref(&root)));
+        // A missing file or one outside every root is never admin-only.
+        assert!(!admin_only_path(
+            &format!(r"{root}\Vendor\missing.exe"),
+            std::slice::from_ref(&root)
+        ));
+        assert!(!admin_only_path(&msiexec, std::slice::from_ref(&root)));
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn the_fingerprint_binds_both_uninstall_strings_and_the_command() {
+        let entry = entry_with(Some(r#""C:\App\unins.exe""#), None);
+        let command = vec![r"C:\App\unins.exe".to_string()];
+        let confirmed = command_fingerprint("user", "TestKey", &entry, &command);
+        assert_eq!(confirmed.len(), 64);
+        assert_eq!(
+            confirmed,
+            command_fingerprint("user", "TestKey", &entry, &command)
+        );
+        let changed = [
+            command_fingerprint(
+                "user",
+                "TestKey",
+                &entry_with(Some(r#""C:\App\unins.exe" /x"#), None),
+                &command,
+            ),
+            command_fingerprint(
+                "user",
+                "TestKey",
+                &entry_with(Some(r#""C:\App\unins.exe""#), Some("x")),
+                &command,
+            ),
+            command_fingerprint("user", "TestKey", &entry, &[r"C:\Evil\x.exe".to_string()]),
+            command_fingerprint("machine64", "TestKey", &entry, &command),
+            command_fingerprint("user", "OtherKey", &entry, &command),
+        ];
+        for other in changed {
+            assert_ne!(other, confirmed);
+        }
+    }
+
+    #[test]
+    fn a_plan_that_changed_after_confirmation_is_refused() {
+        let entry = entry_with(Some(r#""C:\App\unins.exe""#), None);
+        let command = vec![r"C:\App\unins.exe".to_string()];
+        let plan = UninstallPlan {
+            program_name: "Test App".into(),
+            kind: PlanKind::Executable,
+            command: command.clone(),
+            needs_elevation: false,
+            will_attempt_restore_point: false,
+            warnings: Vec::new(),
+            confidence: crate::confidence::assess(
+                &entry,
+                false,
+                &programs::summarize_uninstall(&entry),
+            ),
+            estimated_size_kb: None,
+            fingerprint: command_fingerprint("user", "TestKey", &entry, &command),
+        };
+        assert!(check_confirmed(&plan, &plan.fingerprint.clone()).is_ok());
+        assert_eq!(
+            check_confirmed(&plan, &"0".repeat(64)).unwrap_err(),
+            COMMAND_CHANGED
+        );
+        assert_eq!(check_confirmed(&plan, "").unwrap_err(), COMMAND_CHANGED);
     }
 
     fn entry_with(uninstall: Option<&str>, quiet: Option<&str>) -> RawEntry {

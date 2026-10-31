@@ -23,12 +23,13 @@ fn main() {
     #[cfg(all(windows, target_env = "msvc"))]
     std::hint::black_box(pcu_cryptbase_import as unsafe extern "system" fn());
     // Headless elevated branch: `app.exe --elevated-uninstall <source> <id>
-    // <pipe>` runs ONE uninstall (restore point + execution) and sends its
-    // report into the parent's pipe; `--elevated-forget` removes one broken
-    // entry the same way (forget.rs). One UAC consent covers exactly one
-    // action; the GUI never runs elevated. The child re-validates and
-    // re-derives everything from source and id — see uninstall_exec's module
-    // docs for the trust model.
+    // <fingerprint> <pipe>` runs ONE uninstall (restore point + execution),
+    // only if the entry still yields the plan the user confirmed, and sends
+    // its report into the parent's pipe; `--elevated-forget <source> <id>
+    // <pipe>` removes one broken entry the same way (forget.rs). One UAC
+    // consent covers exactly one action; the GUI never runs elevated. The
+    // child re-validates and re-derives everything from source and id — see
+    // uninstall_exec's module docs for the trust model.
     let args: Vec<String> = std::env::args().collect();
     if args.len() > 1 && (args[1] == "--elevated-uninstall" || args[1] == "--elevated-forget") {
         // First, before anything can load a DLL by name from the per-user
@@ -38,20 +39,23 @@ fn main() {
         // folders, not even the log: the parent records the outcome.
         pc_tweaker_uninstaller_lib::applog::off();
         use pc_tweaker_uninstaller_lib::elevation::decode_elevated_arg;
-        let [_, _, source, id, pipe] = args.as_slice() else {
+        let Ok(values) = args[2..]
+            .iter()
+            .map(|arg| decode_elevated_arg(arg))
+            .collect::<Result<Vec<_>, _>>()
+        else {
             std::process::exit(2);
         };
-        let (Ok(source), Ok(id), Ok(pipe)) = (
-            decode_elevated_arg(source),
-            decode_elevated_arg(id),
-            decode_elevated_arg(pipe),
-        ) else {
-            std::process::exit(2);
-        };
-        std::process::exit(if args[1] == "--elevated-forget" {
-            pc_tweaker_uninstaller_lib::forget::run_elevated_child(&source, &id, &pipe)
-        } else {
-            pc_tweaker_uninstaller_lib::uninstall_exec::run_elevated_child(&source, &id, &pipe)
+        std::process::exit(match (args[1].as_str(), values.as_slice()) {
+            ("--elevated-forget", [source, id, pipe]) => {
+                pc_tweaker_uninstaller_lib::forget::run_elevated_child(source, id, pipe)
+            }
+            ("--elevated-uninstall", [source, id, confirmed, pipe]) => {
+                pc_tweaker_uninstaller_lib::uninstall_exec::run_elevated_child(
+                    source, id, confirmed, pipe,
+                )
+            }
+            _ => 2,
         });
     }
 

@@ -183,9 +183,14 @@ pub async fn forget_broken_entry(
                 },
             )?
         } else {
-            uninstall_exec::run_elevated_flag("--elevated-forget", &source, &id)?
+            uninstall_exec::run_elevated_flag("--elevated-forget", &source, &id, &[])?
         };
         record_receipt(&source, &report, &entry);
+        if report.success {
+            // The leftover scan offered next works from this entry as it was
+            // read before the removal, never from a path the webview sends.
+            crate::residue::remember_removed(&source, &id, &entry);
+        }
         Ok(report)
     })
     .await
