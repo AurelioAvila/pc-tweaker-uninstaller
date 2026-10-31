@@ -1383,7 +1383,11 @@ export default function App() {
                         </button>
                       </>
                     )}
-                    {accountNotice && <p className="menu-hint">{accountNotice}</p>}
+                    {accountNotice && (
+                      <p className="menu-hint" role="status">
+                        {accountNotice}
+                      </p>
+                    )}
                     <details className="account-changes">
                       <summary>{text.menu.securityTitle}</summary>
                       <form
@@ -1615,13 +1619,17 @@ export default function App() {
                           : text.menu.signInButton}
                     </button>
                     {account.status === "error" && (
-                      <p className="detail-notice">
+                      <p className="detail-notice" role="alert">
                         {account.message === "offline"
                           ? text.menu.errorNetwork
                           : text.menu.errorServer}
                       </p>
                     )}
-                    {loginError !== null && <p className="detail-notice">{loginError}</p>}
+                    {loginError !== null && (
+                      <p className="detail-notice" role="alert">
+                        {loginError}
+                      </p>
+                    )}
                     {!registerMode && (
                       <button
                         type="button"
@@ -1642,7 +1650,11 @@ export default function App() {
                         {text.menu.forgotPassword}
                       </button>
                     )}
-                    {accountNotice && <p className="menu-hint">{accountNotice}</p>}
+                    {accountNotice && (
+                      <p className="menu-hint" role="status">
+                        {accountNotice}
+                      </p>
+                    )}
                     <button
                       type="button"
                       className="button-ghost small full"

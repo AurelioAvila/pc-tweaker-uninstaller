@@ -6,9 +6,9 @@
 //! else — the command, the arguments, whether execution is allowed at all —
 //! is re-derived fresh from the registry at execution time, behind the same
 //! fail-closed parser the listing uses ([`crate::uninstall_command`]). The
-//! preview the user confirmed is never itself executed; it is rebuilt, so a
-//! registry change between preview and click cannot smuggle a different
-//! command past the confirmation.
+//! preview the user confirmed is never itself executed; it is rebuilt, so the
+//! webview can never supply a command. (A registry change made after the
+//! preview is what runs, as it would from Windows Settings.)
 //!
 //! Execution rules, in order:
 //! - MSI: the command line is rebuilt from scratch as
@@ -23,9 +23,10 @@
 //! Elevation. Machine-wide uninstalls relaunch this executable elevated in a
 //! headless mode (`--elevated-uninstall <source> <id>`): one UAC consent per
 //! action, and the elevated child re-validates and re-derives everything —
-//! it trusts nothing from the parent but those two validated strings. The
-//! child writes its report to a FIXED path under the app's own data dir
-//! (never a path taken from argv) and the parent reads it back.
+//! it trusts nothing from the parent but those two validated strings. It
+//! sends its report back over a pipe the parent created (elevation.rs) and
+//! writes nothing to disk; the folders it relies on come from Windows, not
+//! from environment variables the user's programs can change.
 
 use crate::programs::{self, RawEntry};
 use crate::restore_point::{self, RestorePointOutcome};
@@ -38,7 +39,6 @@ use std::time::{Duration, Instant};
 /// Must match `tauri.conf.json`'s identifier: the headless elevated child has
 /// no Tauri context, so the app data dir is derived from this constant.
 const APP_IDENTIFIER: &str = "com.aurel.pc-tweaker-uninstaller";
-const REPORT_FILE: &str = "last-uninstall-report.json";
 
 /// One uninstall at a time, app-wide. Uninstallers mutate shared machine
 /// state; running two concurrently is never what the user meant.
@@ -96,12 +96,20 @@ fn elevation_permitted(source: &str, kind: &PlanKind, command: &[String]) -> boo
     }
 }
 
+/// From Windows, not `%ProgramFiles%`: the elevated child re-checks this, and
+/// the user's own environment reaches it (elevation.rs, `known_folder`).
 fn program_roots() -> Vec<String> {
-    ["ProgramFiles", "ProgramFiles(x86)", "ProgramW6432"]
-        .iter()
-        .filter_map(|var| std::env::var(var).ok())
-        .filter(|root| !root.trim().is_empty())
-        .collect()
+    #[cfg(windows)]
+    {
+        use windows_sys::Win32::UI::Shell::{FOLDERID_ProgramFiles, FOLDERID_ProgramFilesX86};
+        [FOLDERID_ProgramFiles, FOLDERID_ProgramFilesX86]
+            .iter()
+            .filter_map(crate::elevation::known_folder)
+            .filter(|root| !root.trim().is_empty())
+            .collect()
+    }
+    #[cfg(not(windows))]
+    Vec::new()
 }
 
 /// Case-insensitive prefix test on a component boundary. Any `..` component
@@ -196,8 +204,16 @@ pub fn msi_argv(product_code: &str, system_root: &str) -> Vec<String> {
     ]
 }
 
+/// The Windows folder as Windows reports it: msiexec runs elevated from here,
+/// so `%SystemRoot%` from the user's environment must not choose it.
 fn system_root() -> String {
-    std::env::var("SystemRoot").unwrap_or_else(|_| r"C:\Windows".to_string())
+    #[cfg(windows)]
+    {
+        crate::elevation::known_folder(&windows_sys::Win32::UI::Shell::FOLDERID_Windows)
+            .unwrap_or_else(|| r"C:\Windows".to_string())
+    }
+    #[cfg(not(windows))]
+    r"C:\Windows".to_string()
 }
 
 /// Pure shape half of the on-disk gate: the executable path must be absolute
@@ -348,10 +364,6 @@ pub fn fixed_data_dir() -> Result<PathBuf, String> {
     Ok(PathBuf::from(base).join(APP_IDENTIFIER))
 }
 
-fn report_path() -> Result<PathBuf, String> {
-    Ok(fixed_data_dir()?.join(REPORT_FILE))
-}
-
 // ---- Verified space measurement -------------------------------------------
 
 /// Bounded recursive directory size. `None` when the walk hits the entry cap
@@ -435,26 +447,33 @@ fn record_receipt(
     });
 }
 
-pub fn write_report(report: &UninstallReport) -> Result<(), String> {
-    let path = report_path()?;
-    if let Some(dir) = path.parent() {
-        std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+/// The elevated child's last step: its report goes back over the parent's
+/// pipe, never into a file. Exit code 0 only when it was handed over.
+pub fn send_report(pipe: &str, report: &UninstallReport) -> i32 {
+    let mut bytes = serde_json::to_vec(report).unwrap_or_default();
+    if bytes.len() > crate::elevation::REPORT_LIMIT {
+        // A registry entry can carry megabytes of text; the outcome is what
+        // the parent needs, not every byte of the name or command.
+        let short = UninstallReport {
+            program_name: report.program_name.chars().take(256).collect(),
+            command: Vec::new(),
+            message: report.message.chars().take(2048).collect(),
+            ..report.clone()
+        };
+        bytes = serde_json::to_vec(&short).unwrap_or_default();
     }
-    let json = serde_json::to_vec_pretty(report).map_err(|e| e.to_string())?;
-    // Atomic-enough for a single-writer report: temp then rename.
-    let tmp = path.with_extension("json.tmp");
-    std::fs::write(&tmp, json).map_err(|e| e.to_string())?;
-    std::fs::rename(&tmp, &path).map_err(|e| e.to_string())?;
-    Ok(())
+    match crate::elevation::send_report_bytes(pipe, &bytes) {
+        Ok(()) => 0,
+        Err(_) => 1,
+    }
 }
 
-fn read_report() -> Result<UninstallReport, String> {
-    let path = report_path()?;
-    let bytes = std::fs::read(&path).map_err(|_| {
-        crate::applog::line("elevated child left no report file");
-        "The elevated uninstall finished but left no report.".to_string()
-    })?;
-    serde_json::from_slice(&bytes).map_err(|_| {
+fn parse_report(bytes: &[u8]) -> Result<UninstallReport, String> {
+    if bytes.is_empty() {
+        crate::applog::line("elevated child sent no report");
+        return Err("The elevated uninstall finished but left no report.".to_string());
+    }
+    serde_json::from_slice(bytes).map_err(|_| {
         crate::applog::line(&format!(
             "elevated report unparseable, {} bytes",
             bytes.len()
@@ -535,33 +554,35 @@ const ELEVATION_REQUIRED: i32 = 740;
 /// Internal sentinel: tells `execute_sync` to retry through the elevated path.
 const NEEDS_ELEVATION_MARKER: &str = "__needs_elevation__";
 
-/// The elevated flow: clear any stale report, relaunch self elevated and
-/// headless, then read back the report the child wrote.
+/// The elevated flow: relaunch self elevated and headless, then take the
+/// report the child sent back.
 fn run_via_elevation(source: &str, id: &str) -> Result<UninstallReport, String> {
     run_elevated_flag("--elevated-uninstall", source, id)
 }
 
-/// Serializes every registry-changing action this app runs; the elevated
-/// child's report file is shared, so two at once would read each other's.
+/// Serializes every registry-changing action this app runs: uninstallers
+/// change shared machine state, and two at once is never what was meant.
 pub fn lock_exec() -> Result<std::sync::MutexGuard<'static, ()>, String> {
     EXEC_LOCK
         .try_lock()
         .map_err(|_| "Another uninstall is already running. Wait for it to finish.".to_string())
 }
 
-/// Relaunches this executable elevated for one headless action and reads
-/// the report it leaves behind.
+/// Relaunches this executable elevated for one headless action and returns
+/// the report it sent back. The child keeps no log of its own (it writes
+/// nothing to disk), so its outcome is recorded here.
 pub fn run_elevated_flag(flag: &str, source: &str, id: &str) -> Result<UninstallReport, String> {
-    if let Ok(path) = report_path() {
-        // Best effort: a stale report must never be mistaken for this run's.
-        let _ = std::fs::remove_file(path);
-    }
     crate::applog::line(&format!("elevating for {source}:{id}"));
-    crate::elevation::run_elevated_args(flag, &[source, id]).map_err(|e| {
+    let bytes = crate::elevation::run_elevated_args(flag, &[source, id]).map_err(|e| {
         crate::applog::line(&format!("elevation failed for {source}:{id}: {e}"));
         format!("The uninstall did not run: {e}. No changes were made by this app.")
     })?;
-    read_report()
+    let report = parse_report(&bytes)?;
+    crate::applog::line(&format!(
+        "elevated {flag} for {source}:{id}: exit {:?} success {} after {}ms",
+        report.exit_code, report.success, report.duration_ms
+    ));
+    Ok(report)
 }
 
 fn execute_sync(source: &str, id: &str) -> Result<UninstallReport, String> {
@@ -595,21 +616,11 @@ fn execute_sync(source: &str, id: &str) -> Result<UninstallReport, String> {
 }
 
 /// Entry point for the headless elevated child (`main.rs` routes here for
-/// `--elevated-uninstall <source> <id>`). Re-validates and re-derives
-/// everything from the two arguments; writes the report to the fixed path.
-/// The process exit code only says "a report was produced" — the uninstall's
-/// own outcome lives inside the report.
-pub fn run_elevated_child(source: &str, id: &str) -> i32 {
-    // Checked before anything writes there, including the refusal report.
-    match fixed_data_dir() {
-        Ok(dir) => {
-            if let Err(e) = crate::elevation::ensure_plain_app_data_dir(&dir) {
-                eprintln!("{e}");
-                return 1;
-            }
-        }
-        Err(_) => return 1,
-    }
+/// `--elevated-uninstall <source> <id> <pipe>`). Re-validates and re-derives
+/// everything from the first two arguments and sends the report into the
+/// parent's pipe. The process exit code only says "the report was handed
+/// over" — the uninstall's own outcome lives inside the report.
+pub fn run_elevated_child(source: &str, id: &str, pipe: &str) -> i32 {
     let report = (|| -> Result<UninstallReport, String> {
         let plan = build_plan(source, id)?;
         // Re-checked here: the child is a plain CLI entry point and must not
@@ -622,10 +633,7 @@ pub fn run_elevated_child(source: &str, id: &str) -> i32 {
     })();
 
     match report {
-        Ok(report) => match write_report(&report) {
-            Ok(()) => 0,
-            Err(_) => 1,
-        },
+        Ok(report) => send_report(pipe, &report),
         Err(reason) => {
             // Even a refusal is reported, so the parent can show the reason.
             // (The elevation marker cannot occur here — the child IS elevated —
@@ -647,10 +655,7 @@ pub fn run_elevated_child(source: &str, id: &str) -> i32 {
                 message: reason,
                 duration_ms: 0,
             };
-            match write_report(&refused) {
-                Ok(()) => 0,
-                Err(_) => 1,
-            }
+            send_report(pipe, &refused)
         }
     }
 }

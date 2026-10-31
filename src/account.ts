@@ -9,9 +9,17 @@
  */
 
 import { invoke } from "@tauri-apps/api/core";
+/** The same address PC Tweaker uses (and account_probe.rs checks): a filter
+ *  that blocks the shared hosting domain behind it does not block this one. */
 export const API_BASE_URL: string =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
-  "https://pc-tweaker-app-production.up.railway.app";
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "https://api.pctweaker.app";
+
+/** Long enough for a slow connection, short enough that a request a proxy
+ *  swallowed does not leave a button spinning for good. */
+const TIMEOUT_MS = 30_000;
+function timed(init: RequestInit = {}): RequestInit {
+  return { ...init, signal: AbortSignal.timeout(TIMEOUT_MS) };
+}
 
 const TOKEN_KEY = "pcu-token";
 const EMAIL_KEY = "pcu-email";
@@ -72,7 +80,14 @@ export type AccountErrorKey =
   | "errorRateLimited"
   | "errorInvalid"
   | "errorServer"
-  | "errorNetwork";
+  | "errorNetwork"
+  | "errorOffline"
+  | "errorTimeout"
+  | "errorDns"
+  | "errorClock"
+  | "errorTls"
+  | "errorBlocked"
+  | "errorFiltered";
 export class AccountRequestError extends Error {
   constructor(readonly key: AccountErrorKey) {
     super(key);
@@ -93,10 +108,31 @@ function failure(status: number): AccountRequestError {
 }
 async function request(path: string, init: RequestInit): Promise<Response> {
   try {
-    return await fetch(`${API_BASE_URL}${path}`, init);
-  } catch {
-    throw new AccountRequestError("errorNetwork");
+    return await fetch(`${API_BASE_URL}${path}`, timed(init));
+  } catch (error) {
+    throw new AccountRequestError(await networkFailure(error));
   }
+}
+
+/** WebView2 reports every network failure as the same "Failed to fetch", so
+ *  "check your internet connection" was all a customer whose internet worked
+ *  could be told. The native side tries the service once more and names the
+ *  reason (account_probe.rs, the same check PC Tweaker runs). */
+async function networkFailure(error: unknown): Promise<AccountErrorKey> {
+  if (!navigator.onLine) return "errorOffline";
+  if (error instanceof DOMException && error.name === "TimeoutError") return "errorTimeout";
+  const reason = await invoke<string>("account_service_probe").catch(() => "unknown");
+  const keys: Record<string, AccountErrorKey> = {
+    reachable: "errorFiltered",
+    blocked: "errorBlocked",
+    rate_limited: "errorRateLimited",
+    server: "errorServer",
+    timeout: "errorTimeout",
+    dns: "errorDns",
+    clock: "errorClock",
+    tls: "errorTls",
+  };
+  return keys[reason] ?? "errorNetwork";
 }
 /** The account is shared with PC Tweaker and Tweaky Driver; mail about it is
  *  branded for the app that asked, and written in the app's language. */
@@ -267,11 +303,14 @@ export async function fetchAccount(): Promise<AccountState> {
   if (!token || !email) return { status: "anonymous" };
   if (!API_BASE_URL) return { status: "anonymous" };
   try {
-    const res = await fetch(`${API_BASE_URL}/api/account`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetch(
+      `${API_BASE_URL}/api/account`,
+      timed({ headers: { Authorization: `Bearer ${token}` } }),
+    );
     if (res.status === 401) {
-      clearSession();
+      // The session ended (password changed, signed out everywhere): the
+      // licence it unlocked on this PC goes too, as on sign-out.
+      logout();
       return { status: "anonymous" };
     }
     if (!res.ok) {
@@ -334,9 +373,10 @@ export async function fetchUninstallerEntitlement(): Promise<UninstallerEntitlem
   if (!token || !API_BASE_URL) return null;
   try {
     // The backend signs this PC's hash into the licence (license.rs bound_to).
-    const license = await fetch(`${API_BASE_URL}/api/license?product=uninstaller&sig=2`, {
-      headers: { Authorization: `Bearer ${token}`, ...(await deviceHeader()) },
-    });
+    const license = await fetch(
+      `${API_BASE_URL}/api/license?product=uninstaller&sig=2`,
+      timed({ headers: { Authorization: `Bearer ${token}`, ...(await deviceHeader()) } }),
+    );
     if (license.status === 401) return null;
     if (!license.ok) return await cachedEntitlement();
     const response: unknown = await license.json();
@@ -347,9 +387,10 @@ export async function fetchUninstallerEntitlement(): Promise<UninstallerEntitlem
       return null;
     }
     const verified = await invoke<boolean>("license_status");
-    const res = await fetch(`${API_BASE_URL}/api/entitlements`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetch(
+      `${API_BASE_URL}/api/entitlements`,
+      timed({ headers: { Authorization: `Bearer ${token}` } }),
+    );
     if (!res.ok) return verified ? { active: true, plan: null } : null;
     const data = (await res.json()) as {
       products?: {
@@ -375,9 +416,10 @@ export async function fetchBillingStatus(): Promise<unknown> {
   if (!token || !API_BASE_URL) return null;
   try {
     // The PC id: a PC that already had the free trial is not offered it again.
-    const res = await fetch(`${API_BASE_URL}/api/billing/status?product=uninstaller`, {
-      headers: { Authorization: `Bearer ${token}`, ...(await deviceHeader()) },
-    });
+    const res = await fetch(
+      `${API_BASE_URL}/api/billing/status?product=uninstaller`,
+      timed({ headers: { Authorization: `Bearer ${token}`, ...(await deviceHeader()) } }),
+    );
     if (!res.ok || readToken() !== token) return null;
     return (await res.json()) as unknown;
   } catch {
@@ -406,22 +448,25 @@ export async function fetchPriceList(): Promise<unknown> {
 export async function startUninstallerCheckout(startTrial?: boolean): Promise<string> {
   const token = readToken();
   if (!token || !API_BASE_URL) throw new Error("Sign in first.");
-  const res = await fetch(`${API_BASE_URL}/api/checkout`, {
-    method: "POST",
-    // The PC id: the free trial is once per PC as well as per account.
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      ...(await deviceHeader()),
-    },
-    // start_trial only when a trial is on offer (trial button or "Subscribe
-    // now"); the server still decides whether one applies.
-    body: JSON.stringify(
-      startTrial === undefined
-        ? { product: "uninstaller", plan: "annual" }
-        : { product: "uninstaller", plan: "annual", start_trial: startTrial },
-    ),
-  });
+  const res = await fetch(
+    `${API_BASE_URL}/api/checkout`,
+    timed({
+      method: "POST",
+      // The PC id: the free trial is once per PC as well as per account.
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        ...(await deviceHeader()),
+      },
+      // start_trial only when a trial is on offer (trial button or "Subscribe
+      // now"); the server still decides whether one applies.
+      body: JSON.stringify(
+        startTrial === undefined
+          ? { product: "uninstaller", plan: "annual" }
+          : { product: "uninstaller", plan: "annual", start_trial: startTrial },
+      ),
+    }),
+  );
   const body = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
   if (!res.ok || !body.url) throw new Error(body.error || `HTTP ${String(res.status)}`);
   return body.url;
@@ -433,10 +478,10 @@ export async function startUninstallerCheckout(startTrial?: boolean): Promise<st
 export async function startBillingPortal(): Promise<string> {
   const token = readToken();
   if (!token || !API_BASE_URL) throw new Error("Sign in first.");
-  const res = await fetch(`${API_BASE_URL}/api/portal`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const res = await fetch(
+    `${API_BASE_URL}/api/portal`,
+    timed({ method: "POST", headers: { Authorization: `Bearer ${token}` } }),
+  );
   const body = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
   if (!res.ok || !body.url) throw new Error(body.error || `HTTP ${String(res.status)}`);
   return body.url;

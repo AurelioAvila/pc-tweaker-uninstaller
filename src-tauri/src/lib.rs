@@ -6,6 +6,7 @@
 //! the baseline (type checks, lints, tests, CI) must be green before any
 //! feature lands.
 
+mod account_probe;
 pub mod actions;
 pub mod applog;
 pub mod confidence;
@@ -75,6 +76,7 @@ pub fn run() {
             license::license_status,
             license::license_device_hash,
             license::clear_license,
+            account_probe::account_service_probe,
             programs::list_programs,
             inventory_export::export_inventory,
             program_icons::program_icon,

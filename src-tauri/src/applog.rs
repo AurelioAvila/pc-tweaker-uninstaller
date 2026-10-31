@@ -42,10 +42,21 @@ fn stamp() -> u64 {
         .unwrap_or(0)
 }
 
+/// Set by the elevated child, which must not write into the user's folders
+/// as administrator: a program running as the user could link them anywhere.
+static OFF: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+pub fn off() {
+    OFF.store(true, std::sync::atomic::Ordering::Relaxed);
+}
+
 /// Appends one line. Every failure is swallowed: logging must never be the
 /// reason an uninstall fails, and a user whose APPDATA is unwritable has a
 /// bigger problem than a missing log line.
 pub fn line(message: &str) {
+    if OFF.load(std::sync::atomic::Ordering::Relaxed) {
+        return;
+    }
     if let Ok(path) = log_path() {
         line_at(&path, message);
     }

@@ -12,8 +12,9 @@ pub fn is_elevated() -> bool {
 /// UAC consent prompt for one headless action (`--elevated-uninstall` or
 /// `--elevated-forget` with its values) and waits for it. Nothing else about
 /// the app runs elevated. The values cross encoded, and the relaunched
-/// process re-validates and re-derives everything from them.
-pub fn run_elevated_args(flag: &str, values: &[&str]) -> Result<(), String> {
+/// process re-validates and re-derives everything from them. Returns what the
+/// action sent back on its report pipe, empty when it sent nothing.
+pub fn run_elevated_args(flag: &str, values: &[&str]) -> Result<Vec<u8>, String> {
     let exe = std::env::current_exe().map_err(|e| e.to_string())?;
 
     #[cfg(windows)]
@@ -26,13 +27,15 @@ pub fn run_elevated_args(flag: &str, values: &[&str]) -> Result<(), String> {
                     .to_string(),
             );
         }
+        let pipe = ReportPipe::create()?;
         let parameters = std::iter::once(flag.to_string())
             .chain(values.iter().map(|v| encode_elevated_arg(v)))
+            .chain(std::iter::once(encode_elevated_arg(&pipe.name)))
             .collect::<Vec<_>>()
             .join(" ");
         match shell_runas(&exe, &parameters)? {
-            0 => Ok(()),
-            code => Err(format!("the elevated action exited with code {code}")),
+            (0, pid) => Ok(pipe.read_from(pid)),
+            (code, _) => Err(format!("the elevated action exited with code {code}")),
         }
     }
 
@@ -66,9 +69,9 @@ fn is_inside_any(dir: &std::path::Path, roots: &[std::path::PathBuf]) -> bool {
 }
 
 /// `ShellExecuteExW` with the `runas` verb, waiting for the helper's exit
-/// code. The working directory is System32, never the caller's.
+/// code and process id. The working directory is System32, never the caller's.
 #[cfg(windows)]
-fn shell_runas(exe: &std::path::Path, parameters: &str) -> Result<u32, String> {
+fn shell_runas(exe: &std::path::Path, parameters: &str) -> Result<(u32, u32), String> {
     use std::os::windows::ffi::OsStrExt;
     use windows_sys::Win32::{
         Foundation::{CloseHandle, WAIT_OBJECT_0},
@@ -76,24 +79,22 @@ fn shell_runas(exe: &std::path::Path, parameters: &str) -> Result<u32, String> {
             Com::{
                 CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED, COINIT_DISABLE_OLE1DDE,
             },
-            Threading::{GetExitCodeProcess, WaitForSingleObject, INFINITE},
+            Threading::{GetExitCodeProcess, GetProcessId, WaitForSingleObject, INFINITE},
         },
         UI::{
             Shell::{
-                ShellExecuteExW, SEE_MASK_NOASYNC, SEE_MASK_NOCLOSEPROCESS, SHELLEXECUTEINFOW,
+                FOLDERID_System, ShellExecuteExW, SEE_MASK_NOASYNC, SEE_MASK_NOCLOSEPROCESS,
+                SHELLEXECUTEINFOW,
             },
             WindowsAndMessaging::SW_NORMAL,
         },
     };
     let wide = |s: &std::ffi::OsStr| s.encode_wide().chain([0]).collect::<Vec<u16>>();
-    let system32 = std::path::Path::new(
-        &std::env::var_os("SystemRoot").unwrap_or_else(|| r"C:\Windows".into()),
-    )
-    .join("System32");
+    let system32 = known_folder(&FOLDERID_System).unwrap_or_else(|| r"C:\Windows\System32".into());
     let verb = wide("runas".as_ref());
     let file = wide(exe.as_os_str());
     let parameters = wide(parameters.as_ref());
-    let directory = wide(system32.as_os_str());
+    let directory = wide(system32.as_ref());
     // SAFETY: the structure is zeroed, sized, and points at buffers that
     // outlive the call; the process handle is closed and a successful
     // CoInitializeEx is balanced on this same thread.
@@ -119,15 +120,169 @@ fn shell_runas(exe: &std::path::Path, parameters: &str) -> Result<u32, String> {
             return Err(format!("elevation was cancelled or failed: {error}"));
         }
         let mut code = 0u32;
+        let pid = GetProcessId(info.hProcess);
         let ok = WaitForSingleObject(info.hProcess, INFINITE) == WAIT_OBJECT_0
             && GetExitCodeProcess(info.hProcess, &mut code) != 0;
         CloseHandle(info.hProcess);
         if ok {
-            Ok(code)
+            Ok((code, pid))
         } else {
             Err("could not read the elevated action's result".to_string())
         }
     }
+}
+
+/// A folder as Windows records it, never from an environment variable: the
+/// user's own variables (HKCU\Environment, which any program running as the
+/// user can change) reach the elevated child too, so `%SystemRoot%` or
+/// `%ProgramFiles%` there could point an administrator's action anywhere.
+#[cfg(windows)]
+pub fn known_folder(id: &windows_sys::core::GUID) -> Option<String> {
+    use windows_sys::Win32::{System::Com::CoTaskMemFree, UI::Shell::SHGetKnownFolderPath};
+    let mut raw: *mut u16 = std::ptr::null_mut();
+    // SAFETY: a valid folder id and out pointer; the returned buffer is
+    // NUL-terminated and is freed with CoTaskMemFree, as documented, also
+    // when the call fails.
+    unsafe {
+        let hr = SHGetKnownFolderPath(id, 0, std::ptr::null_mut(), &mut raw);
+        let path = (hr >= 0 && !raw.is_null()).then(|| {
+            let len = (0..).take_while(|&i| *raw.add(i) != 0).count();
+            String::from_utf16_lossy(std::slice::from_raw_parts(raw, len))
+        });
+        CoTaskMemFree(raw.cast());
+        path
+    }
+}
+
+/// Every elevated report pipe is named this, then the parent's process id, a
+/// counter and a time stamp in hex. The child accepts nothing else as its
+/// report target.
+const REPORT_PIPE_PREFIX: &str = r"\\.\pipe\pc-tweaker-uninstaller-report-";
+/// Largest report the child sends. Well inside the pipe's buffer, so writing
+/// it never waits for a reader: the parent reads only once the child exited.
+pub const REPORT_LIMIT: usize = 32 * 1024;
+
+/// The elevated child's only way back to this process: a one-instance pipe
+/// made before the UAC prompt. The child writes its report into it and
+/// nothing to disk. Its earlier report file sat in the user's app data
+/// folder, where a program running as the user could swap the folder for a
+/// link during a long uninstall and send the administrator's write anywhere,
+/// and where a standard user who typed an administrator's password never saw
+/// it, because the child then ran under that administrator's profile.
+#[cfg(windows)]
+struct ReportPipe {
+    name: String,
+    pipe: std::fs::File,
+}
+
+#[cfg(windows)]
+impl ReportPipe {
+    fn create() -> Result<Self, String> {
+        use std::os::windows::{ffi::OsStrExt, io::FromRawHandle};
+        use windows_sys::Win32::{
+            Foundation::INVALID_HANDLE_VALUE,
+            Storage::FileSystem::{FILE_FLAG_FIRST_PIPE_INSTANCE, PIPE_ACCESS_INBOUND},
+            System::Pipes::{
+                CreateNamedPipeW, PIPE_READMODE_BYTE, PIPE_REJECT_REMOTE_CLIENTS, PIPE_TYPE_BYTE,
+                PIPE_WAIT,
+            },
+        };
+        static COUNT: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
+        let count = COUNT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let stamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_or(0, |d| d.as_nanos());
+        let name = format!(
+            "{REPORT_PIPE_PREFIX}{:x}-{count:x}-{stamp:x}",
+            std::process::id()
+        );
+        let wide: Vec<u16> = std::ffi::OsStr::new(&name)
+            .encode_wide()
+            .chain([0])
+            .collect();
+        // SAFETY: a NUL-terminated name and the default security descriptor
+        // (creator, administrators and SYSTEM may write). One instance only,
+        // and the first: nobody else can serve this name.
+        let handle = unsafe {
+            CreateNamedPipeW(
+                wide.as_ptr(),
+                PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE,
+                PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS,
+                1,
+                0,
+                2 * REPORT_LIMIT as u32,
+                0,
+                std::ptr::null(),
+            )
+        };
+        if handle == INVALID_HANDLE_VALUE {
+            return Err(format!(
+                "the elevated action's report channel could not be opened: {}",
+                std::io::Error::last_os_error()
+            ));
+        }
+        // SAFETY: a valid handle that nothing else owns.
+        let pipe = unsafe { std::fs::File::from_raw_handle(handle) };
+        Ok(Self { name, pipe })
+    }
+
+    /// What process `pid` wrote before it exited. Nothing when no one
+    /// connected or another process did: a program running as the user can
+    /// open this pipe too, and its words are not the child's report.
+    fn read_from(&self, pid: u32) -> Vec<u8> {
+        use std::io::Read;
+        use std::os::windows::io::AsRawHandle;
+        use windows_sys::Win32::System::Pipes::GetNamedPipeClientProcessId;
+        let mut client = 0u32;
+        // SAFETY: the pipe handle this struct owns and a valid out pointer.
+        let known = unsafe { GetNamedPipeClientProcessId(self.pipe.as_raw_handle(), &mut client) };
+        let mut bytes = Vec::new();
+        if known != 0 && client == pid {
+            // The child has exited, so its end is closed: this ends at the
+            // last byte it wrote instead of waiting.
+            let _ = (&self.pipe)
+                .take(REPORT_LIMIT as u64)
+                .read_to_end(&mut bytes);
+        }
+        bytes
+    }
+}
+
+/// The elevated child's half: hands its report to the parent's pipe. The
+/// name arrived on the command line, which whoever started this process
+/// chose, so it must be exactly the shape the parent creates: anything else
+/// (a file path, a `..`) is refused rather than written to as administrator.
+/// The pipe is opened for identification only, so its creator cannot act
+/// with this process's rights.
+pub fn send_report_bytes(pipe: &str, bytes: &[u8]) -> Result<(), String> {
+    if !is_report_pipe_name(pipe) {
+        return Err("the report channel name is not one this app creates".to_string());
+    }
+    #[cfg(windows)]
+    {
+        use std::io::Write;
+        use std::os::windows::fs::OpenOptionsExt;
+        use windows_sys::Win32::Storage::FileSystem::SECURITY_IDENTIFICATION;
+        std::fs::OpenOptions::new()
+            .write(true)
+            .security_qos_flags(SECURITY_IDENTIFICATION)
+            .open(pipe)
+            .and_then(|mut channel| channel.write_all(bytes))
+            .map_err(|e| e.to_string())
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = bytes;
+        Err("elevation is not implemented on this platform yet".to_string())
+    }
+}
+
+fn is_report_pipe_name(name: &str) -> bool {
+    name.strip_prefix(REPORT_PIPE_PREFIX).is_some_and(|rest| {
+        !rest.is_empty()
+            && rest.len() <= 48
+            && rest.bytes().all(|b| b.is_ascii_hexdigit() || b == b'-')
+    })
 }
 
 /// Marks an argument that crossed the UAC relaunch encoded.
@@ -177,11 +332,10 @@ pub fn restrict_dll_search_to_system32() {
     }
 }
 
-/// The elevated child writes its report into the user's app data folder,
-/// which any process running as that user can change. A junction or symbolic
-/// link in place of that folder would send the administrator's write to
-/// another location, so the child refuses to run through one. A missing
-/// folder is fine: it is created as a plain directory.
+/// A folder of the app's own data (the registry backups) must be a real
+/// folder: a junction or symbolic link in its place would send the write to
+/// another location, so it is refused. A missing folder is fine: it is
+/// created as a plain directory.
 pub fn ensure_plain_app_data_dir(dir: &std::path::Path) -> Result<(), String> {
     match std::fs::symlink_metadata(dir) {
         Ok(metadata) if is_link(&metadata) => Err(format!(
@@ -256,6 +410,73 @@ mod relaunch_tests {
         }
         assert_eq!(decode_elevated_arg("machine32").unwrap(), "machine32");
         assert!(decode_elevated_arg("b64:not base64!").is_err());
+    }
+
+    #[test]
+    fn only_the_apps_own_pipe_names_are_report_targets() {
+        assert!(is_report_pipe_name(
+            r"\\.\pipe\pc-tweaker-uninstaller-report-1a2b-18f3c2d4e5f60718"
+        ));
+        for name in [
+            r"\\.\pipe\pc-tweaker-uninstaller-report-",
+            r"\\.\pipe\pc-tweaker-uninstaller-report-..\..\C:\Windows\win.ini",
+            r"\\.\pipe\pc-tweaker-uninstaller-report-1a2b\x",
+            r"\\.\pipe\other-report-1a2b",
+            r"C:\Users\Public\report.json",
+            r"\\?\pipe\pc-tweaker-uninstaller-report-1a2b",
+        ] {
+            assert!(!is_report_pipe_name(name), "{name}");
+            assert!(send_report_bytes(name, b"{}").is_err(), "{name}");
+        }
+    }
+
+    /// The parent's side and the child's side meet as they do across the UAC
+    /// relaunch: the report arrives once the writer has closed its end, only
+    /// for the writer's process id, and an empty pipe answers at once.
+    #[cfg(windows)]
+    #[test]
+    fn the_report_pipe_carries_the_childs_bytes_only() {
+        let quiet = ReportPipe::create().unwrap();
+        assert!(quiet.read_from(std::process::id()).is_empty());
+
+        let pipe = ReportPipe::create().unwrap();
+        assert!(ReportPipe::create().is_ok(), "names must not collide");
+        send_report_bytes(&pipe.name, br#"{"success":true}"#).unwrap();
+        assert!(pipe.read_from(std::process::id() + 1).is_empty());
+
+        let pipe = ReportPipe::create().unwrap();
+        send_report_bytes(&pipe.name, br#"{"success":true}"#).unwrap();
+        assert_eq!(pipe.read_from(std::process::id()), br#"{"success":true}"#);
+    }
+
+    /// Run in a child process with planted variables, so the other tests,
+    /// which read the real ones, never see them.
+    #[cfg(windows)]
+    #[test]
+    fn folders_come_from_windows_not_the_environment() {
+        use windows_sys::Win32::UI::Shell::{FOLDERID_ProgramFiles, FOLDERID_System};
+        const PLANTED: &str = r"C:\Users\Public\planted";
+        if std::env::var_os("PCU_PLANTED_ENV").is_some() {
+            for id in [FOLDERID_ProgramFiles, FOLDERID_System] {
+                let folder = known_folder(&id).unwrap();
+                assert!(!folder.contains("planted"), "{folder}");
+            }
+            return;
+        }
+        let status = std::process::Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "elevation::relaunch_tests::folders_come_from_windows_not_the_environment",
+            ])
+            .env("PCU_PLANTED_ENV", "1")
+            .env("SystemRoot", PLANTED)
+            .env("windir", PLANTED)
+            .env("ProgramFiles", PLANTED)
+            .env("ProgramFiles(x86)", PLANTED)
+            .env("ProgramW6432", PLANTED)
+            .status()
+            .unwrap();
+        assert!(status.success());
     }
 
     #[test]
