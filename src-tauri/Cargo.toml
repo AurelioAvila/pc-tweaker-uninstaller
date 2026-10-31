@@ -24,7 +24,14 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = ["tray-icon"] }
 tauri-plugin-single-instance = "2"
-tauri-plugin-updater = "2"
+# The feed points at the signed setup.exe itself, so the archive support
+# (zip, tar, flate2) is left out of the binary, as in PC Tweaker.
+tauri-plugin-updater = { version = "2", default-features = false, features = ["rustls-tls", "system-proxy"] }
+# The updater's own reqwest and rustls (already in the binary), for the
+# sign-in screen's reason when the account service cannot be reached
+# (account_probe.rs).
+reqwest = { version = "0.13", default-features = false, features = ["rustls-no-provider", "system-proxy"] }
+rustls = { version = "0.23", default-features = false, features = ["ring"] }
 tauri-plugin-process = "2"
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
@@ -51,6 +58,10 @@ windows-sys = { version = "0.59", features = [
   "Win32_System_LibraryLoader",
   # SHELLEXECUTEINFOW (the UAC relaunch in elevation.rs) needs Registry.
   "Win32_System_Registry",
+  # The elevated child's report pipe (elevation.rs); CreateNamedPipeW takes
+  # a SECURITY_ATTRIBUTES pointer, left null.
+  "Win32_Security",
+  "Win32_System_Pipes",
   "Win32_System_Threading",
   "Win32_UI_Shell",
   "Win32_UI_WindowsAndMessaging",

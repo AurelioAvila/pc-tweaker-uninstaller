@@ -46,7 +46,7 @@ const ENTRIES: Entry[] = [
     /^Windows Installer reports this product is not installed .{1,3} it may already be removed\. Refresh the list to check\.$/,
     {
       it: "Windows Installer segnala che questo prodotto non è installato: potrebbe essere già stato rimosso. Aggiorna l'elenco per verificare.",
-      fr: "Windows Installer indique que ce produit n'est pas installé  il a peut-être déjà été supprimé. Actualisez la liste pour vérifier.",
+      fr: "Windows Installer indique que ce produit n'est pas installé : il a peut-être déjà été supprimé. Actualisez la liste pour vérifier.",
       es: "Windows Installer indica que este producto no está instalado: puede que ya se haya eliminado. Actualiza la lista para comprobarlo.",
       de: "Windows Installer meldet, dass dieses Produkt nicht installiert ist – es wurde möglicherweise bereits entfernt. Aktualisieren Sie die Liste, um das zu prüfen.",
       pt: "O Windows Installer indica que este produto não está instalado: pode já ter sido removido. Atualize a lista para confirmar.",
@@ -81,7 +81,7 @@ const ENTRIES: Entry[] = [
     /^Per-user uninstall: no restore point will be created \(that requires administrator rights\)\.$/,
     {
       it: "Disinstallazione per utente: non verrà creato alcun punto di ripristino (serve l'accesso da amministratore).",
-      fr: "Désinstallation par utilisateur  aucun point de restauration ne sera créé (cela exige les droits d'administrateur).",
+      fr: "Désinstallation par utilisateur : aucun point de restauration ne sera créé (cela exige les droits d'administrateur).",
       es: "Desinstalación por usuario: no se creará ningún punto de restauración (requiere derechos de administrador).",
       de: "Deinstallation pro Benutzer: Es wird kein Wiederherstellungspunkt erstellt (dafür sind Administratorrechte nötig).",
       pt: "Desinstalação por utilizador: não será criado nenhum ponto de restauro (isso requer direitos de administrador).",
@@ -201,7 +201,7 @@ const ENTRIES: Entry[] = [
     /^The uninstaller could not be started: ([\s\S]*)$/,
     {
       it: (e) => `Impossibile avviare il programma di disinstallazione: ${e}`,
-      fr: (e) => `Le désinstalleur n'a pas pu être lancé  ${e}`,
+      fr: (e) => `Le désinstalleur n'a pas pu être lancé : ${e}`,
       es: (e) => `No se pudo iniciar el desinstalador: ${e}`,
       de: (e) => `Das Deinstallationsprogramm konnte nicht gestartet werden: ${e}`,
       pt: (e) => `Não foi possível iniciar o desinstalador: ${e}`,
@@ -211,7 +211,7 @@ const ENTRIES: Entry[] = [
     /^The uninstall did not run: ([\s\S]*?)\. No changes were made by this app\.$/,
     {
       it: (e) => `La disinstallazione non è stata eseguita: ${e}. L'app non ha modificato nulla.`,
-      fr: (e) => `La désinstallation n'a pas eu lieu  ${e}. L'application n'a rien modifié.`,
+      fr: (e) => `La désinstallation n'a pas eu lieu : ${e}. L'application n'a rien modifié.`,
       es: (e) => `La desinstalación no se ejecutó: ${e}. La aplicación no hizo ningún cambio.`,
       de: (e) => `Die Deinstallation wurde nicht ausgeführt: ${e}. Die App hat nichts verändert.`,
       pt: (e) => `A desinstalação não foi executada: ${e}. A aplicação não fez nenhuma alteração.`,
@@ -231,7 +231,7 @@ const ENTRIES: Entry[] = [
     /^Windows marks this entry as a system component or an update, so it is not removed\.$/,
     {
       it: "Windows contrassegna questa voce come componente di sistema o aggiornamento, quindi non viene rimossa.",
-      fr: "Windows signale cette entrée comme composant système ou mise à jour  elle n'est donc pas retirée.",
+      fr: "Windows signale cette entrée comme composant système ou mise à jour : elle n'est donc pas retirée.",
       es: "Windows marca esta entrada como componente del sistema o actualización, así que no se quita.",
       de: "Windows kennzeichnet diesen Eintrag als Systemkomponente oder Update, daher wird er nicht entfernt.",
       pt: "O Windows marca esta entrada como componente de sistema ou atualização, por isso não é removida.",
@@ -291,7 +291,7 @@ const ENTRIES: Entry[] = [
     /^Windows refused the removal: ([\s\S]*)$/,
     {
       it: (e) => `Windows ha rifiutato la rimozione: ${e}`,
-      fr: (e) => `Windows a refusé la suppression  ${e}`,
+      fr: (e) => `Windows a refusé la suppression : ${e}`,
       es: (e) => `Windows rechazó la eliminación: ${e}`,
       de: (e) => `Windows hat die Entfernung verweigert: ${e}`,
       pt: (e) => `O Windows recusou a remoção: ${e}`,
@@ -301,7 +301,7 @@ const ENTRIES: Entry[] = [
     /^Restore points require administrator rights; this per-user (?:uninstall runs|entry is removed) without one\.$/,
     {
       it: "I punti di ripristino richiedono i diritti di amministratore: questa operazione per utente prosegue senza.",
-      fr: "Les points de restauration exigent les droits d'administrateur  cette opération par utilisateur se déroule sans point de restauration.",
+      fr: "Les points de restauration exigent les droits d'administrateur : cette opération par utilisateur se déroule sans point de restauration.",
       es: "Los puntos de restauración requieren derechos de administrador: esta operación por usuario se realiza sin ninguno.",
       de: "Wiederherstellungspunkte erfordern Administratorrechte: Dieser Vorgang pro Benutzer läuft ohne einen solchen.",
       pt: "Os pontos de restauro requerem direitos de administrador: esta operação por utilizador decorre sem nenhum.",

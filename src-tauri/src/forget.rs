@@ -102,8 +102,9 @@ fn delete_entry(_source: &str, _id: &str) -> Result<(), String> {
 }
 
 /// Entry point for the headless elevated child (`--elevated-forget`).
-/// Re-derives everything from the two arguments and writes the shared report.
-pub fn run_elevated_child(source: &str, id: &str) -> i32 {
+/// Re-derives everything from the first two arguments and sends the report
+/// into the parent's pipe.
+pub fn run_elevated_child(source: &str, id: &str, pipe: &str) -> i32 {
     let report = (|| -> Result<UninstallReport, String> {
         check_removable(source, id)?;
         let restore = crate::restore_point::create_restore_point();
@@ -121,10 +122,7 @@ pub fn run_elevated_child(source: &str, id: &str) -> i32 {
         message: reason,
         duration_ms: 0,
     });
-    match uninstall_exec::write_report(&report) {
-        Ok(()) => 0,
-        Err(_) => 1,
-    }
+    uninstall_exec::send_report(pipe, &report)
 }
 
 fn record_receipt(source: &str, report: &UninstallReport, entry: &RawEntry) {

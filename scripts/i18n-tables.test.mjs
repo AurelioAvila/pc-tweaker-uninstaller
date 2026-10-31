@@ -69,9 +69,19 @@ test('trial and plans keep the same placeholders as English', () => {
   }
 });
 test('German never uses the informal "du" in any table', () => {
-  const words = /(?:du|dich|dir|dein(?:e[mnrs]?)?|finde|prüfe|beende|versuche)/i;
+  const words = /\b(?:du|dich|dir|dein(?:e[mnrs]?)?|finde|prüfe|beende|versuche es)\b/i; // not the noun: "Zu viele Versuche"
   for (const [name, table] of Object.entries(tables)) {
     for (const s of strings(table.de)) assert.ok(!words.test(s), `${name}.de: "${s}"`);
+  }
+});
+// A control character slipped in once where a colon belonged (seven French
+// messages) and where \b belonged (the check above, which then never matched).
+test('no control characters hide in the text tables or in this check', () => {
+  const files = ['i18n', 'plans-copy', 'trial-copy', 'workspace-copy', 'inventory-copy', 'backend-copy']
+    .map((name) => new URL(`../src/${name}.ts`, import.meta.url))
+    .concat(new URL(import.meta.url));
+  for (const file of files) {
+    assert.doesNotMatch(fs.readFileSync(file, 'utf8'), /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/, file.pathname);
   }
 });
 test('plan names stay in English everywhere', () => {

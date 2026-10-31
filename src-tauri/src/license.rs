@@ -325,13 +325,23 @@ impl LicenseStore {
     }
 
     pub fn save(&self, response: &SignedLicenseResponse) -> std::io::Result<()> {
-        self.write(response, trusted_now())
+        self.write(response, trusted_now(), false)
     }
 
-    fn write(&self, response: &SignedLicenseResponse, seen_at: u64) -> std::io::Result<()> {
+    /// `only_if_present`: the floor rewrite from a status check, which must
+    /// never bring back a licence that sign-out deleted after it was read.
+    fn write(
+        &self,
+        response: &SignedLicenseResponse,
+        seen_at: u64,
+        only_if_present: bool,
+    ) -> std::io::Result<()> {
         let _guard = STORE_WRITE
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner());
+        if only_if_present && !self.file_path.is_file() {
+            return Ok(());
+        }
         if let Some(parent) = self.file_path.parent() {
             std::fs::create_dir_all(parent)?;
         }
@@ -364,6 +374,9 @@ impl LicenseStore {
     /// Removes the cached license on logout, so a still-fresh Pro cache from
     /// one account can't keep unlocking features for whoever signs in next.
     pub fn delete(&self) -> std::io::Result<()> {
+        let _guard = STORE_WRITE
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
         match std::fs::remove_file(&self.file_path) {
             Ok(()) => Ok(()),
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
@@ -396,7 +409,7 @@ impl LicenseStore {
         // the clock moved back starts from it.
         let proven = trusted_now();
         if proven >= cached.seen_at.unwrap_or(0).saturating_add(FLOOR_WRITE_SECS) {
-            let _ = self.write(&cached.response, proven);
+            let _ = self.write(&cached.response, proven, true);
         }
         payload.is_pro && fresh
     }
@@ -708,7 +721,10 @@ mod tests {
         let dir = temp_dir("seen-at");
         let store = LicenseStore::new(dir.clone());
         let resp: SignedLicenseResponse = serde_json::from_str(REAL_UNINSTALLER_RESPONSE).unwrap();
-        store.write(&resp, 1_800_000_123).unwrap();
+        // The floor rewrite of a status check never recreates a deleted file.
+        store.write(&resp, 1_800_000_000, true).unwrap();
+        assert!(!dir.join("license.json").exists());
+        store.write(&resp, 1_800_000_123, false).unwrap();
         let text = std::fs::read_to_string(dir.join("license.json")).unwrap();
         assert!(text.contains("\"seenAt\": 1800000123"), "{text}");
         assert_eq!(store.load_cached().unwrap().seen_at, Some(1_800_000_123));

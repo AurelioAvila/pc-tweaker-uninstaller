@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-const API = "https://pc-tweaker-app-production.up.railway.app";
+const API = "https://api.pctweaker.app";
 
 // Port 1421 (not Tauri's default 1420) so this app and PC Tweaker can run
 // `tauri dev` side by side on the same machine.
