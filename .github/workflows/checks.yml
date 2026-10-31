@@ -46,56 +46,12 @@ jobs:
       - name: Dependency audit (production)
         run: npm audit --omit=dev --audit-level=high
 
-      - name: TypeScript
-        run: npx tsc --noEmit
-
-      - name: Release verification regression tests
-        run: node --test scripts/release-verification.test.mjs
-
-      - name: Release tag and cleanup safety tests
-        run: ./scripts/test-release-safety.ps1
-
-      - name: Inventory sorting and date regression tests
-        run: node --test scripts/inventory.test.mjs
-
-      - name: Plans page price regression tests
-        run: node --test scripts/plans-price.test.mjs
-
-      - name: Free trial state and copy tests
-        run: node --test scripts/trial.test.mjs
-
-      - name: Default language regression tests
-        run: node --test scripts/i18n-default.test.mjs
-
-      - name: Translation table tests
-        run: node --test scripts/i18n-tables.test.mjs
-
-      - name: Account request regression tests
-        run: node --test scripts/account-registration.test.mjs
-
-      - name: Accent contrast
-        run: npm run check:contrast
-
-      - name: ESLint
-        run: npm run lint
-
-      - name: Prettier
-        run: npm run format:check
-
-      - name: Frontend build
-        run: npm run build
-
-      - name: Rust formatting
-        working-directory: src-tauri
-        run: cargo fmt --check
-
-      - name: Clippy (warnings are errors)
-        working-directory: src-tauri
-        run: cargo clippy -- -D warnings
-
-      - name: Rust tests
-        working-directory: src-tauri
-        run: cargo test
+      # Every other step of this job lives in scripts/check.mjs, so CI, the
+      # local gate (ci-local.ps1) and `npm run check` run the same list.
+      # It includes the Tauri JavaScript/Rust version pairing that only the
+      # signed release build used to find (0.13.10, #80).
+      - name: Checks (scripts/check.mjs)
+        run: npm run check
 
   installers:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag }}
