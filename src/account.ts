@@ -161,6 +161,15 @@ function installationId(): string {
   }
 }
 
+/** The session token of a successful answer. A filter or captive page can
+ *  answer 200 with HTML: that is "the reply did not reach the app", not a
+ *  JSON parser's English error in the form. */
+async function sessionToken(res: Response): Promise<string> {
+  const data = (await res.json().catch(() => ({}))) as { token?: unknown };
+  if (typeof data.token !== "string" || !data.token) throw new AccountRequestError("errorFiltered");
+  return data.token;
+}
+
 /** Sessions slide: once a token is a day old, any authenticated answer
  *  carries a fresh one. Without adopting it the app signed people out after
  *  thirty days however often they used it. */
@@ -187,8 +196,7 @@ export async function login(email: string, password: string): Promise<AccountSta
     }),
   });
   if (!res.ok) throw failure(res.status);
-  const data = (await res.json()) as { token: string };
-  storeSession(data.token, address);
+  storeSession(await sessionToken(res), address);
   return fetchAccount();
 }
 
@@ -236,8 +244,7 @@ export async function changePassword(currentPassword: string, newPassword: strin
   });
   if (res.status === 401) throw new AccountRequestError("errorCurrentPassword");
   if (!res.ok) throw failure(res.status);
-  const data = (await res.json()) as { token: string };
-  storeSession(data.token, email);
+  storeSession(await sessionToken(res), email);
 }
 
 /** Nothing changes until the link sent to the new address is confirmed. */
