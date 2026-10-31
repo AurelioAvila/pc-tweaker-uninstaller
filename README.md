@@ -113,13 +113,11 @@ the installed app's origin. The Removal Ledger and diagnostic log still live in
 the regular data folder, so do not uninstall or clear history from a dev build
 unless that is the point of the test.
 
-Checks (all of these gate CI):
+Checks (the same list gates CI, in `scripts/check.mjs`):
 
 ```
-npm run build         # tsc --noEmit + vite build
-npm run lint          # eslint (strict, type-checked)
-npm run format:check  # prettier
-cd src-tauri && cargo fmt --check && cargo clippy -- -D warnings && cargo test
+npm run check         # every CI check: types, tests, lint, prettier, build,
+                      # Tauri JS/Rust version pairing, cargo fmt, clippy, cargo test
 ```
 
 Release maintainers: follow the [local signing and verification procedure](RELEASING.md).

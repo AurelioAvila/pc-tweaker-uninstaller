@@ -12,6 +12,7 @@
     "lint": "eslint src",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
+    "check": "node scripts/check.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
     "dev:profile": "vite --mode devprofile",
     "tauri:dev:profile": "tauri dev --config src-tauri/tauri.dev.conf.json"
