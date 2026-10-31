@@ -35,7 +35,15 @@ pub fn run_elevated_args(flag: &str, values: &[&str]) -> Result<Vec<u8>, String>
             .join(" ");
         match shell_runas(&exe, &parameters)? {
             (0, pid) => Ok(pipe.read_from(pid)),
-            (code, _) => Err(format!("the elevated action exited with code {code}")),
+            // main.rs exits 2 before doing anything with arguments it refuses.
+            (2, _) => Err("the elevated action refused its arguments".to_string()),
+            // Any other exit may come after the action ran (a report that
+            // could not be handed over, a crash): no report, and no claim
+            // that nothing changed.
+            (code, _) => {
+                crate::applog::line(&format!("elevated action exited with code {code}"));
+                Ok(Vec::new())
+            }
         }
     }
 
@@ -149,7 +157,7 @@ pub fn known_folder(id: &windows_sys::core::GUID) -> Option<String> {
             let len = (0..).take_while(|&i| *raw.add(i) != 0).count();
             String::from_utf16_lossy(std::slice::from_raw_parts(raw, len))
         });
-        CoTaskMemFree(raw.cast());
+        CoTaskMemFree(raw as *const _);
         path
     }
 }
