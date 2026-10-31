@@ -107,3 +107,26 @@ test('backend messages are translated and fall back to the original', async () =
   i18n.setLocale('en');
   assert.equal(backendText(ok), ok);
 });
+// The refusals of the administrator step are English constants in Rust; the
+// table must keep matching them word for word, or they show up in English.
+test('the uninstall refusals written in Rust are translated in every language', async () => {
+  const { backendText } = await load('backend-copy');
+  const rust = fs.readFileSync(new URL('../src-tauri/src/uninstall_exec.rs', import.meta.url), 'utf8');
+  for (const name of ['PER_USER_ELEVATION_REFUSED', 'PER_USER_ELEVATION_WRITABLE', 'COMMAND_CHANGED']) {
+    const literal = rust.match(new RegExp(`const ${name}: &str =\\s*"((?:[^"\\\\]|\\\\[\\s\\S])*)"`));
+    assert.ok(literal, `${name} not found in uninstall_exec.rs`);
+    const message = literal[1].replace(/\\\r?\n\s*/g, '');
+    for (const l of LANGS.slice(1)) {
+      i18n.setLocale(l);
+      assert.notEqual(backendText(message), message, `${name} is not translated in ${l}`);
+    }
+  }
+  i18n.setLocale('en');
+});
+test('a rate limit with a known wait names it in every language', () => {
+  for (const l of LANGS) {
+    const line = tables.dictionary[l].menu.errorRateLimitedWait('7 X');
+    assert.ok(line.includes('7 X'), `${l}: ${line}`);
+    assert.notEqual(line, tables.dictionary[l].menu.errorRateLimited);
+  }
+});

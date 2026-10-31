@@ -89,11 +89,30 @@ export type AccountErrorKey =
   | "errorBlocked"
   | "errorFiltered";
 export class AccountRequestError extends Error {
-  constructor(readonly key: AccountErrorKey) {
+  constructor(
+    readonly key: AccountErrorKey,
+    /** How many seconds the service asked to wait (Retry-After on a 429). */
+    readonly retryAfter?: number,
+  ) {
     super(key);
   }
 }
-function failure(status: number): AccountRequestError {
+
+/** Seconds until the service takes requests again, from a Retry-After header
+ *  (delay in seconds or an HTTP date). Undefined when the header is missing
+ *  (an older service, or one that does not expose it to the app), unreadable,
+ *  already past or over a day away: the general advice beats a wrong number. */
+export function retryAfterSeconds(header: string | null, now = Date.now()): number | undefined {
+  if (header === null) return undefined;
+  const value = header.trim();
+  const seconds = /^\d+$/.test(value) ? Number(value) : (Date.parse(value) - now) / 1000;
+  return Number.isFinite(seconds) && seconds > 0 && seconds <= 86_400
+    ? Math.ceil(seconds)
+    : undefined;
+}
+
+function failure(res: Response): AccountRequestError {
+  const status = res.status;
   return new AccountRequestError(
     status === 401
       ? "errorCredentials"
@@ -104,6 +123,7 @@ function failure(status: number): AccountRequestError {
           : status >= 500
             ? "errorServer"
             : "errorInvalid",
+    status === 429 ? retryAfterSeconds(res.headers.get("Retry-After")) : undefined,
   );
 }
 async function request(path: string, init: RequestInit): Promise<Response> {
@@ -195,7 +215,7 @@ export async function login(email: string, password: string): Promise<AccountSta
       deviceId: installationId(),
     }),
   });
-  if (!res.ok) throw failure(res.status);
+  if (!res.ok) throw failure(res);
   storeSession(await sessionToken(res), address);
   return fetchAccount();
 }
@@ -212,7 +232,7 @@ export async function forgotPassword(email: string): Promise<void> {
       locale: mailLocale,
     }),
   });
-  if (!res.ok) throw failure(res.status);
+  if (!res.ok) throw failure(res);
 }
 
 export async function resendVerification(): Promise<void> {
@@ -223,7 +243,7 @@ export async function resendVerification(): Promise<void> {
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify({ product: PRODUCT, locale: mailLocale }),
   });
-  if (!res.ok) throw failure(res.status);
+  if (!res.ok) throw failure(res);
 }
 
 /** Needs the current password; this session continues with the token the
@@ -243,7 +263,7 @@ export async function changePassword(currentPassword: string, newPassword: strin
     }),
   });
   if (res.status === 401) throw new AccountRequestError("errorCurrentPassword");
-  if (!res.ok) throw failure(res.status);
+  if (!res.ok) throw failure(res);
   storeSession(await sessionToken(res), email);
 }
 
@@ -262,7 +282,7 @@ export async function changeEmail(password: string, newEmail: string): Promise<v
     }),
   });
   if (res.status === 401) throw new AccountRequestError("errorCurrentPassword");
-  if (!res.ok) throw failure(res.status);
+  if (!res.ok) throw failure(res);
 }
 
 export async function register(
@@ -286,7 +306,7 @@ export async function register(
       deviceId: installationId(),
     }),
   });
-  if (!res.ok) throw failure(res.status);
+  if (!res.ok) throw failure(res);
   const data = (await res.json().catch(() => ({}))) as {
     token?: string;
     verificationEmailSent?: boolean;

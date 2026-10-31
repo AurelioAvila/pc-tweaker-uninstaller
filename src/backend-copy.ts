@@ -108,6 +108,26 @@ const ENTRIES: Entry[] = [
     },
   ],
   [
+    /^This program was installed for your account only, and its uninstaller asks for administrator rights\. Its folder is under Program Files, but accounts without administrator rights can change it, so it was not started with elevation\. If you trust it, run its uninstaller from Windows Settings\.$/,
+    {
+      it: "Questo programma è stato installato solo per il tuo account e il suo programma di disinstallazione chiede i diritti di amministratore. La sua cartella si trova in Program Files, ma anche gli account senza diritti di amministratore possono modificarla, quindi non è stato avviato con privilegi elevati. Se ti fidi, eseguilo dalle Impostazioni di Windows.",
+      fr: "Ce programme a été installé uniquement pour votre compte, et son désinstalleur demande les droits d'administrateur. Son dossier se trouve dans Program Files, mais des comptes sans droits d'administrateur peuvent le modifier, il n'a donc pas été lancé avec élévation. Si vous lui faites confiance, lancez son désinstalleur depuis les Paramètres Windows.",
+      es: "Este programa se instaló solo para tu cuenta y su desinstalador solicita derechos de administrador. Su carpeta está en Program Files, pero las cuentas sin derechos de administrador pueden modificarla, así que no se inició con privilegios elevados. Si confías en él, ejecuta su desinstalador desde Configuración de Windows.",
+      de: "Dieses Programm wurde nur für Ihr Konto installiert, und sein Deinstallationsprogramm fordert Administratorrechte an. Sein Ordner liegt unter Program Files, kann aber auch von Konten ohne Administratorrechte geändert werden, daher wurde es nicht mit erhöhten Rechten gestartet. Wenn Sie ihm vertrauen, führen Sie sein Deinstallationsprogramm über die Windows-Einstellungen aus.",
+      pt: "Este programa foi instalado apenas para a sua conta e o seu desinstalador pede direitos de administrador. A respetiva pasta está em Program Files, mas contas sem direitos de administrador podem alterá-la, por isso não foi iniciado com privilégios elevados. Se confiar nele, execute o respetivo desinstalador a partir das Definições do Windows.",
+    },
+  ],
+  [
+    /^This program's uninstall command changed after you confirmed it, so it was not run\. Start the removal again to review the new command\.$/,
+    {
+      it: "Il comando di disinstallazione di questo programma è cambiato dopo la tua conferma, quindi non è stato eseguito. Avvia di nuovo la rimozione per controllare il nuovo comando.",
+      fr: "La commande de désinstallation de ce programme a changé après votre confirmation, elle n'a donc pas été exécutée. Relancez la suppression pour vérifier la nouvelle commande.",
+      es: "El comando de desinstalación de este programa cambió después de que lo confirmaras, así que no se ejecutó. Vuelve a iniciar la eliminación para revisar el nuevo comando.",
+      de: "Der Deinstallationsbefehl dieses Programms hat sich nach Ihrer Bestätigung geändert und wurde deshalb nicht ausgeführt. Starten Sie die Entfernung erneut, um den neuen Befehl zu prüfen.",
+      pt: "O comando de desinstalação deste programa mudou depois de o confirmar, por isso não foi executado. Inicie novamente a remoção para rever o novo comando.",
+    },
+  ],
+  [
     /^This program's uninstall command is not safe to run automatically\. Use the program's own uninstaller instead\.$/,
     {
       it: "Il comando di disinstallazione di questo programma non è sicuro da eseguire in automatico. Usa invece il programma di disinstallazione del programma stesso.",

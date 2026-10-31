@@ -2,7 +2,7 @@
 # Copies the exe into a fresh temporary folder, puts placeholder files (plain text,
 # not loadable) next to it under the names of DLLs a Windows process can load at
 # startup, then starts the child's code path with an invalid request:
-#   pc-tweaker-uninstaller.exe --elevated-uninstall <encoded "bogus"> <encoded "x"> <encoded pipe>
+#   pc-tweaker-uninstaller.exe --elevated-uninstall <encoded "bogus"> <encoded "x"> <encoded fingerprint> <encoded pipe>
 # with a report pipe made here, as the app makes one, and APPDATA pointed into the
 # temporary folder. A correct build ignores the placeholders, refuses the request,
 # sends its refusal report into the pipe (exit 0) and writes nothing to disk. If the
@@ -35,7 +35,7 @@ try {
   foreach ($n in $names) { Set-Content -LiteralPath (Join-Path $bin "$n.dll") -Value 'placeholder, not a DLL' -Encoding ascii }
   $enc = { param($v) 'b64:' + [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($v)).TrimEnd('=').Replace('+', '-').Replace('/', '_') }
   $psi = [Diagnostics.ProcessStartInfo]::new((Join-Path $bin 'pc-tweaker-uninstaller.exe'))
-  foreach ($a in '--elevated-uninstall', (& $enc 'bogus'), (& $enc 'x'), (& $enc $pipeName)) { $psi.ArgumentList.Add($a) }
+  foreach ($a in '--elevated-uninstall', (& $enc 'bogus'), (& $enc 'x'), (& $enc ('0' * 64)), (& $enc $pipeName)) { $psi.ArgumentList.Add($a) }
   $psi.WorkingDirectory = $bin
   $psi.UseShellExecute = $false
   $psi.Environment['APPDATA'] = $data

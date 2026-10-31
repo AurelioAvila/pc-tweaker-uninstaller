@@ -155,6 +155,9 @@ interface UninstallPlan {
   warnings: string[];
   confidence: Confidence;
   estimatedSizeKb: number | null;
+  /** Binds the run to this plan: the backend refuses to run a command that
+   *  changed after the user confirmed it. */
+  fingerprint: string;
 }
 
 /** Mirror of `RemovalReceipt` (src-tauri/src/ledger.rs). */
@@ -339,6 +342,17 @@ function confidenceTitle(c: Confidence): string {
 function uiTag(): string {
   const locale = currentLocale();
   return locale === "pt" ? "pt-PT" : locale;
+}
+
+/** A wait the account service named, in the UI language: "45 seconds",
+ *  "3 minutes" (rounded up), with the language's own plural. */
+function waitText(seconds: number): string {
+  const inMinutes = seconds >= 60;
+  return new Intl.NumberFormat(uiTag(), {
+    style: "unit",
+    unit: inMinutes ? "minute" : "second",
+    unitDisplay: "long",
+  }).format(inMinutes ? Math.ceil(seconds / 60) : seconds);
 }
 
 /** Date and time of a restore point in the UI language. */
@@ -740,7 +754,9 @@ export default function App() {
   const accountErrorText = useCallback(
     (error: unknown) =>
       error instanceof AccountRequestError
-        ? text.menu[error.key]
+        ? error.key === "errorRateLimited" && error.retryAfter !== undefined
+          ? text.menu.errorRateLimitedWait(waitText(error.retryAfter))
+          : text.menu[error.key]
         : typeof error === "string"
           ? error
           : (error as Error).message,
@@ -946,9 +962,13 @@ export default function App() {
   }, []);
 
   const confirmUninstall = useCallback(
-    (program: ProgramInfo) => {
+    (program: ProgramInfo, fingerprint: string) => {
       setFlow({ step: "running", program });
-      invoke<UninstallReport>("execute_uninstall", { source: program.source, id: program.id })
+      invoke<UninstallReport>("execute_uninstall", {
+        source: program.source,
+        id: program.id,
+        fingerprint,
+      })
         .then((report) => {
           setFlow({ step: "report", program, report });
           load(); // The registry changed (or should have): refresh honestly.
@@ -1009,11 +1029,7 @@ export default function App() {
 
   const beginResidueScan = useCallback((program: ProgramInfo) => {
     setFlow({ step: "residueScanning", program });
-    invoke<ResidueReport>("scan_residue", {
-      name: program.name,
-      publisher: program.publisher,
-      installLocation: program.installLocation,
-    })
+    invoke<ResidueReport>("scan_residue", { source: program.source, id: program.id })
       .then((residue) => {
         setFlow({
           step: "residue",
@@ -1034,9 +1050,8 @@ export default function App() {
   const runResidueClean = useCallback((program: ProgramInfo, selected: readonly string[]) => {
     setFlow({ step: "residueScanning", program });
     invoke<CleanResult>("clean_residue", {
-      name: program.name,
-      publisher: program.publisher,
-      installLocation: program.installLocation,
+      source: program.source,
+      id: program.id,
       paths: [...selected],
     })
       .then((result) => {
@@ -1056,9 +1071,17 @@ export default function App() {
       for (const [index, program] of programs.entries()) {
         setFlow({ step: "batchRunning", programs, index, results: [...results] });
         try {
+          // The batch dialog lists programs, not commands: each removal is
+          // bound to the plan derived just before it runs, so the elevated
+          // step cannot run a command that changed during its UAC prompt.
+          const plan = await invoke<UninstallPlan>("plan_uninstall", {
+            source: program.source,
+            id: program.id,
+          });
           const report = await invoke<UninstallReport>("execute_uninstall", {
             source: program.source,
             id: program.id,
+            fingerprint: plan.fingerprint,
           });
           results.push({ name: program.name, success: report.success, message: report.message });
         } catch (error: unknown) {
@@ -1088,11 +1111,7 @@ export default function App() {
     let cancelled = false;
     setReportResidue("scanning");
     const program = flow.program;
-    invoke<ResidueReport>("scan_residue", {
-      name: program.name,
-      publisher: program.publisher,
-      installLocation: program.installLocation,
-    })
+    invoke<ResidueReport>("scan_residue", { source: program.source, id: program.id })
       .then((residue) => {
         if (!cancelled) setReportResidue(residue);
       })
@@ -2836,7 +2855,7 @@ export default function App() {
                     type="button"
                     className="button button-danger"
                     onClick={() => {
-                      confirmUninstall(flow.program);
+                      confirmUninstall(flow.program, flow.plan.fingerprint);
                     }}
                   >
                     {text.uninstall.confirm}

@@ -15,12 +15,81 @@
 //!    of shared/vendor names (a "Microsoft" folder is never residue).
 //! 3. Cleanup revalidates every path against the same rules that proposed
 //!    it — the frontend cannot ask this module to remove an arbitrary path.
+//!    The webview names only the removed entry (source and key): the program
+//!    name and install folder are the ones this process read from the
+//!    registry just before it removed that entry ([`remember_removed`]), and
+//!    the folder must still resolve to itself, with no link in the way.
 //! 4. HKLM registry leftovers are reported but never touched; only HKCU
 //!    keys (per-user, recreatable) are deletable, and those cannot go to a
 //!    recycle bin, so they are the one destructive step — flagged as such.
 
+use crate::programs::RawEntry;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
+
+/// What a removal in this session read from the registry just before it
+/// ran: the program's name and install folder.
+#[derive(Clone, Debug, Default)]
+pub struct RemovedProgram {
+    pub name: String,
+    pub install_location: Option<String>,
+}
+
+/// Successful removals of this session, by (source, key). Only these can be
+/// scanned or cleaned, and only with the values recorded here.
+static REMOVED: Mutex<Vec<((String, String), RemovedProgram)>> = Mutex::new(Vec::new());
+
+const NOT_REMOVED: &str =
+    "Leftovers can be looked for only right after this app removed the program.";
+
+/// Records an entry, as read before its removal, once the removal succeeded.
+pub fn remember_removed(source: &str, id: &str, entry: &RawEntry) {
+    let program = RemovedProgram {
+        name: entry.display_name.clone().unwrap_or_default(),
+        install_location: entry.install_location.clone(),
+    };
+    let key = (source.to_string(), id.to_string());
+    let mut removed = REMOVED.lock().unwrap_or_else(|e| e.into_inner());
+    removed.retain(|(k, _)| k != &key);
+    removed.push((key, program));
+}
+
+fn removed_program(source: &str, id: &str) -> Result<RemovedProgram, String> {
+    REMOVED
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .iter()
+        .find(|((s, i), _)| s == source && i == id)
+        .map(|(_, program)| program.clone())
+        .ok_or_else(|| NOT_REMOVED.to_string())
+}
+
+/// The recorded install location as a folder cleanup may act on: an absolute
+/// local path at least one folder below a drive root, with no `.` or `..`
+/// parts, that exists and resolves to exactly itself — a junction or link
+/// anywhere along it would send the Recycle Bin somewhere the registry never
+/// named.
+fn install_dir(location: &str) -> Option<PathBuf> {
+    let raw = location
+        .trim()
+        .trim_matches('"')
+        .replace('/', "\\")
+        .trim_end_matches('\\')
+        .to_string();
+    crate::uninstall_exec::validate_exe_path_shape(&raw).ok()?;
+    if raw.split('\\').any(|part| part == "." || part == "..") {
+        return None;
+    }
+    let path = PathBuf::from(&raw);
+    if path.components().count() <= 2 {
+        return None;
+    }
+    let real = path.canonicalize().ok()?;
+    let real = real.to_string_lossy();
+    let real = real.strip_prefix(r"\\?\").unwrap_or(&real);
+    (real.to_lowercase() == raw.to_lowercase()).then_some(path)
+}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -276,25 +345,24 @@ fn scan_registry(items: &mut Vec<ResidueItem>, candidates: &[String]) {
 #[cfg(not(windows))]
 fn scan_registry(_items: &mut Vec<ResidueItem>, _candidates: &[String]) {}
 
-/// Scans for leftovers of an uninstalled program. `install_location` is the
-/// path the registry reported before the uninstall; if the folder still
-/// exists it is the highest-confidence residue there is.
+/// Scans for leftovers of a program this app just removed, named by its
+/// entry (source and key). The install folder the registry reported before
+/// the removal, if it still exists, is the highest-confidence residue there
+/// is.
 #[tauri::command(async)]
-pub fn scan_residue(
-    name: String,
-    publisher: Option<String>,
-    install_location: Option<String>,
-) -> Result<ResidueReport, String> {
-    let _ = &publisher; // kept in the IPC signature; vendor names are not matched
-    let candidates = name_candidates(&name);
+pub fn scan_residue(source: String, id: String) -> Result<ResidueReport, String> {
+    Ok(scan(&removed_program(&source, &id)?))
+}
+
+fn scan(program: &RemovedProgram) -> ResidueReport {
+    let candidates = name_candidates(&program.name);
     let mut items = Vec::new();
 
-    if let Some(location) = install_location.as_deref().filter(|l| !l.trim().is_empty()) {
-        let path = PathBuf::from(location.trim().trim_matches('"'));
+    if let Some(dir) = program.install_location.as_deref().and_then(install_dir) {
         // The install dir bypasses name matching (the registry itself vouched
         // for it) but must pass the same protected-directory gate as cleanup.
-        if path_is_cleanable(&path, &candidates, Some(location)) {
-            push_if_dir(&mut items, "install-dir", path);
+        if path_is_cleanable(&dir, &candidates, Some(&dir)) {
+            push_if_dir(&mut items, "install-dir", dir);
         }
     }
     if !candidates.is_empty() {
@@ -307,7 +375,14 @@ pub fn scan_residue(
 
     items.dedup_by(|a, b| a.path == b.path);
     let total_kb = items.iter().filter_map(|i| i.size_kb).sum();
-    Ok(ResidueReport { items, total_kb })
+    ResidueReport { items, total_kb }
+}
+
+/// Whether cleanup may act on a filesystem `path` the webview sent back for
+/// this removed program: the same rules [`scan`] applied when proposing it.
+fn cleanable(program: &RemovedProgram, path: &Path) -> bool {
+    let dir = program.install_location.as_deref().and_then(install_dir);
+    path_is_cleanable(path, &name_candidates(&program.name), dir.as_deref())
 }
 
 /// Validates that a path the frontend asked to clean is one this module
@@ -386,13 +461,14 @@ fn is_protected_directory(path: &Path) -> bool {
     })
 }
 
-fn path_is_cleanable(path: &Path, candidates: &[String], install_location: Option<&str>) -> bool {
+/// `install_dir` is the recorded install folder, already through
+/// [`install_dir`]: only that exact folder bypasses name matching.
+fn path_is_cleanable(path: &Path, candidates: &[String], install_dir: Option<&Path>) -> bool {
     if is_protected_directory(path) {
         return false;
     }
-    if let Some(location) = install_location {
-        let loc = PathBuf::from(location.trim().trim_matches('"'));
-        if loc.components().count() > 2 && path == loc && !install_location_in_use(location) {
+    if let Some(dir) = install_dir {
+        if path == dir && !install_location_in_use(&dir.to_string_lossy()) {
             return true;
         }
     }
@@ -454,15 +530,16 @@ fn export_registry_key(key: &str, backup_dir: &Path) -> bool {
         && file.is_file()
 }
 
-/// Moves the selected leftovers to the Recycle Bin (filesystem items) or
-/// deletes them (HKCU registry keys — flagged in the UI as the one
-/// non-recoverable step). Every path is revalidated; unknown paths fail.
+/// Moves the selected leftovers of a program this app just removed (named by
+/// its entry) to the Recycle Bin (filesystem items) or deletes them (HKCU
+/// registry keys — flagged in the UI as the one non-recoverable step). Every
+/// path is revalidated against the recorded name and install folder; unknown
+/// paths fail.
 #[tauri::command(async)]
 pub fn clean_residue(
     app: tauri::AppHandle,
-    name: String,
-    publisher: Option<String>,
-    install_location: Option<String>,
+    source: String,
+    id: String,
     paths: Vec<String>,
 ) -> Result<CleanResult, String> {
     use tauri::Manager;
@@ -477,8 +554,9 @@ pub fn clean_residue(
     if paths.len() > 64 {
         return Err("Too many items in one cleanup.".into());
     }
-    let _ = &publisher; // kept in the IPC signature; vendor names are not matched
-    let candidates = name_candidates(&name);
+    let program = removed_program(&source, &id)?;
+    let name = &program.name;
+    let candidates = name_candidates(name);
     let mut result = CleanResult::default();
 
     for raw in paths {
@@ -508,7 +586,7 @@ pub fn clean_residue(
             continue;
         }
         let path = PathBuf::from(&raw);
-        if !path_is_cleanable(&path, &candidates, install_location.as_deref()) {
+        if !cleanable(&program, &path) {
             result.failed.push(raw);
             continue;
         }
@@ -575,23 +653,20 @@ mod tests {
             };
             let root = PathBuf::from(&value);
             assert!(
-                !path_is_cleanable(&root, &[], Some(&value)),
+                !path_is_cleanable(&root, &[], Some(&root)),
                 "{} ({}) was accepted as a removable install location",
                 var,
                 value
             );
             let alternate_case = value.to_ascii_uppercase();
             assert!(
-                !path_is_cleanable(Path::new(&alternate_case), &[], Some(&alternate_case)),
+                !cleanable(&removed("x", &alternate_case), Path::new(&alternate_case)),
                 "{} ({}) was accepted with alternate casing",
                 var,
                 alternate_case
             );
             assert!(
-                scan_residue("x".into(), None, Some(value.clone()))
-                    .unwrap()
-                    .items
-                    .is_empty(),
+                scan(&removed("x", &value)).items.is_empty(),
                 "{} ({}) was shown as a removable leftover",
                 var,
                 value
@@ -599,24 +674,124 @@ mod tests {
             // Ordinary app directories remain eligible; Windows descendants do not.
             let nested = root.join("ExampleVendorApp");
             assert_eq!(
-                path_is_cleanable(&nested, &[], Some(&nested.to_string_lossy())),
+                path_is_cleanable(&nested, &[], Some(&nested)),
                 var != "SystemRoot",
                 "unexpected eligibility under {}",
                 var
             );
             if var == "SystemRoot" {
                 let system32 = root.join("System32").to_string_lossy().to_ascii_uppercase();
-                assert!(!path_is_cleanable(
-                    Path::new(&system32),
-                    &["system32".into()],
-                    Some(&system32)
+                assert!(!cleanable(
+                    &removed("System32", &system32),
+                    Path::new(&system32)
                 ));
-                assert!(scan_residue("System32".into(), None, Some(system32))
-                    .unwrap()
-                    .items
-                    .is_empty());
+                assert!(scan(&removed("System32", &system32)).items.is_empty());
             }
         }
+    }
+
+    fn removed(name: &str, location: &str) -> RemovedProgram {
+        RemovedProgram {
+            name: name.into(),
+            install_location: Some(location.into()),
+        }
+    }
+
+    /// Only an entry this process removed can be scanned or cleaned, with the
+    /// values it read before the removal; a later removal of the same entry
+    /// replaces them.
+    #[test]
+    fn only_entries_removed_in_this_session_can_be_scanned() {
+        assert_eq!(
+            removed_program("user", "NeverRemoved").unwrap_err(),
+            NOT_REMOVED
+        );
+        let entry = RawEntry {
+            key_name: "ResidueTestKey".into(),
+            display_name: Some("SuperTool".into()),
+            install_location: Some(r"C:\Program Files\SuperTool".into()),
+            ..Default::default()
+        };
+        remember_removed("user", "ResidueTestKey", &entry);
+        let program = removed_program("user", "ResidueTestKey").unwrap();
+        assert_eq!(program.name, "SuperTool");
+        assert_eq!(
+            program.install_location.as_deref(),
+            Some(r"C:\Program Files\SuperTool")
+        );
+        assert!(removed_program("machine64", "ResidueTestKey").is_err());
+        let moved = RawEntry {
+            install_location: Some(r"D:\Elsewhere\SuperTool".into()),
+            ..entry
+        };
+        remember_removed("user", "ResidueTestKey", &moved);
+        assert_eq!(
+            removed_program("user", "ResidueTestKey")
+                .unwrap()
+                .install_location
+                .as_deref(),
+            Some(r"D:\Elsewhere\SuperTool")
+        );
+    }
+
+    /// The recorded folder is used only as an absolute local path that
+    /// exists and resolves to itself; relative, network, dotted and linked
+    /// locations are never cleaned, and nothing but that exact folder
+    /// bypasses name matching.
+    #[test]
+    fn the_install_folder_must_be_exactly_the_recorded_one() {
+        // The long form of the temporary folder: %TEMP% may be an 8.3 name,
+        // which does not resolve to itself and would be refused.
+        let temp = std::env::temp_dir().canonicalize().unwrap();
+        let temp = temp.to_string_lossy();
+        let base = Path::new(temp.strip_prefix(r"\\?\").unwrap_or(&temp))
+            .join(format!("pcu-residue-{}", std::process::id()));
+        let dir = base.join("SuperTool");
+        std::fs::create_dir_all(dir.join("bin")).unwrap();
+        let location = dir.to_string_lossy().into_owned();
+
+        assert_eq!(install_dir(&location), Some(dir.clone()));
+        assert_eq!(install_dir(&format!("\"{location}\\\"")), Some(dir.clone()));
+        assert_eq!(
+            install_dir(&location.to_uppercase()),
+            Some(PathBuf::from(location.to_uppercase()))
+        );
+        for bad in [
+            format!(r"{location}\bin\.."),
+            format!(r"{location}\.\bin"),
+            r"SuperTool".to_string(),
+            r"\\server\share\SuperTool".to_string(),
+            format!(r"{location}\missing"),
+            String::new(),
+        ] {
+            assert_eq!(install_dir(&bad), None, "{bad}");
+        }
+
+        let program = removed("SuperTool", &location);
+        assert!(cleanable(&program, &dir));
+        assert!(!cleanable(&program, &dir.join("bin")));
+        assert!(!cleanable(&program, &base));
+        assert!(!cleanable(
+            &removed("SuperTool", &format!(r"{location}\bin\..")),
+            &dir
+        ));
+
+        // A junction in place of the folder points somewhere the registry
+        // never named: refused even though the path matches.
+        let link = base.join("Linked");
+        let made = std::process::Command::new("cmd")
+            .args(["/c", "mklink", "/J"])
+            .arg(&link)
+            .arg(dir.join("bin"))
+            .output()
+            .is_ok_and(|o| o.status.success());
+        if made {
+            let linked = link.to_string_lossy().into_owned();
+            assert_eq!(install_dir(&linked), None);
+            assert!(!cleanable(&removed("Linked", &linked), &link));
+            std::fs::remove_dir(&link).ok();
+        }
+        std::fs::remove_dir_all(&base).ok();
     }
 
     #[test]
@@ -692,21 +867,24 @@ mod tests {
             None
         ));
         // Install location is honored exactly, nothing near it.
-        assert!(path_is_cleanable(
-            Path::new(r"C:/Program Files/SuperTool"),
-            &c,
-            Some(r"C:/Program Files/SuperTool")
-        ));
+        let dir = Path::new(r"C:/Program Files/SuperTool");
+        assert!(path_is_cleanable(dir, &c, Some(dir)));
         assert!(!path_is_cleanable(
             Path::new(r"C:/Program Files/Other"),
             &c,
-            Some(r"C:/Program Files/SuperTool")
+            Some(dir)
         ));
     }
 
     #[test]
     fn bare_drive_install_locations_are_never_cleanable() {
         let c = name_candidates("SuperTool");
-        assert!(!path_is_cleanable(Path::new(r"C:/"), &c, Some(r"C:/")));
+        assert!(!path_is_cleanable(
+            Path::new(r"C:/"),
+            &c,
+            Some(Path::new(r"C:/"))
+        ));
+        assert_eq!(install_dir(r"C:\"), None);
+        assert!(!cleanable(&removed("SuperTool", r"C:\"), Path::new(r"C:\")));
     }
 }

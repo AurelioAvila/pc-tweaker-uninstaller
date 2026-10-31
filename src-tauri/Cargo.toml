@@ -61,6 +61,9 @@ windows-sys = { version = "0.59", features = [
   # The elevated child's report pipe (elevation.rs); CreateNamedPipeW takes
   # a SECURITY_ATTRIBUTES pointer, left null.
   "Win32_Security",
+  # Owner and access list of a per-user uninstaller and its folders
+  # (uninstall_exec.rs, admin_only_path).
+  "Win32_Security_Authorization",
   "Win32_System_Pipes",
   "Win32_System_Threading",
   "Win32_UI_Shell",
