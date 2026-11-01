@@ -1373,7 +1373,7 @@ export default function App() {
                 <UiIcon name="user" />
               </span>
               <div>
-                <strong>
+                <strong className={account.status === "signed-in" ? "selectable" : undefined}>
                   {account.status === "signed-in" ? account.email : text.menu.account}
                 </strong>
                 <p>{words.accountHint}</p>
@@ -1399,7 +1399,7 @@ export default function App() {
                 {account.status === "signed-in" && (
                   <>
                     <div className="plan-row">
-                      <span>{account.email}</span>
+                      <span className="selectable">{account.email}</span>
                     </div>
                     {/* The ONLY place Pro status is asserted: read straight from
                       the account just verified against the backend, never
