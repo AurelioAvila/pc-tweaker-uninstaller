@@ -8,7 +8,8 @@ const en = {
   largeHint: "500 MB or more",
   recentHint: "Last 30 days",
   freed: "Freed so far",
-  freedHint: (count: number) => `${String(count)} verified removals`,
+  freedHint: (count: number) =>
+    `${String(count)} ${count === 1 ? "verified removal" : "verified removals"}`,
   refresh: "Refresh inventory",
   filters: "Filters & display",
   lastScan: "Updated",
@@ -49,7 +50,8 @@ export const workspaceCopy: Record<Locale, typeof en> = {
     largeHint: "Almeno 500 MB",
     recentHint: "Ultimi 30 giorni",
     freed: "Liberati finora",
-    freedHint: (count) => `${String(count)} rimozioni verificate`,
+    freedHint: (count) =>
+      `${String(count)} ${count === 1 ? "rimozione verificata" : "rimozioni verificate"}`,
     refresh: "Aggiorna elenco",
     filters: "Filtri e visualizzazione",
     lastScan: "Aggiornato",
@@ -88,7 +90,8 @@ export const workspaceCopy: Record<Locale, typeof en> = {
     largeHint: "500 Mo ou plus",
     recentHint: "30 derniers jours",
     freed: "Libérés à ce jour",
-    freedHint: (count) => `${String(count)} suppressions vérifiées`,
+    freedHint: (count) =>
+      `${String(count)} ${count === 1 ? "suppression vérifiée" : "suppressions vérifiées"}`,
     refresh: "Actualiser la liste",
     filters: "Filtres et affichage",
     lastScan: "Actualisé",
@@ -126,7 +129,8 @@ export const workspaceCopy: Record<Locale, typeof en> = {
     largeHint: "500 MB o más",
     recentHint: "Últimos 30 días",
     freed: "Liberados hasta ahora",
-    freedHint: (count) => `${String(count)} eliminaciones verificadas`,
+    freedHint: (count) =>
+      `${String(count)} ${count === 1 ? "eliminación verificada" : "eliminaciones verificadas"}`,
     refresh: "Actualizar lista",
     filters: "Filtros y visualización",
     lastScan: "Actualizado",
@@ -164,7 +168,8 @@ export const workspaceCopy: Record<Locale, typeof en> = {
     largeHint: "Mindestens 500 MB",
     recentHint: "Letzte 30 Tage",
     freed: "Bisher freigegeben",
-    freedHint: (count) => `${String(count)} geprüfte Entfernungen`,
+    freedHint: (count) =>
+      `${String(count)} ${count === 1 ? "geprüfte Entfernung" : "geprüfte Entfernungen"}`,
     refresh: "Liste aktualisieren",
     filters: "Filter und Anzeige",
     lastScan: "Aktualisiert",
@@ -202,7 +207,8 @@ export const workspaceCopy: Record<Locale, typeof en> = {
     largeHint: "500 MB ou mais",
     recentHint: "Últimos 30 dias",
     freed: "Libertado até agora",
-    freedHint: (count) => `${String(count)} remoções verificadas`,
+    freedHint: (count) =>
+      `${String(count)} ${count === 1 ? "remoção verificada" : "remoções verificadas"}`,
     refresh: "Atualizar lista",
     filters: "Filtros e apresentação",
     lastScan: "Atualizado",

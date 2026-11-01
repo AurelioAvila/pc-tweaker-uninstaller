@@ -120,23 +120,30 @@ summary:focus-visible,
 .inventory-summary button.summary-freed strong {
   color: #7fd39a;
 }
+/* Label, number, caption: one stack in every tile, with the caption row kept
+   even where a tile has none, so the four numbers share one baseline and no
+   label or caption wraps into a two-line squeeze beside the number. */
 .inventory-summary span {
   font-size: 12px;
   display: grid;
-  grid-template-columns: auto auto;
-  gap: 4px 12px;
-  align-items: baseline;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto 15px;
+  row-gap: 2px;
+  white-space: nowrap;
 }
 .inventory-summary strong {
   font-size: 27px;
   font-weight: 600;
+  line-height: 1.15;
   color: var(--fg);
   grid-row: 2;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 .inventory-summary small {
-  grid-row: 2;
+  grid-row: 3;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: var(--fg-dim);
   font-size: 11px;
 }
@@ -611,6 +618,7 @@ details[open] > summary > .ui-icon:last-child {
     align-items: center;
     flex-direction: row-reverse;
     gap: 10px;
+    white-space: normal;
   }
   .inventory-summary strong {
     font-size: 24px;
@@ -1109,6 +1117,11 @@ details[open] > summary > .ui-icon:last-child {
 .sub-reason:has(input:focus-visible) {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+/* The card carries the keyboard ring; a second one on the radio itself drew
+   two rings round one choice. */
+.sub-reason input:focus-visible {
+  outline: none;
 }
 .sub-comment {
   display: grid;

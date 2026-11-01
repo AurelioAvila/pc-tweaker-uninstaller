@@ -278,7 +278,7 @@ const en: Dictionary = {
   app: {
     title: "PC Tweaker Uninstaller",
     tagline: "Review installed software. Remove with confidence.",
-    suiteDetected: "PC Tweaker detected - suite member",
+    suiteDetected: "PC Tweaker detected — suite member",
     suiteDetectedHint:
       "PC Tweaker is installed on this PC. Sign in with your PC Tweaker Pro account to unlock the loyalty price.",
   },
@@ -293,7 +293,7 @@ const en: Dictionary = {
     statTotalSize: "on disk",
     emptyTitle: "No programs found",
     emptyBody:
-      "No uninstallable programs were found in the Windows registry. This is unusual - if you believe it's wrong, please report it.",
+      "No uninstallable programs were found in the Windows registry. This is unusual — if you believe it's wrong, please report it.",
     noMatchesTitle: "No matches",
     noMatchesBody: "No installed program matches your search.",
     errorTitle: "Could not read installed programs",
@@ -322,7 +322,7 @@ const en: Dictionary = {
     badgeUserHint: "Installed for this user only, not machine-wide.",
     badgeHidden: "Hidden",
     badgeHiddenHint:
-      "Windows normally hides this entry (system component or child update). Removing it can affect other software - be sure you know what it is.",
+      "Windows normally hides this entry (system component or child update). Removing it can affect other software — be sure you know what it is.",
     badgeSuite: "Suite",
     badgeSuiteHint: "Part of your PC Tweaker suite.",
     filterAll: "All",
@@ -343,14 +343,14 @@ const en: Dictionary = {
   confidence: {
     labelSafe: "Safe to remove",
     labelReview: "Review before removing",
-    labelKeep: "Keep - system-related",
-    disclaimer: "Based on visible evidence - a guide, not a certainty.",
+    labelKeep: "Keep — system-related",
+    disclaimer: "Based on visible evidence — a guide, not a certainty.",
     reasons: {
       hiddenSystem: "Windows itself hides this entry (system component or child update).",
       sharedRuntime: "Shared runtime: other programs likely depend on it.",
       driverComponent: "Driver or chipset package: removing it can affect hardware.",
       sharedLauncher: "Launcher/store: software installed through it would stop working.",
-      noPublisher: "No publisher recorded - origin cannot be verified.",
+      noPublisher: "No publisher recorded — origin cannot be verified.",
       brokenUninstaller: "Its uninstall command is broken and cannot run automatically.",
       manualUninstaller: "Its uninstaller must be run manually (script-based).",
       noUninstaller: "It declares no uninstall command at all.",
@@ -360,9 +360,9 @@ const en: Dictionary = {
       storeOsComponent: "Part of the Windows shell, not an application.",
       storeResourcePackage: "A resource package (language or display assets), not an app.",
       storeNoDisplayName:
-        "Windows gives this package no display name - it is an internal component.",
-      storeSystemSigned: "Signed as part of Windows - it may have shipped with the system.",
-      storeNoPublisher: "No publisher recorded - origin cannot be verified.",
+        "Windows gives this package no display name — it is an internal component.",
+      storeSystemSigned: "Signed as part of Windows — it may have shipped with the system.",
+      storeNoPublisher: "No publisher recorded — origin cannot be verified.",
       storeFromStore: "Signed by the Microsoft Store.",
       storeCleanRemoval:
         "MSIX package: removal leaves nothing behind and it can be reinstalled from the Store.",
@@ -381,7 +381,7 @@ const en: Dictionary = {
     action: "Uninstall",
     confirmTitle: (name) => `Uninstall ${name}?`,
     confirmBody:
-      "Exactly the command below will run - nothing else. It was rebuilt from the Windows registry and will be re-checked at the moment it runs.",
+      "Exactly the command below will run — nothing else. It was rebuilt from the Windows registry and will be re-checked at the moment it runs.",
     commandLabel: "Command",
     storeConfirmBody:
       "Windows removes this package for the current user. Nothing is left behind to clean up, and you can reinstall it from the Microsoft Store at any time.",
@@ -424,7 +424,7 @@ const en: Dictionary = {
     runningNote:
       "The program's uninstaller is running. This window stays responsive; some uninstallers open their own windows.",
     runningSlowNote:
-      "This is taking longer than usual. Some uninstallers open a window of their own, and it can be behind this one - check your taskbar. Nothing is lost if you wait.",
+      "This is taking longer than usual. Some uninstallers open a window of their own, and it can be behind this one — check your taskbar. Nothing is lost if you wait.",
     reportSuccessTitle: "Uninstalled",
     reportFailureTitle: "Uninstall did not complete",
     rebootNote: "A restart is required to finish removing files.",
@@ -487,7 +487,7 @@ const en: Dictionary = {
     open: "History",
     title: "Removal Ledger",
     subtitle:
-      "A local receipt for every removal this app ran - successes and failures alike. Stored on this PC, never uploaded.",
+      "A local receipt for every removal this app ran — successes and failures alike. Stored on this PC, never uploaded.",
     empty: "No removals recorded yet. Your first uninstall will leave its receipt here.",
     exportButton: "Export JSON",
     logButton: "Open log folder",
@@ -517,7 +517,7 @@ const en: Dictionary = {
     signInButton: "Sign in",
     signingIn: "Signing in...",
     signOut: "Sign out",
-    proActive: "PC Tweaker Pro - active on this account",
+    proActive: "PC Tweaker Pro — active on this account",
     proInactive: "This account is not on PC Tweaker Pro yet.",
     upsActive: "Uninstaller Pro — active",
     upsInactive: "Uninstaller Pro — not active",
@@ -598,7 +598,7 @@ const it: Dictionary = {
   app: {
     title: "PC Tweaker Uninstaller",
     tagline: "Controlla i programmi installati. Rimuovi con sicurezza.",
-    suiteDetected: "PC Tweaker rilevato - membro della suite",
+    suiteDetected: "PC Tweaker rilevato — membro della suite",
     suiteDetectedHint:
       "PC Tweaker è installato su questo PC. Accedi con il tuo account PC Tweaker Pro per sbloccare il prezzo fedeltà.",
   },
@@ -663,7 +663,7 @@ const it: Dictionary = {
   confidence: {
     labelSafe: "Rimozione sicura",
     labelReview: "Rivedi prima di rimuovere",
-    labelKeep: "Da tenere - componente di sistema",
+    labelKeep: "Da tenere — componente di sistema",
     disclaimer: "Basato su indizi visibili: una guida, non una certezza.",
     reasons: {
       hiddenSystem: "Windows stesso nasconde questa voce (componente di sistema o aggiornamento).",
@@ -840,7 +840,7 @@ const it: Dictionary = {
     signInButton: "Accedi",
     signingIn: "Accesso in corso...",
     signOut: "Esci",
-    proActive: "PC Tweaker Pro - attivo su questo account",
+    proActive: "PC Tweaker Pro — attivo su questo account",
     proInactive: "Questo account non ha ancora PC Tweaker Pro.",
     upsActive: "Uninstaller Pro — attivo",
     upsInactive: "Uninstaller Pro — non attivo",
@@ -924,7 +924,7 @@ const fr: Dictionary = {
   app: {
     title: "PC Tweaker Uninstaller",
     tagline: "Examinez vos logiciels. Désinstallez en toute confiance.",
-    suiteDetected: "PC Tweaker détecté - membre de la suite",
+    suiteDetected: "PC Tweaker détecté — membre de la suite",
     suiteDetectedHint:
       "PC Tweaker est installé sur ce PC. Connectez-vous avec votre compte PC Tweaker Pro pour débloquer le prix fidélité.",
   },
@@ -989,7 +989,7 @@ const fr: Dictionary = {
   confidence: {
     labelSafe: "Suppression sûre",
     labelReview: "À vérifier avant suppression",
-    labelKeep: "À conserver - lié au système",
+    labelKeep: "À conserver — lié au système",
     disclaimer: "Fondé sur des indices visibles : un guide, pas une certitude.",
     reasons: {
       hiddenSystem: "Windows lui-même masque cette entrée (composant système ou mise à jour).",
@@ -1166,7 +1166,7 @@ const fr: Dictionary = {
     signInButton: "Se connecter",
     signingIn: "Connexion...",
     signOut: "Se déconnecter",
-    proActive: "PC Tweaker Pro - actif sur ce compte",
+    proActive: "PC Tweaker Pro — actif sur ce compte",
     proInactive: "Ce compte n'a pas encore PC Tweaker Pro.",
     upsActive: "Uninstaller Pro — actif",
     upsInactive: "Uninstaller Pro — non actif",
@@ -1253,7 +1253,7 @@ const es: Dictionary = {
   app: {
     title: "PC Tweaker Uninstaller",
     tagline: "Revisa tus programas. Desinstala con confianza.",
-    suiteDetected: "PC Tweaker detectado - miembro de la suite",
+    suiteDetected: "PC Tweaker detectado — miembro de la suite",
     suiteDetectedHint:
       "PC Tweaker está instalado en este PC. Inicia sesión con tu cuenta PC Tweaker Pro para desbloquear el precio de fidelidad.",
   },
@@ -1318,7 +1318,7 @@ const es: Dictionary = {
   confidence: {
     labelSafe: "Eliminación segura",
     labelReview: "Revisar antes de eliminar",
-    labelKeep: "Conservar - relacionado con el sistema",
+    labelKeep: "Conservar — relacionado con el sistema",
     disclaimer: "Basado en indicios visibles: una guía, no una certeza.",
     reasons: {
       hiddenSystem:
@@ -1494,7 +1494,7 @@ const es: Dictionary = {
     signInButton: "Iniciar sesión",
     signingIn: "Iniciando sesión...",
     signOut: "Cerrar sesión",
-    proActive: "PC Tweaker Pro - activo en esta cuenta",
+    proActive: "PC Tweaker Pro — activo en esta cuenta",
     proInactive: "Esta cuenta aún no tiene PC Tweaker Pro.",
     upsActive: "Uninstaller Pro — activo",
     upsInactive: "Uninstaller Pro — no activo",
@@ -1916,7 +1916,7 @@ const pt: Dictionary = {
   app: {
     title: "PC Tweaker Uninstaller",
     tagline: "Reveja o software instalado. Remova com confiança.",
-    suiteDetected: "PC Tweaker detetado - membro da suite",
+    suiteDetected: "PC Tweaker detetado — membro da suite",
     suiteDetectedHint:
       "O PC Tweaker está instalado neste PC. Inicie sessão com a sua conta PC Tweaker Pro para desbloquear o preço de fidelização.",
   },
@@ -1931,7 +1931,7 @@ const pt: Dictionary = {
     statTotalSize: "no disco",
     emptyTitle: "Nenhum programa encontrado",
     emptyBody:
-      "Não foram encontrados programas desinstaláveis no registo do Windows. Isto é invulgar - se acha que está errado, comunique-o.",
+      "Não foram encontrados programas desinstaláveis no registo do Windows. Isto é invulgar — se acha que está errado, comunique-o.",
     noMatchesTitle: "Sem resultados",
     noMatchesBody: "Nenhum programa instalado corresponde à sua pesquisa.",
     errorTitle: "Não foi possível ler os programas instalados",
@@ -1960,7 +1960,7 @@ const pt: Dictionary = {
     badgeUserHint: "Instalado apenas para este utilizador, não para todo o computador.",
     badgeHidden: "Oculto",
     badgeHiddenHint:
-      "O Windows oculta normalmente esta entrada (componente de sistema ou atualização dependente). Removê-la pode afetar outro software - certifique-se de que sabe o que é.",
+      "O Windows oculta normalmente esta entrada (componente de sistema ou atualização dependente). Removê-la pode afetar outro software — certifique-se de que sabe o que é.",
     badgeSuite: "Suite",
     badgeSuiteHint: "Faz parte da sua suite PC Tweaker.",
     filterAll: "Todos",
@@ -1981,7 +1981,7 @@ const pt: Dictionary = {
   confidence: {
     labelSafe: "Remoção segura",
     labelReview: "Rever antes de remover",
-    labelKeep: "Manter - relacionado com o sistema",
+    labelKeep: "Manter — relacionado com o sistema",
     disclaimer: "Com base em indícios visíveis: uma orientação, não uma certeza.",
     reasons: {
       hiddenSystem:
@@ -1989,7 +1989,7 @@ const pt: Dictionary = {
       sharedRuntime: "Runtime partilhado: outros programas dependem provavelmente dele.",
       driverComponent: "Pacote de controlador ou chipset: removê-lo pode afetar o hardware.",
       sharedLauncher: "Iniciador/loja: o software instalado através dele deixaria de funcionar.",
-      noPublisher: "Nenhum editor registado - não é possível verificar a origem.",
+      noPublisher: "Nenhum editor registado — não é possível verificar a origem.",
       brokenUninstaller:
         "O comando de desinstalação está danificado e não pode ser executado automaticamente.",
       manualUninstaller: "O desinstalador tem de ser executado manualmente (baseado em scripts).",
@@ -2001,9 +2001,9 @@ const pt: Dictionary = {
       storeResourcePackage:
         "Um pacote de recursos (idioma ou elementos gráficos), não uma aplicação.",
       storeNoDisplayName:
-        "O Windows não atribui nome visível a este pacote - é um componente interno.",
-      storeSystemSigned: "Assinado como parte do Windows - pode ter vindo com o sistema.",
-      storeNoPublisher: "Nenhum editor registado - não é possível verificar a origem.",
+        "O Windows não atribui nome visível a este pacote — é um componente interno.",
+      storeSystemSigned: "Assinado como parte do Windows — pode ter vindo com o sistema.",
+      storeNoPublisher: "Nenhum editor registado — não é possível verificar a origem.",
       storeFromStore: "Assinado pela Microsoft Store.",
       storeCleanRemoval:
         "Pacote MSIX: a remoção não deixa nada para trás e pode ser reinstalado a partir da Store.",
@@ -2022,7 +2022,7 @@ const pt: Dictionary = {
     action: "Desinstalar",
     confirmTitle: (name) => `Desinstalar ${name}?`,
     confirmBody:
-      "Será executado exatamente o comando abaixo - nada mais. Foi reconstruído a partir do registo do Windows e será verificado de novo no momento da execução.",
+      "Será executado exatamente o comando abaixo — nada mais. Foi reconstruído a partir do registo do Windows e será verificado de novo no momento da execução.",
     commandLabel: "Comando",
     storeConfirmBody:
       "O Windows remove este pacote para o utilizador atual. Não fica nada para limpar e pode reinstalá-lo a partir da Microsoft Store quando quiser.",
@@ -2065,7 +2065,7 @@ const pt: Dictionary = {
     runningNote:
       "O desinstalador do programa está em execução. Esta janela continua a responder; alguns desinstaladores abrem as suas próprias janelas.",
     runningSlowNote:
-      "Está a demorar mais do que o habitual. Alguns desinstaladores abrem uma janela própria, que pode estar por trás desta - verifique a barra de tarefas. Não perde nada se esperar.",
+      "Está a demorar mais do que o habitual. Alguns desinstaladores abrem uma janela própria, que pode estar por trás desta — verifique a barra de tarefas. Não perde nada se esperar.",
     reportSuccessTitle: "Desinstalado",
     reportFailureTitle: "A desinstalação não foi concluída",
     rebootNote: "É necessário reiniciar para terminar a remoção dos ficheiros.",
@@ -2128,7 +2128,7 @@ const pt: Dictionary = {
     open: "Histórico",
     title: "Registo de remoções",
     subtitle:
-      "Um recibo local de cada remoção feita por esta aplicação - com ou sem sucesso. Guardado neste PC, nunca enviado.",
+      "Um recibo local de cada remoção feita por esta aplicação — com ou sem sucesso. Guardado neste PC, nunca enviado.",
     empty: "Ainda não há remoções registadas. A sua primeira desinstalação deixará aqui o recibo.",
     exportButton: "Exportar JSON",
     logButton: "Abrir pasta de registos",
@@ -2157,7 +2157,7 @@ const pt: Dictionary = {
     signInButton: "Iniciar sessão",
     signingIn: "A iniciar sessão...",
     signOut: "Terminar sessão",
-    proActive: "PC Tweaker Pro - ativo nesta conta",
+    proActive: "PC Tweaker Pro — ativo nesta conta",
     proInactive: "Esta conta ainda não tem o PC Tweaker Pro.",
     upsActive: "Uninstaller Pro — ativo",
     upsInactive: "Uninstaller Pro — inativo",
