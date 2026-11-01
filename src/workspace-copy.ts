@@ -28,6 +28,13 @@ const en = {
     "Deletes local receipts and recovery details for removed entries. Installed apps, restore points and exports stay unchanged.",
   cancel: "Cancel",
   clearingHistory: "Clearing…",
+  coffee: {
+    nav: "Buy me a coffee",
+    cta: "Fuel the next release",
+    fewer: "One coffee fewer",
+    more: "One coffee more",
+    error: "Couldn't open the payment page. Try again in a moment.",
+  },
 };
 export const workspaceCopy: Record<Locale, typeof en> = {
   en,
@@ -60,6 +67,13 @@ export const workspaceCopy: Record<Locale, typeof en> = {
       "Elimina ricevute locali e dettagli di recupero delle voci rimosse. App, punti di ripristino ed esportazioni restano invariati.",
     cancel: "Annulla",
     clearingHistory: "Cancellazione…",
+    coffee: {
+      nav: "Offrimi un caffè",
+      cta: "Finanzia la prossima release",
+      fewer: "Un caffè in meno",
+      more: "Un caffè in più",
+      error: "Impossibile aprire la pagina di pagamento. Riprova tra poco.",
+    },
   },
   fr: {
     title: "Applications installées",
@@ -91,6 +105,13 @@ export const workspaceCopy: Record<Locale, typeof en> = {
       "Efface les reçus locaux et détails de récupération. Les applications, points de restauration et exports restent inchangés.",
     cancel: "Annuler",
     clearingHistory: "Suppression…",
+    coffee: {
+      nav: "Offrez-moi un café",
+      cta: "Financer la prochaine version",
+      fewer: "Un café en moins",
+      more: "Un café en plus",
+      error: "Impossible d'ouvrir la page de paiement. Réessayez dans un instant.",
+    },
   },
   es: {
     title: "Aplicaciones instaladas",
@@ -121,6 +142,13 @@ export const workspaceCopy: Record<Locale, typeof en> = {
       "Elimina recibos locales y detalles de recuperación. Las aplicaciones, los puntos de restauración y las exportaciones no cambian.",
     cancel: "Cancelar",
     clearingHistory: "Borrando…",
+    coffee: {
+      nav: "Invítame a un café",
+      cta: "Financia la próxima versión",
+      fewer: "Un café menos",
+      more: "Un café más",
+      error: "No se pudo abrir la página de pago. Inténtalo de nuevo en un momento.",
+    },
   },
   de: {
     title: "Installierte Apps",
@@ -151,6 +179,13 @@ export const workspaceCopy: Record<Locale, typeof en> = {
       "Löscht lokale Belege und Wiederherstellungsdetails. Apps, Wiederherstellungspunkte und Exporte bleiben unverändert.",
     cancel: "Abbrechen",
     clearingHistory: "Wird gelöscht…",
+    coffee: {
+      nav: "Spendieren Sie mir einen Kaffee",
+      cta: "Nächstes Release finanzieren",
+      fewer: "Ein Kaffee weniger",
+      more: "Ein Kaffee mehr",
+      error: "Die Zahlungsseite ließ sich nicht öffnen. Versuchen Sie es gleich noch einmal.",
+    },
   },
   pt: {
     title: "Aplicações instaladas",
@@ -181,5 +216,12 @@ export const workspaceCopy: Record<Locale, typeof en> = {
       "Apaga os recibos locais e os detalhes de recuperação das entradas removidas. As aplicações instaladas, os pontos de restauro e as exportações não são alterados.",
     cancel: "Cancelar",
     clearingHistory: "A limpar…",
+    coffee: {
+      nav: "Ofereça-me um café",
+      cta: "Financiar a próxima versão",
+      fewer: "Menos um café",
+      more: "Mais um café",
+      error: "Não foi possível abrir a página de pagamento. Tente novamente daqui a pouco.",
+    },
   },
 };

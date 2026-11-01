@@ -499,6 +499,24 @@ export async function startUninstallerCheckout(startTrial?: boolean): Promise<st
   return body.url;
 }
 
+/** A one-off tip ("buy me a coffee"), the same POST /api/tip PC Tweaker uses.
+ *  No account: it unlocks nothing, so there is nothing to sign in for. The
+ *  backend clamps the quantity and picks the price; returns the Stripe
+ *  Checkout URL to open in the system browser. */
+export async function startTip(quantity: number): Promise<string> {
+  const res = await fetch(
+    `${API_BASE_URL}/api/tip`,
+    timed({
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ quantity, product: "uninstaller" }),
+    }),
+  );
+  const body = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+  if (!res.ok || !body.url) throw new Error(body.error || `HTTP ${String(res.status)}`);
+  return body.url;
+}
+
 /** Opens Stripe's hosted billing portal (cancel, card, invoices) for the
  *  signed-in account: the same POST /api/portal PC Tweaker uses. Returns the
  *  URL to open in the system browser. */

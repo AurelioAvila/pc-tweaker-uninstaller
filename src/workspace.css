@@ -669,3 +669,100 @@ details[open] > summary > .ui-icon:last-child {
   border-radius: 5px;
   flex: none;
 }
+
+/* The tip row (coffee.tsx): a menu row like Language and Theme, one step
+   quieter (dimmed until hovered or opened) because it is not a setting. */
+.menu-section > summary.coffee-row {
+  color: var(--fg-dim);
+  font-weight: 500;
+  transition: color 0.15s;
+}
+.menu-section > summary.coffee-row:hover,
+.coffee[open] > summary.coffee-row {
+  color: var(--fg);
+}
+.coffee-mark {
+  width: 20px;
+  flex: none;
+  font-size: 15px;
+  line-height: 1;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+/* The cup tilts toward the pointer on its own row. */
+.coffee-row:hover .coffee-mark {
+  transform: rotate(-8deg) scale(1.08);
+}
+.coffee[open] .coffee-body {
+  animation: coffee-in 0.22s ease both;
+}
+@keyframes coffee-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.coffee-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.coffee-step {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fg-dim);
+  font: inherit;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    transform 0.15s;
+}
+.coffee-step:hover:not(:disabled) {
+  color: var(--fg);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line-strong));
+}
+.coffee-step:active:not(:disabled) {
+  transform: scale(0.9);
+}
+.coffee-step:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+.coffee-step:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.coffee-count {
+  display: inline-block;
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  animation: coffee-pop 0.2s ease both;
+}
+/* Replayed on every press: the span remounts (key={count}). */
+@keyframes coffee-pop {
+  from {
+    opacity: 0.4;
+    transform: scale(0.82);
+  }
+}
+.coffee-cta:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line-strong));
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.coffee-cta:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
