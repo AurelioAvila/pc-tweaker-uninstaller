@@ -3,11 +3,14 @@
   --bg: #0a0912;
   --bg-raised: #12101d;
   --surface: #16131f;
-  --line: #232032;
-  --line-strong: #322d47;
-  --fg: #e9e6f5;
-  --fg-dim: #a79fc4;
-  --fg-faint: #7d749b;
+  /* Lines and ink are mixed from the theme's own background (applyTheme sets
+     --bg), so Graphite Ember gets neutral greys and Violet keeps its tint.
+     They were fixed lavender greys from the violet-only days. */
+  --line: color-mix(in srgb, #ffffff 9%, var(--bg));
+  --line-strong: color-mix(in srgb, #ffffff 15%, var(--bg));
+  --fg: color-mix(in srgb, #ffffff 92%, var(--bg));
+  --fg-dim: color-mix(in srgb, #ffffff 68%, var(--bg));
+  --fg-faint: color-mix(in srgb, #ffffff 50%, var(--bg));
   --accent: #8b5cf6;
   --accent-2: #d946ef;
   /* Text sitting on the accent gradient. White fails WCAG AA on all eight
