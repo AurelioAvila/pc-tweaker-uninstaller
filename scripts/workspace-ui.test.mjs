@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const browser = await chromium.launch({ executablePath: process.env.BROWSER_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
-const page = await browser.newPage({ viewport: { width: 1120, height: 800 } });
+const page = await browser.newPage({ viewport: { width: 1000, height: 700 } });
 const errors = [];
 page.on('pageerror', error => errors.push(error.message));
 await page.route('https://**/*', route => route.abort());
@@ -47,14 +47,14 @@ try {
   assert.equal(await page.evaluate(()=>window.testState.checks),1,'StrictMode must not duplicate update checks');
   await page.locator('.update-card .button-ghost').click();
   await mkdir('ui-evidence', {recursive:true});
-  for (const [width,height] of [[1120,800],[940,560],[1920,1000]]) {
+  for (const [width,height] of [[1000,700],[820,600],[1280,820],[1920,1000]]) {
     await page.setViewportSize({width,height});
     await page.screenshot({path:`ui-evidence/inventory-${width}.png`});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth > innerWidth),false,'No horizontal page overflow');
     const overlaps=await page.locator('.row').first().evaluate(row=>Array.from(row.children).some((cell,i,cells)=>i>0 && cells[i-1].getBoundingClientRect().right > cell.getBoundingClientRect().left+1));
     assert.equal(overlaps,false,'Columns must not overlap');
   }
-  await page.setViewportSize({width:1120,height:800});
+  await page.setViewportSize({width:1000,height:700});
   await page.locator('.row-detail-hint').first().click();
   assert.equal(await page.locator('.row').first().getAttribute('aria-expanded'),'true','Details button expands once');
   await page.getByRole('button',{name:'History',exact:true}).click();

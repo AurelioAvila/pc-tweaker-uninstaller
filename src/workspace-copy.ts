@@ -34,6 +34,8 @@ const en = {
     fewer: "One coffee fewer",
     more: "One coffee more",
     error: "Couldn't open the payment page. Try again in a moment.",
+    /** Only while the price list offers crypto (USDC); {price} in US dollars. */
+    crypto: "or pay ≈ {price} in crypto (USDC)",
   },
 };
 export const workspaceCopy: Record<Locale, typeof en> = {
@@ -73,6 +75,7 @@ export const workspaceCopy: Record<Locale, typeof en> = {
       fewer: "Un caffè in meno",
       more: "Un caffè in più",
       error: "Impossibile aprire la pagina di pagamento. Riprova tra poco.",
+      crypto: "oppure paga ≈ {price} in crypto (USDC)",
     },
   },
   fr: {
@@ -111,6 +114,7 @@ export const workspaceCopy: Record<Locale, typeof en> = {
       fewer: "Un café en moins",
       more: "Un café en plus",
       error: "Impossible d'ouvrir la page de paiement. Réessayez dans un instant.",
+      crypto: "ou payer ≈ {price} en crypto (USDC)",
     },
   },
   es: {
@@ -148,6 +152,7 @@ export const workspaceCopy: Record<Locale, typeof en> = {
       fewer: "Un café menos",
       more: "Un café más",
       error: "No se pudo abrir la página de pago. Inténtalo de nuevo en un momento.",
+      crypto: "o pagar ≈ {price} con cripto (USDC)",
     },
   },
   de: {
@@ -185,6 +190,7 @@ export const workspaceCopy: Record<Locale, typeof en> = {
       fewer: "Ein Kaffee weniger",
       more: "Ein Kaffee mehr",
       error: "Die Zahlungsseite ließ sich nicht öffnen. Versuchen Sie es gleich noch einmal.",
+      crypto: "oder ≈ {price} mit Krypto zahlen (USDC)",
     },
   },
   pt: {
@@ -222,6 +228,7 @@ export const workspaceCopy: Record<Locale, typeof en> = {
       fewer: "Menos um café",
       more: "Mais um café",
       error: "Não foi possível abrir a página de pagamento. Tente novamente daqui a pouco.",
+      crypto: "ou pagar ≈ {price} com cripto (USDC)",
     },
   },
 };

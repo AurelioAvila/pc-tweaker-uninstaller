@@ -37,6 +37,9 @@ export type PriceList = {
   trialEnabled: boolean;
   trialDays: number;
   prices: (Price & { product: string })[];
+  /** Coffees payable in USDC: one coffee in US cents for the caller's
+   *  country, or null while the server's crypto switch is off. */
+  crypto: { coffeeUsd: number } | null;
 };
 
 const STATES: EntitlementState[] = ["none", "trialing", "active", "blocked"];
@@ -106,6 +109,16 @@ export function parseBillingStatus(value: unknown): BillingStatus | null {
 }
 
 /** Null for anything malformed: a broken answer must never print a price. */
+/** `crypto: { available, coffee: { usd } }` from GET /api/billing/prices;
+ *  anything but a switched-on, well-formed price hides the crypto choice. */
+function cryptoOffer(value: unknown): { coffeeUsd: number } | null {
+  const c = value as { available?: unknown; coffee?: { usd?: unknown } } | null;
+  const usd = c?.coffee?.usd;
+  return c?.available === true && Number.isInteger(usd) && (usd as number) > 0
+    ? { coffeeUsd: usd as number }
+    : null;
+}
+
 export function parsePriceList(value: unknown): PriceList | null {
   const v = value as Record<string, unknown> | null;
   if (!v || typeof v !== "object" || !Array.isArray(v.prices)) return null;
@@ -116,6 +129,7 @@ export function parsePriceList(value: unknown): PriceList | null {
     prices: priceEntries(v.prices).flatMap((p) =>
       p.product ? [{ ...p, product: p.product }] : [],
     ),
+    crypto: cryptoOffer(v.crypto),
   };
 }
 

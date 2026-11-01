@@ -31,6 +31,8 @@ import {
 } from "./account";
 import { UpdateBanner, useAppUpdater } from "./updater";
 import { PlansPage, ProPriceSummary } from "./plans-page";
+import { SubscriptionDialog, SupportDialog } from "./account-panels";
+import { accountCopy } from "./account-copy";
 import { fill, trialCopy } from "./trial-copy";
 import {
   billingChanges,
@@ -478,6 +480,9 @@ export default function App() {
   const [inventoryExport, setInventoryExport] = useState<string | null>(null);
   const [inventoryExportBusy, setInventoryExportBusy] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  // Manage subscription (account menu) and Help & support (top bar).
+  const [subscriptionOpen, setSubscriptionOpen] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuTrigger = useRef<HTMLButtonElement>(null);
   /* Plans & pricing is a page of its own; the inventory stays mounted
@@ -1251,25 +1256,28 @@ export default function App() {
             if (running) {
               const left = trialLeft(running, billing?.trialDays ?? 3, Date.now());
               const t = trialCopy[lang];
+              const leftText = left.days
+                ? fill(t.leftDays, { days: left.days, hours: left.hours })
+                : left.hours
+                  ? fill(t.leftHours, { hours: left.hours, minutes: left.minutes })
+                  : fill(t.leftMinutes, { minutes: Math.max(1, left.minutes) });
               return (
                 <button
                   type="button"
                   className="button-ghost small nav-trial-left"
+                  title={`${t.trial} · ${leftText}`}
                   onClick={() => {
                     setView("plans");
                   }}
                 >
-                  {`${t.trial} · ${
-                    left.days
-                      ? fill(t.leftDays, { days: left.days, hours: left.hours })
-                      : left.hours
-                        ? fill(t.leftHours, { hours: left.hours, minutes: left.minutes })
-                        : fill(t.leftMinutes, { minutes: Math.max(1, left.minutes) })
-                  }`}
+                  {/* Below 1000 px only the time left shows; the full line
+                      stays in the tooltip. */}
+                  <span className="nav-trial-name">{`${t.trial} · `}</span>
+                  {leftText}
                 </button>
               );
             }
-            return lockedTrial ? (
+            return lockedTrial && view !== "plans" ? (
               <button
                 type="button"
                 className="button primary small nav-trial"
@@ -1277,7 +1285,10 @@ export default function App() {
                   setView("plans");
                 }}
               >
-                {fill(trialCopy[lang].start, { days: lockedTrial.days })}
+                <span className="nav-long">
+                  {fill(trialCopy[lang].start, { days: lockedTrial.days })}
+                </span>
+                <span className="nav-short">{trialCopy[lang].trial}</span>
               </button>
             ) : null;
           })()}
@@ -1290,8 +1301,23 @@ export default function App() {
               setView("plans");
             }}
           >
-            <UiIcon name={uninstallerPro?.active ? "crown" : "gem"} />
-            {plansCopy[lang].nav}
+            <UiIcon name="tag" />
+            {/* One of the two is display:none, so screen readers hear the
+                visible one. */}
+            <span className="nav-long">{plansCopy[lang].nav}</span>
+            <span className="nav-short">{plansCopy[lang].navShort}</span>
+          </button>
+          <button
+            type="button"
+            className="button-ghost small nav-support"
+            data-test="support"
+            title={accountCopy[lang].supportTitle}
+            onClick={() => {
+              setSupportOpen(true);
+            }}
+          >
+            <UiIcon name="lifebuoy" />
+            <span className="nav-label">{accountCopy[lang].support}</span>
           </button>
           <button
             type="button"
@@ -1703,7 +1729,7 @@ export default function App() {
 
             <details className="menu-section">
               <summary>
-                <UiIcon name="shield" />
+                <UiIcon name="tag" />
                 {text.menu.plans}
                 <UiIcon name="chevron" />
               </summary>
@@ -1732,6 +1758,24 @@ export default function App() {
                 </button>
               </div>
             </details>
+
+            {account.status === "signed-in" && (
+              <div className="menu-section">
+                <button
+                  type="button"
+                  className="menu-row"
+                  data-test="manage-subscription"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setSubscriptionOpen(true);
+                  }}
+                >
+                  <UiIcon name="card" />
+                  {accountCopy[lang].manage}
+                  <UiIcon name="chevron" />
+                </button>
+              </div>
+            )}
 
             <details className="menu-section">
               <summary>
@@ -1791,7 +1835,11 @@ export default function App() {
                 </div>
               </div>
             </details>
-            <CoffeeRow copy={words.coffee} />
+            <CoffeeRow
+              copy={words.coffee}
+              locale={uiTag()}
+              cryptoUsd={prices?.crypto?.coffeeUsd ?? null}
+            />
             <div className="profile-update">
               <button
                 className="button-ghost full"
@@ -1815,6 +1863,41 @@ export default function App() {
         </>
       )}
 
+      {subscriptionOpen && account.status === "signed-in" && (
+        <SubscriptionDialog
+          lang={lang}
+          email={account.email}
+          hasBilling={account.hasBilling}
+          onClose={() => {
+            setSubscriptionOpen(false);
+            menuTrigger.current?.focus();
+          }}
+          onSeePlans={() => {
+            setSubscriptionOpen(false);
+            setView("plans");
+          }}
+          onChanged={refreshEntitlement}
+        />
+      )}
+      {supportOpen && (
+        <SupportDialog
+          lang={lang}
+          version={version}
+          facts={[
+            `Signed in: ${account.status === "signed-in" ? "yes" : "no"}`,
+            `Uninstaller Pro: ${uninstallerPro?.active ? (uninstallerPro.plan ?? "active") : "no"}`,
+            `Programs listed: ${state.phase === "ready" ? String(state.programs.length) : state.phase}`,
+            `Theme: ${theme}`,
+          ]}
+          onOpenSupport={() => {
+            openLink("support");
+          }}
+          onClose={() => {
+            setSupportOpen(false);
+          }}
+        />
+      )}
+
       {view === "plans" && (
         <main className="content" inert={updater.phase !== "offer"}>
           <PlansPage
@@ -1833,6 +1916,9 @@ export default function App() {
               navPlans.current?.focus();
             }}
             onOpenAccount={openAccount}
+            onManageSubscription={() => {
+              setSubscriptionOpen(true);
+            }}
             onRefreshAccount={refreshAccount}
             onOpenPrivacy={() => {
               openLink("privacy");
