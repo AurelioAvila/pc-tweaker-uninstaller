@@ -103,3 +103,32 @@ test("registration uses the suite API, persists its session and adopts a renewed
     globalThis.localStorage = previousStorage;
   }
 });
+
+test("cancelling sends the optional reason and comment; resume and Skip send the product only", async () => {
+  const source = (await readFile(new URL("../src/account.ts", import.meta.url), "utf8"))
+    .replace('import { invoke } from "@tauri-apps/api/core";', "const invoke = async () => {}; ")
+    .replace("import.meta.env", '({ VITE_API_BASE_URL: "https://api.example.test" })');
+  const compiled = await transform(source, { loader: "ts", format: "esm" });
+  const { subscriptionRequest } = await import(`data:text/javascript,${encodeURIComponent(compiled.code)}`);
+  const previousFetch = globalThis.fetch;
+  const previousStorage = globalThis.localStorage;
+  globalThis.localStorage = { getItem: () => "token", setItem: () => {}, removeItem: () => {} };
+  const sent = [];
+  globalThis.fetch = async (url, init) => {
+    sent.push([url, JSON.parse(init.body)]);
+    return { ok: true, status: 200, headers: { get: () => null }, json: async () => ({}) };
+  };
+  try {
+    await subscriptionRequest("uninstaller", "cancel", { reason: "other", comment: "Only needed it once." });
+    await subscriptionRequest("uninstaller", "cancel");
+    await subscriptionRequest("uninstaller", "resume");
+    assert.deepEqual(sent, [
+      ["https://api.example.test/api/billing/subscription/cancel", { product: "uninstaller", reason: "other", comment: "Only needed it once." }],
+      ["https://api.example.test/api/billing/subscription/cancel", { product: "uninstaller" }],
+      ["https://api.example.test/api/billing/subscription/resume", { product: "uninstaller" }],
+    ]);
+  } finally {
+    globalThis.fetch = previousFetch;
+    globalThis.localStorage = previousStorage;
+  }
+});
