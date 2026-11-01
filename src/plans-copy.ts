@@ -86,8 +86,7 @@ const en: Copy = {
   nav: "Plans & pricing",
   back: "Installed apps",
   title: "Uninstall for free. Clean up with Pro.",
-  intro:
-    "Single uninstalls are free, and they stay free. Pro takes care of what comes after: leftovers, several programs at once, and entries whose uninstaller is gone.",
+  intro: "Single uninstalls stay free. Pro cleans up everything that comes after.",
   accountTitle: "Your account",
   signedOut: "You're not signed in",
   signedOutBody:
@@ -171,7 +170,7 @@ const en: Copy = {
     "Halloween offer: the discount covers the first year only; renewals are at the regular price. If you open checkout in the last 30 minutes of the offer, you still have 30 minutes to complete it at the offer price.",
   cancelQ: "How do I cancel?",
   cancelA:
-    "Choose Manage subscription on this page. It opens Stripe's billing portal in your browser, where you can cancel, update your card or download invoices. When Pro ends, everything in Free keeps working.",
+    "Open the account menu and choose Manage subscription. You see your plan and can cancel there; you keep Pro until the end of the period you've paid for. Payment method and invoices open in Stripe's billing portal. When Pro ends, everything in Free keeps working.",
   lifetimeQ: "I own PC Tweaker Lifetime. Is Pro included?",
   lifetimeA:
     "Yes: 12 months of Uninstaller Pro from your first sign-in here, with no automatic renewal. Sign in with the same account and it's applied automatically.",
@@ -195,8 +194,7 @@ const it: Copy = {
   nav: "Piani e prezzi",
   back: "App installate",
   title: "Disinstalla gratis. Fai pulizia con Pro.",
-  intro:
-    "Le disinstallazioni singole sono gratuite e lo resteranno. Pro si occupa di ciò che viene dopo: residui, più programmi insieme e voci il cui programma di disinstallazione non esiste più.",
+  intro: "Le disinstallazioni singole restano gratuite. Pro pulisce tutto ciò che viene dopo.",
   accountTitle: "Il tuo account",
   signedOut: "Non hai effettuato l'accesso",
   signedOutBody:
@@ -283,7 +281,7 @@ const it: Copy = {
     "Offerta di Halloween: lo sconto vale solo per il primo anno; i rinnovi sono al prezzo normale. Se avvii il pagamento negli ultimi 30 minuti dell'offerta, hai ancora 30 minuti per completarlo al prezzo scontato.",
   cancelQ: "Come si disdice?",
   cancelA:
-    "Scegli Gestisci abbonamento in questa pagina: si apre nel browser il portale di fatturazione di Stripe, dove puoi disdire, aggiornare la carta o scaricare le fatture. Quando Pro termina, tutto ciò che è incluso in Free continua a funzionare.",
+    "Apri il menu dell'account e scegli Gestisci abbonamento: vedi il tuo piano e puoi disdirlo lì, e Pro resta attivo fino alla fine del periodo già pagato. Metodo di pagamento e fatture si aprono nel portale di fatturazione di Stripe. Quando Pro termina, tutto ciò che è incluso in Free continua a funzionare.",
   lifetimeQ: "Ho PC Tweaker Lifetime. Pro è incluso?",
   lifetimeA:
     "Sì: 12 mesi di Uninstaller Pro dal primo accesso qui, senza rinnovo automatico. Accedi con lo stesso account e viene applicato in automatico.",
@@ -308,7 +306,7 @@ const fr: Copy = {
   back: "Applications installées",
   title: "Désinstallez gratuitement. Faites place nette avec Pro.",
   intro:
-    "Les désinstallations individuelles sont gratuites et le resteront. Pro s'occupe de la suite : les restes, plusieurs programmes à la fois et les entrées dont le programme de désinstallation a disparu.",
+    "Les désinstallations individuelles restent gratuites. Pro nettoie tout ce qui vient après.",
   accountTitle: "Votre compte",
   signedOut: "Vous n'êtes pas connecté",
   signedOutBody:
@@ -396,7 +394,7 @@ const fr: Copy = {
     "Offre d'Halloween : la réduction ne porte que sur la première année ; les renouvellements se font au prix normal. Si vous ouvrez le paiement dans les 30 dernières minutes de l'offre, vous disposez encore de 30 minutes pour le finaliser au prix de l'offre.",
   cancelQ: "Comment résilier ?",
   cancelA:
-    "Choisissez Gérer l'abonnement sur cette page : le portail de facturation de Stripe s'ouvre dans votre navigateur pour résilier, changer de carte ou télécharger vos factures. Quand Pro prend fin, tout ce qu'inclut Free continue de fonctionner.",
+    "Ouvrez le menu du compte et choisissez Gérer l'abonnement : vous y voyez votre formule et pouvez la résilier, et vous gardez Pro jusqu'à la fin de la période déjà payée. Le moyen de paiement et les factures s'ouvrent dans le portail de facturation de Stripe. Quand Pro prend fin, tout ce qu'inclut Free continue de fonctionner.",
   lifetimeQ: "J'ai PC Tweaker Lifetime. Pro est-il inclus ?",
   lifetimeA:
     "Oui : 12 mois d'Uninstaller Pro dès votre première connexion ici, sans renouvellement automatique. Connectez-vous avec le même compte, c'est appliqué automatiquement.",
@@ -421,7 +419,7 @@ const es: Copy = {
   back: "Aplicaciones instaladas",
   title: "Desinstala gratis. Limpia a fondo con Pro.",
   intro:
-    "Las desinstalaciones individuales son gratuitas y lo seguirán siendo. Pro se encarga de lo que viene después: los restos, varios programas a la vez y las entradas cuyo desinstalador ya no existe.",
+    "Las desinstalaciones individuales siguen siendo gratis. Pro limpia todo lo que viene después.",
   accountTitle: "Tu cuenta",
   signedOut: "No has iniciado sesión",
   signedOutBody:
@@ -508,7 +506,7 @@ const es: Copy = {
     "Oferta de Halloween: el descuento solo cubre el primer año; las renovaciones se cobran al precio habitual. Si inicias el pago en los últimos 30 minutos de la oferta, aún tienes 30 minutos para completarlo al precio de la oferta.",
   cancelQ: "¿Cómo cancelo?",
   cancelA:
-    "Elige Gestionar suscripción en esta página: se abre en tu navegador el portal de facturación de Stripe, donde puedes cancelar, cambiar la tarjeta o descargar facturas. Cuando Pro termina, todo lo de Free sigue funcionando.",
+    "Abre el menú de la cuenta y elige Gestionar suscripción: ahí ves tu plan y puedes cancelarlo, y conservas Pro hasta el final del periodo ya pagado. El método de pago y las facturas se abren en el portal de facturación de Stripe. Cuando Pro termina, todo lo de Free sigue funcionando.",
   lifetimeQ: "Tengo PC Tweaker Lifetime. ¿Incluye Pro?",
   lifetimeA:
     "Sí: 12 meses de Uninstaller Pro desde tu primer inicio de sesión aquí, sin renovación automática. Inicia sesión con la misma cuenta y se aplica automáticamente.",
@@ -532,8 +530,7 @@ const de: Copy = {
   nav: "Tarife und Preise",
   back: "Installierte Apps",
   title: "Kostenlos deinstallieren. Mit Pro gründlich aufräumen.",
-  intro:
-    "Einzelne Deinstallationen sind kostenlos und bleiben es. Pro übernimmt, was danach kommt: Reste, mehrere Programme auf einmal und Einträge, deren Deinstallationsprogramm fehlt.",
+  intro: "Einzelne Deinstallationen bleiben kostenlos. Pro räumt alles auf, was danach kommt.",
   accountTitle: "Ihr Konto",
   signedOut: "Sie sind nicht angemeldet",
   signedOutBody:
@@ -622,7 +619,7 @@ const de: Copy = {
     "Halloween-Angebot: Der Rabatt gilt nur für das erste Jahr; Verlängerungen erfolgen zum regulären Preis. Wenn Sie den Checkout in den letzten 30 Minuten des Angebots öffnen, haben Sie noch 30 Minuten Zeit, ihn zum Angebotspreis abzuschließen.",
   cancelQ: "Wie kündige ich?",
   cancelA:
-    "Wählen Sie auf dieser Seite „Abo verwalten“: Das Abrechnungsportal von Stripe öffnet sich in Ihrem Browser. Dort können Sie kündigen, die Karte ändern oder Rechnungen herunterladen. Wenn Pro endet, funktioniert alles aus Free weiter.",
+    "Öffnen Sie das Kontomenü und wählen Sie „Abo verwalten“. Dort sehen Sie Ihren Tarif und können kündigen; Pro bleibt bis zum Ende des bezahlten Zeitraums aktiv. Zahlungsmethode und Rechnungen öffnen sich im Abrechnungsportal von Stripe. Wenn Pro endet, funktioniert alles aus Free weiter.",
   lifetimeQ: "Ich habe PC Tweaker Lifetime. Ist Pro enthalten?",
   lifetimeA:
     "Ja: 12 Monate Uninstaller Pro ab der ersten Anmeldung hier, ohne automatische Verlängerung. Melden Sie sich mit demselben Konto an, dann wird es automatisch angewendet.",
@@ -646,8 +643,7 @@ const pt: Copy = {
   nav: "Planos e preços",
   back: "Aplicações instaladas",
   title: "Desinstale grátis. Faça a limpeza com o Pro.",
-  intro:
-    "As desinstalações individuais são gratuitas e vão continuar a sê-lo. O Pro trata do que vem depois: resíduos, vários programas de uma vez e entradas cujo desinstalador já não existe.",
+  intro: "As desinstalações individuais continuam gratuitas. O Pro limpa tudo o que vem depois.",
   accountTitle: "A sua conta",
   signedOut: "Não tem sessão iniciada",
   signedOutBody:
@@ -734,7 +730,7 @@ const pt: Copy = {
     "Oferta de Halloween: o desconto aplica-se apenas ao primeiro ano; as renovações são feitas ao preço normal. Se iniciar o pagamento nos últimos 30 minutos da oferta, ainda tem 30 minutos para o concluir ao preço da oferta.",
   cancelQ: "Como cancelo?",
   cancelA:
-    "Escolha Gerir subscrição nesta página: abre-se no navegador o portal de faturação da Stripe, onde pode cancelar, alterar o cartão ou transferir faturas. Quando o Pro termina, tudo o que o Free inclui continua a funcionar.",
+    "Abra o menu da conta e escolha Gerir subscrição: aí vê o seu plano e pode cancelá-lo, mantendo o Pro até ao fim do período já pago. O método de pagamento e as faturas abrem-se no portal de faturação da Stripe. Quando o Pro termina, tudo o que o Free inclui continua a funcionar.",
   lifetimeQ: "Tenho o PC Tweaker Lifetime. O Pro está incluído?",
   lifetimeA:
     "Sim: 12 meses de Uninstaller Pro a partir do primeiro acesso aqui, sem renovação automática. Inicie sessão com a mesma conta e é aplicado automaticamente.",

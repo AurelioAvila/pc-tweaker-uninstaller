@@ -22,7 +22,13 @@ export type IconName =
   | "package"
   | "gem"
   | "crown"
-  | "arrowLeft";
+  | "arrowLeft"
+  | "tag"
+  | "lifebuoy"
+  | "card"
+  | "external"
+  | "copy"
+  | "folder";
 const paths: Record<IconName, string> = {
   trash: "M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7",
   inspect: "M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14Zm5 12 6 6M7 10h6M10 7v6",
@@ -49,6 +55,15 @@ const paths: Record<IconName, string> = {
   gem: "M6 4h12l4 5-10 11L2 9l4-5ZM2 9h20M9.5 4 8 9l4 11 4-11-1.5-5",
   crown: "m3 7 4.5 4.5L12 5l4.5 6.5L21 7l-2 11H5L3 7Z",
   arrowLeft: "M19 12H5m6-6-6 6 6 6",
+  // Plans & pricing, the same price tag in every app of the family.
+  tag: "M3 4.5v6.4a1.5 1.5 0 0 0 .44 1.06l8.6 8.6a1.5 1.5 0 0 0 2.12 0l6.4-6.4a1.5 1.5 0 0 0 0-2.12l-8.6-8.6A1.5 1.5 0 0 0 10.9 3H4.5A1.5 1.5 0 0 0 3 4.5ZM7.5 7.5h.01",
+  lifebuoy:
+    "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM5.6 5.6l3.6 3.6M14.8 14.8l3.6 3.6M18.4 5.6l-3.6 3.6M9.2 14.8l-3.6 3.6",
+  card: "M3 6.5A1.5 1.5 0 0 1 4.5 5h15A1.5 1.5 0 0 1 21 6.5v11a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5ZM3 10h18M7 15h4",
+  external: "M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5",
+  copy: "M9 9h11v11H9zM5 15H4V4h11v1",
+  folder:
+    "M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.5h8.5A1.5 1.5 0 0 1 21 9v8.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5Z",
 };
 export function UiIcon({ name, className = "" }: { name: IconName; className?: string }) {
   return (

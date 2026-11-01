@@ -2,10 +2,9 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { startBillingPortal, type AccountState, type UninstallerEntitlement } from "./account";
 import { text, type Locale } from "./i18n";
-import { HalloweenOfferBanner } from "./halloween-offer";
 import { plansCopy } from "./plans-copy";
 import { LOYALTY_CENTS, money as formatMoney, planBadges, proPrice } from "./plans-price";
-import { promoPercent } from "./promo";
+import { promoClock, promoPercent } from "./promo";
 import { UiIcon } from "./ui-icon";
 import { usePromo } from "./use-promo";
 import { fill, trialCopy } from "./trial-copy";
@@ -31,6 +30,7 @@ export function PlansPage({
   checkout,
   onBack,
   onOpenAccount,
+  onManageSubscription,
   onRefreshAccount,
   onOpenPrivacy,
   billing = null,
@@ -46,6 +46,8 @@ export function PlansPage({
   checkout: CheckoutControls;
   onBack: () => void;
   onOpenAccount: (mode: "signIn" | "register") => void;
+  /** The account menu's Manage subscription panel. */
+  onManageSubscription: () => void;
   onRefreshAccount: () => void;
   onOpenPrivacy: () => void;
 }) {
@@ -124,25 +126,30 @@ export function PlansPage({
       });
   };
 
+  // The trial's terms sit under the cards in small print (owner, 1/11/2026),
+  // so the cards stay one screen tall; the buttons still point at them.
+  const trialFine =
+    proActive || (signedIn && paymentFailed)
+      ? null
+      : trialLine
+        ? `${trialLine} ${subscribeNote}`
+        : signedIn && spent
+          ? t.used
+          : null;
+
   let proAction: ReactNode;
   if (bonus) {
     proAction = <p className="plans-status">{copy.bonusStatus}</p>;
   } else if (proActive) {
     // Secondary on the plan you already have: nothing here is a purchase.
-    proAction =
-      signedIn && account.hasBilling ? (
-        <button
-          type="button"
-          className="button-ghost plans-cta"
-          disabled={portal === "busy"}
-          aria-busy={portal === "busy"}
-          onClick={manage}
-        >
-          {copy.manage}
-        </button>
-      ) : (
-        <p className="plans-status">{copy.proActiveStatus}</p>
-      );
+    // The same in-app panel as the account menu (status, cancel, resume).
+    proAction = signedIn ? (
+      <button type="button" className="button-ghost plans-cta" onClick={onManageSubscription}>
+        {copy.manage}
+      </button>
+    ) : (
+      <p className="plans-status">{copy.proActiveStatus}</p>
+    );
   } else if (signedIn && paymentFailed) {
     proAction = (
       <>
@@ -186,11 +193,6 @@ export function PlansPage({
             {t.subscribeNow}
           </button>
         )}
-        {trialLine && (
-          <p className="plans-hint plans-trial-line" id="plans-trial-line">
-            {trialLine} {subscribeNote}
-          </p>
-        )}
         {account.status === "anonymous" && <p className="plans-hint">{copy.signInFirst}</p>}
       </>
     );
@@ -221,11 +223,6 @@ export function PlansPage({
             {t.subscribeNow}
           </button>
         )}
-        {(trialLine ?? spent) && (
-          <p className="plans-hint plans-trial-line" id="plans-trial-line">
-            {trialLine ? `${trialLine} ${subscribeNote}` : t.used}
-          </p>
-        )}
         {!account.emailVerified && <p className="plans-hint">{copy.unverified}</p>}
       </>
     );
@@ -244,20 +241,168 @@ export function PlansPage({
       </span>
     );
 
+  // The offer as one slim line right above the cards (owner, 1/11/2026):
+  // name, discount, deadline and a small countdown, never a tall banner.
+  const clock = promoClock(shownOffer !== null ? promo.remaining : 0);
+  const unit = (value: string, name: "day" | "hour" | "minute") =>
+    new Intl.NumberFormat(locale, { style: "unit", unit: name, unitDisplay: "narrow" }).format(
+      Number(value),
+    );
+  const countdown = `${unit(clock[0], "day")} ${unit(clock[1], "hour")} ${unit(clock[2], "minute")}`;
+  const promoDeadline = promoEnd
+    ? new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(
+        new Date(Date.parse(promoEnd) - 60_000),
+      )
+    : "";
+
   return (
     <section className="plans-page" aria-labelledby="plans-title">
       <div className="plans-inner">
-        <button type="button" className="button-ghost small plans-back" onClick={onBack}>
-          <UiIcon name="arrowLeft" />
-          {copy.back}
-        </button>
         <header className="plans-heading">
-          <p className="plans-eyebrow">{copy.nav}</p>
-          <h2 id="plans-title" ref={heading} tabIndex={-1}>
-            {copy.title}
-          </h2>
-          <p>{copy.intro}</p>
+          <div>
+            <h2 id="plans-title" ref={heading} tabIndex={-1}>
+              {copy.title}
+            </h2>
+            <p>{copy.intro}</p>
+          </div>
+          <button type="button" className="button-ghost small plans-back" onClick={onBack}>
+            <UiIcon name="arrowLeft" />
+            {copy.back}
+          </button>
         </header>
+
+        {(shownOffer !== null || reservePromo) && (
+          <p
+            className={`plans-promo${shownOffer === null ? " plans-promo-reserved" : ""}`}
+            aria-hidden={shownOffer === null || undefined}
+          >
+            <strong className="plans-promo-name">{copy.promoTitle}</strong>
+            {shownOffer !== null && (
+              <span className="plans-promo-off">−{promoPercent(shownOffer)}%</span>
+            )}
+            {promo.preview && <span className="plans-preview">{copy.preview}</span>}
+            <span className="plans-promo-ends">
+              {copy.ends}
+              {lang === "fr" ? " : " : ": "}
+              <time dateTime={promoEnd}>{promoDeadline}</time>
+            </span>
+            <span className="plans-promo-clock" role="timer" aria-live="off">
+              {copy.endsIn} {countdown}
+            </span>
+          </p>
+        )}
+
+        <div className="plans-cards">
+          <article className="plans-card" aria-labelledby="plans-free-name">
+            <div className="plans-card-name">
+              <h3 id="plans-free-name">{copy.freeName}</h3>
+              <span className="plans-current">
+                {planBadges(proActive).free === "current" ? copy.current : copy.includedInPro}
+              </span>
+            </div>
+            <p className="plans-tagline">{copy.freeTagline}</p>
+            <div className="plans-price">
+              <strong>{money(0)}</strong>
+            </div>
+            <p className="plans-price-note">{copy.freeNote}</p>
+            <div className="plans-card-action">
+              <p className="plans-status">{proActive ? copy.includedInPro : copy.onFree}</p>
+            </div>
+            <ul className="plans-highlights">
+              {copy.freeHighlights.map((line) => (
+                <li key={line}>
+                  <UiIcon name="check" />
+                  {line}
+                </li>
+              ))}
+            </ul>
+          </article>
+
+          <article
+            className="plans-card plans-card-pro"
+            aria-labelledby="plans-pro-name"
+            aria-describedby={proActive ? undefined : "plans-badge"}
+          >
+            {/* Once Pro is the current plan, "Current plan" says it; a
+                recommendation for what you already have is noise. */}
+            {!proActive && (
+              <span className="plans-ribbon" id="plans-badge">
+                {copy.recommended}
+              </span>
+            )}
+            <div className="plans-card-name">
+              <h3 id="plans-pro-name">
+                <UiIcon name="crown" />
+                {copy.proName}
+              </h3>
+              {planBadges(proActive).pro && <span className="plans-current">{copy.current}</span>}
+            </div>
+            <p className="plans-tagline">{copy.proTagline}</p>
+            <div className="plans-price">
+              {shownOffer !== null && (
+                <s className="plans-was">
+                  <span className="sr-only">{copy.was} </span>
+                  {money(shownOffer.reference)}
+                </s>
+              )}
+              <strong>
+                {shownOffer !== null && <span className="sr-only">{copy.now} </span>}
+                {money(price)}
+              </strong>
+              <span className="plans-period">{copy.perYear}</span>
+              {shownOffer !== null && (
+                <span className="plans-discount">−{promoPercent(shownOffer)}%</span>
+              )}
+            </div>
+            <p className="plans-price-note">
+              {loyalty
+                ? copy.loyaltyPrice
+                : shownOffer !== null
+                  ? copy.firstYear(money(shownOffer.regular))
+                  : copy.regularNote}
+            </p>
+            <div className="plans-card-action">
+              {proAction}
+              {signedIn && !proActive && checkout.started && (
+                <>
+                  <p className="plans-hint" role="status">
+                    {copy.checkoutOpened}
+                  </p>
+                  <button type="button" className="button-ghost small" onClick={checkout.refresh}>
+                    {copy.checkoutDone}
+                  </button>
+                </>
+              )}
+              {signedIn && !proActive && checkout.failed && (
+                <p className="plans-hint plans-error" role="alert">
+                  {copy.checkoutError}
+                </p>
+              )}
+              {portal === "error" && (
+                <p className="plans-hint plans-error" role="alert">
+                  {copy.portalError}
+                </p>
+              )}
+            </div>
+            <ul className="plans-highlights">
+              {copy.proHighlights.map((line) => (
+                <li key={line}>
+                  <UiIcon name="check" />
+                  {line}
+                </li>
+              ))}
+            </ul>
+          </article>
+        </div>
+        {trialFine && (
+          <p className="plans-checkout-note plans-trial-line" id="plans-trial-line">
+            {trialFine}
+          </p>
+        )}
+        <p className="plans-checkout-note">
+          {copy.checkoutNote}
+          {shownOffer !== null && ` ${copy.promoReference}`}
+        </p>
 
         <section className="plans-account" aria-labelledby="plans-account-title">
           <span className="plans-account-icon" aria-hidden="true">
@@ -351,151 +496,6 @@ export function PlansPage({
             )}
           </div>
         </section>
-
-        {(shownOffer !== null || reservePromo) && (
-          <HalloweenOfferBanner
-            kicker={copy.promoTitle}
-            badge={promo.preview && <span className="plans-preview">{copy.preview}</span>}
-            heading={
-              <>
-                {copy.ends}:{" "}
-                <time dateTime={promoEnd}>
-                  {promoEnd
-                    ? new Intl.DateTimeFormat(locale, {
-                        dateStyle: "long",
-                        timeStyle: "short",
-                      }).format(new Date(Date.parse(promoEnd) - 60_000))
-                    : ""}
-                </time>
-              </>
-            }
-            fine={copy.promoReference}
-            endsIn={copy.endsIn}
-            units={copy.units}
-            remaining={shownOffer !== null ? promo.remaining : 0}
-            reserved={shownOffer === null}
-            headingId="plans-promo-title"
-            headingLevel={3}
-          />
-        )}
-
-        <div className="plans-cards">
-          <article className="plans-card" aria-labelledby="plans-free-name">
-            <div className="plans-card-name">
-              <h3 id="plans-free-name">{copy.freeName}</h3>
-              <span className="plans-current">
-                {planBadges(proActive).free === "current" ? copy.current : copy.includedInPro}
-              </span>
-            </div>
-            <p className="plans-tagline">{copy.freeTagline}</p>
-            <div className="plans-price">
-              <strong>{money(0)}</strong>
-            </div>
-            <p className="plans-price-note">{copy.freeNote}</p>
-            <div className="plans-card-action">
-              <p className="plans-status">{proActive ? copy.includedInPro : copy.onFree}</p>
-            </div>
-            <ul className="plans-highlights">
-              {copy.freeHighlights.map((line) => (
-                <li key={line}>
-                  <UiIcon name="check" />
-                  {line}
-                </li>
-              ))}
-            </ul>
-          </article>
-
-          <article
-            className="plans-card plans-card-pro"
-            aria-labelledby="plans-pro-name"
-            aria-describedby={proActive ? undefined : "plans-badge"}
-          >
-            {/* Once Pro is the current plan, "Current plan" says it; a
-                recommendation for what you already have is noise. */}
-            {!proActive && (
-              <span className="plans-ribbon" id="plans-badge">
-                {copy.recommended}
-              </span>
-            )}
-            <div className="plans-card-name">
-              <h3 id="plans-pro-name">
-                <UiIcon name="crown" />
-                {copy.proName}
-              </h3>
-              {planBadges(proActive).pro && <span className="plans-current">{copy.current}</span>}
-            </div>
-            <p className="plans-tagline">{copy.proTagline}</p>
-            <div className="plans-price">
-              {shownOffer !== null && (
-                <s className="plans-was">
-                  <span className="sr-only">{copy.was} </span>
-                  {money(shownOffer.reference)}
-                </s>
-              )}
-              <strong>
-                {shownOffer !== null && <span className="sr-only">{copy.now} </span>}
-                {money(price)}
-              </strong>
-              <span className="plans-period">{copy.perYear}</span>
-              {shownOffer !== null && (
-                <span className="plans-discount">−{promoPercent(shownOffer)}%</span>
-              )}
-            </div>
-            <p className="plans-price-note">
-              {/* The offer and its deadline right under the price, not only in
-                  the banner above. In the note row so both cards keep the same
-                  rows. Only ever from the live promo, never invented. */}
-              {shownOffer !== null && promoEnd && (
-                <span className="plans-promo-line">
-                  <strong>{copy.promoTitle}</strong> · {copy.ends}:{" "}
-                  <time dateTime={promoEnd}>
-                    {new Intl.DateTimeFormat(locale, {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    }).format(new Date(Date.parse(promoEnd) - 60_000))}
-                  </time>
-                </span>
-              )}
-              {loyalty
-                ? copy.loyaltyPrice
-                : shownOffer !== null
-                  ? copy.firstYear(money(shownOffer.regular))
-                  : copy.regularNote}
-            </p>
-            <div className="plans-card-action">
-              {proAction}
-              {signedIn && !proActive && checkout.started && (
-                <>
-                  <p className="plans-hint" role="status">
-                    {copy.checkoutOpened}
-                  </p>
-                  <button type="button" className="button-ghost small" onClick={checkout.refresh}>
-                    {copy.checkoutDone}
-                  </button>
-                </>
-              )}
-              {signedIn && !proActive && checkout.failed && (
-                <p className="plans-hint plans-error" role="alert">
-                  {copy.checkoutError}
-                </p>
-              )}
-              {portal === "error" && (
-                <p className="plans-hint plans-error" role="alert">
-                  {copy.portalError}
-                </p>
-              )}
-            </div>
-            <ul className="plans-highlights">
-              {copy.proHighlights.map((line) => (
-                <li key={line}>
-                  <UiIcon name="check" />
-                  {line}
-                </li>
-              ))}
-            </ul>
-          </article>
-        </div>
-        <p className="plans-checkout-note">{copy.checkoutNote}</p>
 
         <section className="plans-section" aria-labelledby="plans-compare-title">
           <h3 id="plans-compare-title">{copy.compareTitle}</h3>

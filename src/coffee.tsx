@@ -18,15 +18,25 @@ const MAX_COFFEES = 10;
  * A native <details>, like its sibling rows: closed, its body is not rendered,
  * so no hidden control can be reached by Tab or take a stray click.
  */
-export function CoffeeRow({ copy }: { copy: (typeof workspaceCopy)["en"]["coffee"] }) {
+export function CoffeeRow({
+  copy,
+  locale,
+  cryptoUsd = null,
+}: {
+  copy: (typeof workspaceCopy)["en"]["coffee"];
+  /** BCP 47, for the dollar amount. */
+  locale: string;
+  /** One coffee in US cents while crypto is on, else null (no crypto choice). */
+  cryptoUsd?: number | null;
+}) {
   const [count, setCount] = useState(1);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
 
-  const tip = () => {
+  const tip = (crypto = false) => {
     setBusy(true);
     setFailed(false);
-    startTip(count)
+    startTip(count, crypto)
       .then((url) => invoke("open_checkout_url", { url }))
       .catch(() => {
         setFailed(true);
@@ -82,10 +92,31 @@ export function CoffeeRow({ copy }: { copy: (typeof workspaceCopy)["en"]["coffee
           className="button-ghost small full coffee-cta"
           disabled={busy}
           aria-busy={busy}
-          onClick={tip}
+          onClick={() => {
+            tip();
+          }}
         >
           {copy.cta}
         </button>
+        {cryptoUsd ? (
+          <button
+            type="button"
+            className="coffee-crypto"
+            disabled={busy}
+            onClick={() => {
+              tip(true);
+            }}
+          >
+            {copy.crypto.replace(
+              "{price}",
+              new Intl.NumberFormat(locale, {
+                style: "currency",
+                currency: "USD",
+                currencyDisplay: "narrowSymbol",
+              }).format((count * cryptoUsd) / 100),
+            )}
+          </button>
+        ) : null}
         {failed && (
           <p className="menu-hint" role="alert">
             {copy.error}

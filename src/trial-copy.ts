@@ -37,10 +37,9 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     subscribeNow: "Subscribe now",
     subscribe: "Subscribe",
     subscribeNowNote: "Or subscribe now: {price} charged today, no trial.",
-    thenYear:
-      "Then {price} a year, first charge on {date}. Cancel anytime from the billing portal.",
+    thenYear: "Then {price} a year, first charge on {date}. Cancel anytime in Manage subscription.",
     thenYearPromo:
-      "Then {price} for the first year, charged on {date}, and {regular} a year after that. Cancel anytime from the billing portal.",
+      "Then {price} for the first year, charged on {date}, and {regular} a year after that. Cancel anytime in Manage subscription.",
     used: "This account has already used its free trial. The plan starts as a paid subscription straight away.",
     trial: "Free trial",
     leftDays: "{days} d {hours} h left",
@@ -70,9 +69,9 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     subscribe: "Abbonati",
     subscribeNowNote: "Oppure abbonati subito: {price} addebitati oggi, senza prova.",
     thenYear:
-      "Poi {price} ogni anno, primo addebito il {date}. Disdici quando vuoi dal portale di fatturazione.",
+      "Poi {price} ogni anno, primo addebito il {date}. Disdici quando vuoi da Gestisci abbonamento.",
     thenYearPromo:
-      "Poi {price} il primo anno, addebitati il {date}, e {regular} all'anno in seguito. Disdici quando vuoi dal portale di fatturazione.",
+      "Poi {price} il primo anno, addebitati il {date}, e {regular} all'anno in seguito. Disdici quando vuoi da Gestisci abbonamento.",
     used: "Questo account ha già usato la sua prova gratuita. Il piano parte subito come abbonamento a pagamento.",
     trial: "Prova gratuita",
     leftDays: "Mancano {days} g {hours} h",
@@ -102,9 +101,9 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     subscribe: "S'abonner",
     subscribeNowNote: "Ou abonnez-vous maintenant : {price} prélevés aujourd'hui, sans essai.",
     thenYear:
-      "Ensuite {price} par an, premier prélèvement le {date}. Résiliable à tout moment depuis le portail de facturation.",
+      "Ensuite {price} par an, premier prélèvement le {date}. Résiliable à tout moment depuis Gérer l'abonnement.",
     thenYearPromo:
-      "Ensuite {price} la première année, prélevés le {date}, puis {regular} par an. Résiliable à tout moment depuis le portail de facturation.",
+      "Ensuite {price} la première année, prélevés le {date}, puis {regular} par an. Résiliable à tout moment depuis Gérer l'abonnement.",
     used: "Ce compte a déjà utilisé son essai gratuit. L'offre démarre directement en abonnement payant.",
     trial: "Essai gratuit",
     leftDays: "Encore {days} j {hours} h",
@@ -134,9 +133,9 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     subscribe: "Suscribirse",
     subscribeNowNote: "O suscríbete ahora: {price} con cargo hoy, sin prueba.",
     thenYear:
-      "Después, {price} al año, con el primer cargo el {date}. Cancela cuando quieras desde el portal de facturación.",
+      "Después, {price} al año, con el primer cargo el {date}. Cancela cuando quieras desde Gestionar suscripción.",
     thenYearPromo:
-      "Después, {price} el primer año, con cargo el {date}, y {regular} al año a partir de entonces. Cancela cuando quieras desde el portal de facturación.",
+      "Después, {price} el primer año, con cargo el {date}, y {regular} al año a partir de entonces. Cancela cuando quieras desde Gestionar suscripción.",
     used: "Esta cuenta ya ha usado su prueba gratuita. El plan empieza directamente como suscripción de pago.",
     trial: "Prueba gratuita",
     leftDays: "Quedan {days} d {hours} h",
@@ -166,9 +165,9 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     subscribe: "Abonnieren",
     subscribeNowNote: "Oder jetzt abonnieren: {price} werden heute abgebucht, ohne Testphase.",
     thenYear:
-      "Danach {price} pro Jahr, erste Abbuchung am {date}. Jederzeit im Abrechnungsportal kündbar.",
+      "Danach {price} pro Jahr, erste Abbuchung am {date}. Jederzeit unter „Abo verwalten“ kündbar.",
     thenYearPromo:
-      "Danach {price} für das erste Jahr, abgebucht am {date}, anschließend {regular} pro Jahr. Jederzeit im Abrechnungsportal kündbar.",
+      "Danach {price} für das erste Jahr, abgebucht am {date}, anschließend {regular} pro Jahr. Jederzeit unter „Abo verwalten“ kündbar.",
     used: "Dieses Konto hat seine kostenlose Testphase bereits genutzt. Der Tarif startet sofort als kostenpflichtiges Abonnement.",
     trial: "Kostenlose Testphase",
     leftDays: "Noch {days} T. {hours} Std.",
@@ -198,9 +197,9 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     subscribe: "Subscrever",
     subscribeNowNote: "Ou subscreva agora: {price} cobrados hoje, sem avaliação gratuita.",
     thenYear:
-      "Depois, {price} por ano, com a primeira cobrança a {date}. Pode cancelar quando quiser no portal de faturação.",
+      "Depois, {price} por ano, com a primeira cobrança a {date}. Pode cancelar quando quiser em Gerir subscrição.",
     thenYearPromo:
-      "Depois, {price} no primeiro ano, cobrados a {date}, e {regular} por ano a seguir. Pode cancelar quando quiser no portal de faturação.",
+      "Depois, {price} no primeiro ano, cobrados a {date}, e {regular} por ano a seguir. Pode cancelar quando quiser em Gerir subscrição.",
     used: "Esta conta já utilizou a sua avaliação gratuita. O plano começa de imediato como subscrição paga.",
     trial: "Avaliação gratuita",
     leftDays: "Faltam {days} d {hours} h",

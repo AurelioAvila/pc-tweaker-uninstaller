@@ -10,7 +10,7 @@ import ts from 'typescript';
 // dashes and "Sie", Italian accents, no "illustrative") hold everywhere.
 globalThis.localStorage = { getItem: () => null, setItem: () => {} };
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pcu-i18n-'));
-for (const name of ['i18n', 'plans-copy', 'trial-copy', 'workspace-copy', 'inventory-copy', 'backend-copy']) {
+for (const name of ['i18n', 'plans-copy', 'trial-copy', 'workspace-copy', 'inventory-copy', 'backend-copy', 'account-copy']) {
   const source = fs.readFileSync(new URL(`../src/${name}.ts`, import.meta.url), 'utf8');
   let js = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } }).outputText;
   js = js.replace(/from "\.\/([\w-]+)"/g, 'from "./$1.mjs"');
@@ -24,6 +24,7 @@ const tables = {
   trial: (await load('trial-copy')).trialCopy,
   workspace: (await load('workspace-copy')).workspaceCopy,
   inventory: (await load('inventory-copy')).inventoryCopy,
+  account: (await load('account-copy')).accountCopy,
 };
 const LANGS = ['en', 'it', 'fr', 'es', 'de', 'pt'];
 

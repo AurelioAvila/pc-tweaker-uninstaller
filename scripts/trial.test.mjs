@@ -76,3 +76,13 @@ test("every trial string exists in every language with the same placeholders", a
   assert.deepEqual(Object.keys(trialCopy).sort(), ["de", "en", "es", "fr", "it", "pt"]);
   assert.doesNotMatch(JSON.stringify(trialCopy.pt), /\b(arquivo|usuário|tela|baixar)\b/i, "pt-PT, not pt-BR");
 });
+
+test("the crypto coffee shows only while the server switches it on, with a real price", () => {
+  const list = (crypto) => parsePriceList({ trial_enabled: true, trial_days: 3, prices: [], crypto });
+  assert.equal(list({ available: false }).crypto, null);
+  assert.equal(list(undefined).crypto, null);
+  assert.equal(list({ available: true }).crypto, null);
+  assert.equal(list({ available: true, coffee: { usd: "1.22" } }).crypto, null);
+  assert.equal(list({ available: true, coffee: { usd: 0 } }).crypto, null);
+  assert.deepEqual(list({ available: true, country: "IT", coffee: { usd: 142 } }).crypto, { coffeeUsd: 142 });
+});

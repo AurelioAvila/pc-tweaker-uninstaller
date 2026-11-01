@@ -9,10 +9,10 @@
     "windows": [
       {
         "title": "PC Tweaker Uninstaller · Development",
-        "width": 1120,
-        "height": 800,
-        "minWidth": 940,
-        "minHeight": 560
+        "width": 1000,
+        "height": 700,
+        "minWidth": 820,
+        "minHeight": 600
       }
     ]
   }

@@ -9,6 +9,8 @@
  */
 
 import { invoke } from "@tauri-apps/api/core";
+// Types only: this module stays import-free at run time for its tests.
+import type { FamilyProduct, SubscriptionErrorKey } from "./subscription";
 /** The same address PC Tweaker uses (and account_probe.rs checks): a filter
  *  that blocks the shared hosting domain behind it does not block this one. */
 export const API_BASE_URL: string =
@@ -503,13 +505,19 @@ export async function startUninstallerCheckout(startTrial?: boolean): Promise<st
  *  No account: it unlocks nothing, so there is nothing to sign in for. The
  *  backend clamps the quantity and picks the price; returns the Stripe
  *  Checkout URL to open in the system browser. */
-export async function startTip(quantity: number): Promise<string> {
+export async function startTip(quantity: number, crypto = false): Promise<string> {
   const res = await fetch(
     `${API_BASE_URL}/api/tip`,
     timed({
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ quantity, product: "uninstaller" }),
+      // method "crypto": the same coffees paid in USDC (only offered while
+      // the price list says crypto is available).
+      body: JSON.stringify(
+        crypto
+          ? { quantity, product: "uninstaller", method: "crypto" }
+          : { quantity, product: "uninstaller" },
+      ),
     }),
   );
   const body = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
@@ -530,4 +538,49 @@ export async function startBillingPortal(): Promise<string> {
   const body = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
   if (!res.ok || !body.url) throw new Error(body.error || `HTTP ${String(res.status)}`);
   return body.url;
+}
+
+/** A failed Manage subscription request, with the panel's reason. */
+export class SubscriptionRequestError extends Error {
+  constructor(readonly key: SubscriptionErrorKey) {
+    super(key);
+  }
+}
+
+/** The account's subscription for one family product, as sent (parsed by
+ *  subscription.ts), and the two changes the panel can make: cancel at the
+ *  end of the paid period, or undo that. The server only ever touches the
+ *  signed-in account's own subscription. */
+export async function subscriptionRequest(
+  product: FamilyProduct,
+  change?: "cancel" | "resume",
+): Promise<unknown> {
+  const token = readToken();
+  if (!token || !API_BASE_URL) throw new SubscriptionRequestError("auth");
+  let res: Response;
+  try {
+    res = await fetch(
+      change
+        ? `${API_BASE_URL}/api/billing/subscription/${change}`
+        : `${API_BASE_URL}/api/billing/subscription?product=${product}`,
+      timed(
+        change
+          ? {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ product }),
+            }
+          : { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
+      ),
+    );
+  } catch {
+    throw new SubscriptionRequestError(navigator.onLine ? "billing" : "offline");
+  }
+  if (!res.ok) {
+    throw new SubscriptionRequestError(
+      res.status === 401 ? "auth" : res.status === 429 ? "rate" : "billing",
+    );
+  }
+  adoptRenewedToken(res);
+  return (await res.json().catch(() => null)) as unknown;
 }

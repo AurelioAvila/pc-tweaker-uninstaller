@@ -14,6 +14,7 @@ const steps = [
   ["Inventory sorting and date regression tests", "node --test scripts/inventory.test.mjs"],
   ["Plans page price regression tests", "node --test scripts/plans-price.test.mjs"],
   ["Free trial state and copy tests", "node --test scripts/trial.test.mjs"],
+  ["Manage subscription state tests", "node --test scripts/subscription.test.mjs"],
   ["Default language regression tests", "node --test scripts/i18n-default.test.mjs"],
   ["Translation table tests", "node --test scripts/i18n-tables.test.mjs"],
   ["Account request regression tests", "node --test scripts/account-registration.test.mjs"],
