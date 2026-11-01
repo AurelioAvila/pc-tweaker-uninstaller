@@ -1054,6 +1054,106 @@ details[open] > summary > .ui-icon:last-child {
   color: var(--fg);
   font-size: 14px;
 }
+/* Cancel, step 1: the optional reason. Neutral; the confirmation carries the weight. */
+.sub-step {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--fg-faint);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.sub-reasons {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.sub-reasons-hint {
+  margin: -8px 0 12px;
+  color: var(--fg-dim);
+  font-size: 12.5px;
+}
+.sub-reason-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 6px;
+}
+.sub-reason {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--bg-raised);
+  color: var(--fg);
+  font-size: 13px;
+  line-height: 1.3;
+  cursor: pointer;
+}
+.sub-reason:hover {
+  border-color: var(--fg-faint);
+}
+.sub-reason:has(input:checked) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-raised));
+}
+.sub-reason input {
+  flex-shrink: 0;
+  margin: 0;
+  accent-color: var(--accent);
+}
+.sub-reason:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.sub-comment {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  color: var(--fg-dim);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.sub-comment textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 56px;
+  padding: 9px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--bg-raised);
+  color: var(--fg);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
+  resize: vertical;
+}
+.sub-comment textarea::placeholder {
+  color: var(--fg-faint);
+}
+.sub-comment textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.sub-comment small {
+  justify-self: end;
+  color: var(--fg-faint);
+  font-size: 11px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.account-dialog .sub-push {
+  margin-right: auto;
+}
+.account-dialog .sub-skip,
+.account-dialog .sub-back {
+  border-color: transparent;
+}
 .support-list {
   display: grid;
   gap: 8px;

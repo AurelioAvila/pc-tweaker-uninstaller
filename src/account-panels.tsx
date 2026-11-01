@@ -4,11 +4,14 @@ import { SubscriptionRequestError, startBillingPortal, subscriptionRequest } fro
 import { accountCopy } from "./account-copy";
 import { text, type Locale } from "./i18n";
 import {
+  CANCEL_REASONS,
   cardBrand,
   parseSubscription,
   endsOn,
   formatAmount,
   subscriptionView,
+  type CancelFeedback,
+  type CancelReason,
   type FamilyProduct,
   type Subscription,
   type SubscriptionErrorKey,
@@ -78,8 +81,9 @@ function Dialog({
 async function subscription(
   product: FamilyProduct,
   change?: "cancel" | "resume",
+  feedback?: CancelFeedback,
 ): Promise<Subscription> {
-  const parsed = parseSubscription(await subscriptionRequest(product, change));
+  const parsed = parseSubscription(await subscriptionRequest(product, change, feedback));
   if (!parsed) throw new SubscriptionRequestError("billing");
   return parsed;
 }
@@ -118,7 +122,10 @@ export function SubscriptionDialog({
     iso ? new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(new Date(iso)) : "";
 
   const [load, setLoad] = useState<Load>({ phase: "loading" });
-  const [confirming, setConfirming] = useState(false);
+  // Cancelling is two steps: 1 = the optional reason, 2 = the confirmation.
+  const [confirming, setConfirming] = useState<0 | 1 | 2>(0);
+  const [reason, setReason] = useState<CancelReason | null>(null);
+  const [comment, setComment] = useState("");
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<SubscriptionErrorKey | null>(null);
   const [done, setDone] = useState<string | null>(null);
@@ -159,10 +166,14 @@ export function SubscriptionDialog({
     setBusy(true);
     setActionError(null);
     setDone(null);
-    subscription("uninstaller", kind)
+    const feedback =
+      kind === "cancel" && reason
+        ? { reason, ...(comment.trim() ? { comment: comment.trim() } : {}) }
+        : undefined;
+    subscription("uninstaller", kind, feedback)
       .then((mine) => {
         setLoad({ ...load, mine });
-        setConfirming(false);
+        setConfirming(0);
         setDone(
           kind === "cancel"
             ? fill(c.cancelled, { date: day(endingDate(mine)) })
@@ -251,7 +262,7 @@ export function SubscriptionDialog({
       onClose={onClose}
       onEscape={() => {
         if (!confirming) return false;
-        setConfirming(false);
+        setConfirming(0);
         return true;
       }}
     >
@@ -259,8 +270,11 @@ export function SubscriptionDialog({
         <>
           <div className="account-dialog-head">
             <div>
-              <h2 ref={title} tabIndex={-1}>
-                {confirming ? c.confirmTitle : c.manage}
+              {confirming > 0 && (
+                <span className="sub-step">{fill(c.step, { n: String(confirming) })}</span>
+              )}
+              <h2 ref={title} id="sub-dialog-title" tabIndex={-1}>
+                {confirming === 1 ? c.reasonTitle : confirming === 2 ? c.confirmTitle : c.manage}
               </h2>
               <p className="account-dialog-sub">{email}</p>
             </div>
@@ -420,7 +434,9 @@ export function SubscriptionDialog({
                     onClick={() => {
                       setDone(null);
                       setActionError(null);
-                      setConfirming(true);
+                      setReason(null);
+                      setComment("");
+                      setConfirming(1);
                     }}
                   >
                     {c.cancel}
@@ -431,7 +447,82 @@ export function SubscriptionDialog({
             </>
           )}
 
-          {mine && confirming && (
+          {mine && confirming === 1 && (
+            <fieldset
+              className="sub-reasons"
+              aria-labelledby="sub-dialog-title"
+              aria-describedby="sub-reasons-hint"
+            >
+              <p id="sub-reasons-hint" className="sub-reasons-hint">
+                {c.reasonHint}
+              </p>
+              <div className="sub-reason-list">
+                {CANCEL_REASONS.map((code, i) => (
+                  <label key={code} className="sub-reason">
+                    <input
+                      type="radio"
+                      name="sub-reason"
+                      value={code}
+                      checked={reason === code}
+                      autoFocus={i === 0}
+                      onChange={() => {
+                        setReason(code);
+                      }}
+                    />
+                    <span>{c.reasons[code]}</span>
+                  </label>
+                ))}
+              </div>
+              {reason && (
+                <label className="sub-comment">
+                  <span>{reason === "other" ? c.otherLabel : c.commentLabel}</span>
+                  <textarea
+                    rows={2}
+                    maxLength={500}
+                    value={comment}
+                    placeholder={c.commentPlaceholder}
+                    onChange={(e) => {
+                      setComment(e.target.value);
+                    }}
+                  />
+                  <small aria-hidden="true">{comment.length}/500</small>
+                </label>
+              )}
+              <div className="dialog-actions">
+                <button
+                  type="button"
+                  className="button-ghost sub-push"
+                  onClick={() => {
+                    setConfirming(0);
+                  }}
+                >
+                  {c.keep}
+                </button>
+                <button
+                  type="button"
+                  className="button-ghost sub-skip"
+                  onClick={() => {
+                    setReason(null);
+                    setComment("");
+                    setConfirming(2);
+                  }}
+                >
+                  {c.skip}
+                </button>
+                <button
+                  type="button"
+                  className="button"
+                  onClick={() => {
+                    setConfirming(2);
+                  }}
+                >
+                  {c.next}
+                </button>
+              </div>
+            </fieldset>
+          )}
+
+          {mine && confirming === 2 && (
             <div className="sub-confirm">
               <p className="dialog-body">{confirmText}</p>
               {actionError && (
@@ -442,11 +533,21 @@ export function SubscriptionDialog({
               <div className="dialog-actions">
                 <button
                   type="button"
+                  className="button-ghost sub-back sub-push"
+                  disabled={busy}
+                  onClick={() => {
+                    setConfirming(1);
+                  }}
+                >
+                  <span aria-hidden="true">←</span> {c.back}
+                </button>
+                <button
+                  type="button"
                   className="button-ghost"
                   autoFocus
                   disabled={busy}
                   onClick={() => {
-                    setConfirming(false);
+                    setConfirming(0);
                   }}
                 >
                   {c.keep}

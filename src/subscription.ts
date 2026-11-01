@@ -151,3 +151,19 @@ export function cardBrand(brand: string): string {
 
 /** Why a request failed, as a key of the panel's copy. */
 export type SubscriptionErrorKey = "offline" | "auth" | "rate" | "billing";
+
+/** Why a customer cancels: Stripe's own `cancellation_details.feedback`
+ *  codes, in the order the dialog lists them. Optional; "Skip" sends none. */
+export const CANCEL_REASONS = [
+  "too_expensive",
+  "unused",
+  "missing_features",
+  "switched_service",
+  "low_quality",
+  "too_complex",
+  "customer_service",
+  "other",
+] as const;
+export type CancelReason = (typeof CANCEL_REASONS)[number];
+/** The optional answer sent with a cancellation (the server caps the comment at 500). */
+export type CancelFeedback = { reason: CancelReason; comment?: string };

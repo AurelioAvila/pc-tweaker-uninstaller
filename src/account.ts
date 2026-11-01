@@ -10,7 +10,7 @@
 
 import { invoke } from "@tauri-apps/api/core";
 // Types only: this module stays import-free at run time for its tests.
-import type { FamilyProduct, SubscriptionErrorKey } from "./subscription";
+import type { CancelFeedback, FamilyProduct, SubscriptionErrorKey } from "./subscription";
 /** The same address PC Tweaker uses (and account_probe.rs checks): a filter
  *  that blocks the shared hosting domain behind it does not block this one. */
 export const API_BASE_URL: string =
@@ -554,6 +554,8 @@ export class SubscriptionRequestError extends Error {
 export async function subscriptionRequest(
   product: FamilyProduct,
   change?: "cancel" | "resume",
+  /** Cancel only: the optional reason and comment. */
+  feedback?: CancelFeedback,
 ): Promise<unknown> {
   const token = readToken();
   if (!token || !API_BASE_URL) throw new SubscriptionRequestError("auth");
@@ -568,7 +570,7 @@ export async function subscriptionRequest(
           ? {
               method: "POST",
               headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-              body: JSON.stringify({ product }),
+              body: JSON.stringify({ product, ...feedback }),
             }
           : { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
       ),
