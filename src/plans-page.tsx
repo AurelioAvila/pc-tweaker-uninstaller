@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { startBillingPortal, type AccountState, type UninstallerEntitlement } from "./account";
+import {
+  startBillingPortal,
+  subscriptionRequest,
+  type AccountState,
+  type UninstallerEntitlement,
+} from "./account";
+import { accountCopy } from "./account-copy";
+import { parseSubscription, subscriptionView, type Subscription } from "./subscription";
 import { text, type Locale } from "./i18n";
 import { plansCopy } from "./plans-copy";
 import { LOYALTY_CENTS, money as formatMoney, planBadges, proPrice } from "./plans-price";
@@ -103,6 +110,36 @@ export function PlansPage({
     ? fill(t.subscribeNowNote, { price: money(shownOffer ? shownOffer.price : trial.amount) })
     : "";
   const running = proActive && mine?.state === "trialing" && mine.trialEndsAt ? mine : null;
+  // A subscriber sees what they pay and when it renews, read from their own
+  // subscription (GET /api/billing/subscription), never the loyalty or offer
+  // price shown to someone choosing a plan. Display only.
+  const hasBilling = signedIn && account.hasBilling;
+  const [ownSub, setOwnSub] = useState<Subscription | null>(null);
+  useEffect(() => {
+    if (!proActive || !hasBilling) return;
+    let current = true;
+    subscriptionRequest("uninstaller")
+      .then((value) => {
+        if (current) setOwnSub(parseSubscription(value));
+      })
+      .catch(() => {});
+    return () => {
+      current = false;
+    };
+  }, [proActive, hasBilling]);
+  const own = proActive && ownSub?.amount != null && ownSub.interval !== null ? ownSub : null;
+  const ownView = own ? subscriptionView(own) : null;
+  const ac = accountCopy[lang];
+  const ownNote =
+    ownView?.kind === "renews" && ownView.on
+      ? fill(ac.renews, { date: day(ownView.on) })
+      : ownView?.kind === "trial" && ownView.until
+        ? fill(ac.trialUntil, { date: day(ownView.until) })
+        : ownView?.kind === "ending" && ownView.until
+          ? fill(own?.status === "trialing" ? ac.trialEnding : ac.endingBody, {
+              date: day(ownView.until),
+            })
+          : null;
   const left = running?.trialEndsAt
     ? trialLeft(running.trialEndsAt, billing?.trialDays ?? 3, now)
     : null;
@@ -347,19 +384,23 @@ export function PlansPage({
               )}
               <strong>
                 {shownOffer !== null && <span className="sr-only">{copy.now} </span>}
-                {money(price)}
+                {money(own?.amount ?? price)}
               </strong>
-              <span className="plans-period">{copy.perYear}</span>
+              <span className="plans-period">
+                {own?.interval === "month" ? ac.perMonth : copy.perYear}
+              </span>
               {shownOffer !== null && (
                 <span className="plans-discount">−{promoPercent(shownOffer)}%</span>
               )}
             </div>
             <p className="plans-price-note">
-              {loyalty
-                ? copy.loyaltyPrice
-                : shownOffer !== null
-                  ? copy.firstYear(money(shownOffer.regular))
-                  : copy.regularNote}
+              {ownNote
+                ? ownNote
+                : loyalty
+                  ? copy.loyaltyPrice
+                  : shownOffer !== null
+                    ? copy.firstYear(money(shownOffer.regular))
+                    : copy.regularNote}
             </p>
             <div className="plans-card-action">
               {proAction}

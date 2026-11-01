@@ -116,7 +116,7 @@ svg {
   height: 40px;
   border-radius: 12px;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #14061f;
+  color: var(--accent-ink);
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 15px;
