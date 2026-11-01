@@ -128,11 +128,12 @@ export function PlansPage({
   if (bonus) {
     proAction = <p className="plans-status">{copy.bonusStatus}</p>;
   } else if (proActive) {
+    // Secondary on the plan you already have: nothing here is a purchase.
     proAction =
       signedIn && account.hasBilling ? (
         <button
           type="button"
-          className="button plans-cta"
+          className="button-ghost plans-cta"
           disabled={portal === "busy"}
           aria-busy={portal === "busy"}
           onClick={manage}
@@ -407,11 +408,15 @@ export function PlansPage({
           <article
             className="plans-card plans-card-pro"
             aria-labelledby="plans-pro-name"
-            aria-describedby="plans-badge"
+            aria-describedby={proActive ? undefined : "plans-badge"}
           >
-            <span className="plans-ribbon" id="plans-badge">
-              {copy.recommended}
-            </span>
+            {/* Once Pro is the current plan, "Current plan" says it; a
+                recommendation for what you already have is noise. */}
+            {!proActive && (
+              <span className="plans-ribbon" id="plans-badge">
+                {copy.recommended}
+              </span>
+            )}
             <div className="plans-card-name">
               <h3 id="plans-pro-name">
                 <UiIcon name="crown" />
@@ -433,10 +438,24 @@ export function PlansPage({
               </strong>
               <span className="plans-period">{copy.perYear}</span>
               {shownOffer !== null && (
-                <span className="plans-discount">-{promoPercent(shownOffer)}%</span>
+                <span className="plans-discount">−{promoPercent(shownOffer)}%</span>
               )}
             </div>
             <p className="plans-price-note">
+              {/* The offer and its deadline right under the price, not only in
+                  the banner above. In the note row so both cards keep the same
+                  rows. Only ever from the live promo, never invented. */}
+              {shownOffer !== null && promoEnd && (
+                <span className="plans-promo-line">
+                  <strong>{copy.promoTitle}</strong> · {copy.ends}:{" "}
+                  <time dateTime={promoEnd}>
+                    {new Intl.DateTimeFormat(locale, {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    }).format(new Date(Date.parse(promoEnd) - 60_000))}
+                  </time>
+                </span>
+              )}
               {loyalty
                 ? copy.loyaltyPrice
                 : shownOffer !== null
@@ -585,7 +604,7 @@ export function ProPriceSummary({
             {formatMoney(price, locale)} {copy.perYear}
           </em>
         </span>
-        {shown !== null && <span className="plans-discount">-{promoPercent(shown)}%</span>}
+        {shown !== null && <span className="plans-discount">−{promoPercent(shown)}%</span>}
       </div>
       {shown !== null && (
         <p className="menu-hint">

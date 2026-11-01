@@ -144,6 +144,9 @@
 }
 
 /* ---- Plan cards ------------------------------------------------------ */
+/* Each card is a subgrid of the same six rows (name, tagline, price, price
+   note, action, highlights), so the prices, the buttons and the feature lists
+   line up across Free and Pro whatever the copy length in each language. */
 .plans-cards {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -151,24 +154,33 @@
 }
 .plans-card {
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-row: span 6;
+  grid-template-rows: subgrid;
+  row-gap: 0;
   padding: 22px 22px 20px;
   border: 1px solid var(--line-strong);
   border-radius: 16px;
   background: var(--bg-raised);
 }
+/* The recommended plan stands forward: a full accent rim, a warmer wash and
+   a deeper accent shadow. No lift (transform), which would break the row
+   alignment the subgrid gives both cards. */
 .plans-card-pro {
-  border-color: color-mix(in srgb, var(--accent) 60%, var(--line-strong));
+  border-color: var(--accent);
   background:
     radial-gradient(
       120% 70% at 100% 0%,
-      color-mix(in srgb, var(--accent) 13%, transparent),
+      color-mix(in srgb, var(--accent) 18%, transparent),
       transparent 70%
     ),
     var(--bg-raised);
-  box-shadow: 0 10px 34px color-mix(in srgb, var(--accent) 12%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent),
+    0 22px 56px -12px color-mix(in srgb, var(--accent) 34%, transparent);
 }
+/* Owner, 1/11/2026: the price is the hero of each card and a real discount
+   is unmistakable (big warm badge, offer and deadline beside the price). */
 /* The family's badge: a pill straddling the top edge of the card, centred, with
    a ring in the page colour that cuts it out of the border. */
 .plans-ribbon {
@@ -219,7 +231,6 @@
   white-space: nowrap;
 }
 .plans-tagline {
-  min-height: 3em;
   margin: 8px 0 14px;
   color: var(--fg-dim);
   font-size: 13px;
@@ -233,31 +244,49 @@
 }
 .plans-price strong {
   font-family: var(--font-display);
-  font-size: 36px;
-  font-weight: 700;
+  font-size: 50px;
+  font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 .plans-was {
   color: var(--fg-dim);
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 600;
+  text-decoration-thickness: 2px;
 }
 .plans-period {
-  color: var(--fg-dim);
-  font-size: 13px;
+  color: var(--fg);
+  font-size: 15px;
   font-weight: 600;
+  opacity: 0.85;
 }
+/* Warm promo colours whatever the theme; dark ink on them is 7:1 or better. */
 .plans-discount {
   align-self: center;
-  padding: 3px 8px;
-  border-radius: 7px;
-  color: #ffd2b8;
-  background: color-mix(in srgb, #ff6a3d 24%, transparent);
-  border: 1px solid color-mix(in srgb, #ff6a3d 45%, transparent);
-  font-size: 12px;
-  font-weight: 750;
+  margin-left: auto;
+  padding: 5px 12px;
+  border-radius: 10px;
+  color: #1c0a02;
+  background: linear-gradient(135deg, #ff7a3d, #ffb23d);
+  box-shadow: 0 6px 18px -6px #ff7a3d;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.plans-promo-line {
+  display: block;
+  margin-bottom: 3px;
+  color: #ffb98f;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.plans-promo-line strong {
+  font-weight: 700;
 }
 .plans-price-note {
   min-height: 1.5em;
@@ -272,7 +301,10 @@
   gap: 8px;
   margin: 18px 0 16px;
 }
-.plans-cta {
+/* Scoped so it outranks App.css .button / .button-ghost, which load after this
+   file: the CTA lost its 0 top margin and size to them, and sat 16px lower
+   than the Free card's status line. */
+.plans-card-action .plans-cta {
   width: 100%;
   margin-top: 0;
   padding: 11px 20px;
@@ -478,9 +510,6 @@
     justify-content: flex-start;
     width: 100%;
   }
-  .plans-tagline {
-    min-height: 0;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .plans-faq summary .ui-icon {
@@ -536,9 +565,17 @@
   margin-right: 2px;
   font-size: 12px;
 }
+.plan-row .menu-price {
+  color: var(--fg);
+  font-size: 15px;
+  font-weight: 750;
+}
 .plan-row .plans-discount {
-  padding: 1px 6px;
-  font-size: 11px;
+  margin-left: 8px;
+  padding: 3px 9px;
+  border-radius: 8px;
+  box-shadow: none;
+  font-size: 15px;
 }
 
 /* Free trial: the deal in one line under the button, and on the account

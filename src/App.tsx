@@ -60,6 +60,7 @@ import "./App.css";
 import "./workspace.css";
 import "./family-polish.css";
 import { UiIcon } from "./ui-icon";
+import { CoffeeRow } from "./coffee";
 import { workspaceCopy } from "./workspace-copy";
 import { backendText } from "./backend-copy";
 
@@ -1790,6 +1791,7 @@ export default function App() {
                 </div>
               </div>
             </details>
+            <CoffeeRow copy={words.coffee} />
             <div className="profile-update">
               <button
                 className="button-ghost full"
