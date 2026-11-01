@@ -9,6 +9,8 @@ import type { Locale } from "./i18n";
  */
 type Copy = {
   nav: string;
+  /** The top bar's label in the narrowest windows (below 900 px). */
+  navShort: string;
   back: string;
   title: string;
   intro: string;
@@ -84,6 +86,7 @@ type Copy = {
 
 const en: Copy = {
   nav: "Plans & pricing",
+  navShort: "Plans",
   back: "Installed apps",
   title: "Uninstall for free. Clean up with Pro.",
   intro: "Single uninstalls stay free. Pro cleans up everything that comes after.",
@@ -192,6 +195,7 @@ const en: Copy = {
 
 const it: Copy = {
   nav: "Piani e prezzi",
+  navShort: "Piani",
   back: "App installate",
   title: "Disinstalla gratis. Fai pulizia con Pro.",
   intro: "Le disinstallazioni singole restano gratuite. Pro pulisce tutto ciò che viene dopo.",
@@ -303,6 +307,7 @@ const it: Copy = {
 
 const fr: Copy = {
   nav: "Offres et tarifs",
+  navShort: "Offres",
   back: "Applications installées",
   title: "Désinstallez gratuitement. Faites place nette avec Pro.",
   intro:
@@ -416,6 +421,7 @@ const fr: Copy = {
 
 const es: Copy = {
   nav: "Planes y precios",
+  navShort: "Planes",
   back: "Aplicaciones instaladas",
   title: "Desinstala gratis. Limpia a fondo con Pro.",
   intro:
@@ -528,6 +534,7 @@ const es: Copy = {
 
 const de: Copy = {
   nav: "Tarife und Preise",
+  navShort: "Tarife",
   back: "Installierte Apps",
   title: "Kostenlos deinstallieren. Mit Pro gründlich aufräumen.",
   intro: "Einzelne Deinstallationen bleiben kostenlos. Pro räumt alles auf, was danach kommt.",
@@ -641,6 +648,7 @@ const de: Copy = {
 
 const pt: Copy = {
   nav: "Planos e preços",
+  navShort: "Planos",
   back: "Aplicações instaladas",
   title: "Desinstale grátis. Faça a limpeza com o Pro.",
   intro: "As desinstalações individuais continuam gratuitas. O Pro limpa tudo o que vem depois.",

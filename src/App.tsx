@@ -1256,21 +1256,24 @@ export default function App() {
             if (running) {
               const left = trialLeft(running, billing?.trialDays ?? 3, Date.now());
               const t = trialCopy[lang];
+              const leftText = left.days
+                ? fill(t.leftDays, { days: left.days, hours: left.hours })
+                : left.hours
+                  ? fill(t.leftHours, { hours: left.hours, minutes: left.minutes })
+                  : fill(t.leftMinutes, { minutes: Math.max(1, left.minutes) });
               return (
                 <button
                   type="button"
                   className="button-ghost small nav-trial-left"
+                  title={`${t.trial} · ${leftText}`}
                   onClick={() => {
                     setView("plans");
                   }}
                 >
-                  {`${t.trial} · ${
-                    left.days
-                      ? fill(t.leftDays, { days: left.days, hours: left.hours })
-                      : left.hours
-                        ? fill(t.leftHours, { hours: left.hours, minutes: left.minutes })
-                        : fill(t.leftMinutes, { minutes: Math.max(1, left.minutes) })
-                  }`}
+                  {/* Below 1000 px only the time left shows; the full line
+                      stays in the tooltip. */}
+                  <span className="nav-trial-name">{`${t.trial} · `}</span>
+                  {leftText}
                 </button>
               );
             }
@@ -1282,7 +1285,10 @@ export default function App() {
                   setView("plans");
                 }}
               >
-                {fill(trialCopy[lang].start, { days: lockedTrial.days })}
+                <span className="nav-long">
+                  {fill(trialCopy[lang].start, { days: lockedTrial.days })}
+                </span>
+                <span className="nav-short">{trialCopy[lang].trial}</span>
               </button>
             ) : null;
           })()}
@@ -1296,7 +1302,10 @@ export default function App() {
             }}
           >
             <UiIcon name="tag" />
-            {plansCopy[lang].nav}
+            {/* One of the two is display:none, so screen readers hear the
+                visible one. */}
+            <span className="nav-long">{plansCopy[lang].nav}</span>
+            <span className="nav-short">{plansCopy[lang].navShort}</span>
           </button>
           <button
             type="button"

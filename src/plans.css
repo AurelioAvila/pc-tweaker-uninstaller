@@ -597,16 +597,35 @@
 .topbar-right .button {
   margin-top: 0;
 }
-/* At the narrowest windows Support keeps its icon and tooltip; its name stays
-   for screen readers. */
-@media (max-width: 960px) {
-  .nav-support .nav-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
+/* Support keeps its label at every width (owner, 1/11/2026). Below 900 px
+   the room comes from elsewhere: Plans & pricing reads "Plans", the gaps
+   tighten and the app name stays on one line. */
+.nav-short {
+  display: none;
+}
+/* The trial entries shorten first: "Free trial" instead of "Start 3-day
+   free trial", and the countdown without its "Free trial ·" prefix. */
+@media (max-width: 999px) {
+  .nav-trial .nav-long,
+  .nav-trial-left .nav-trial-name {
+    display: none;
+  }
+  .nav-trial .nav-short {
+    display: inline;
+  }
+}
+@media (max-width: 900px) {
+  .nav-plans .nav-long {
+    display: none;
+  }
+  .nav-plans .nav-short {
+    display: inline;
+  }
+  .topbar-right {
+    gap: 6px;
+  }
+  .topbar-right > .button-ghost.small {
+    padding-inline: 11px;
   }
 }
 @media (max-width: 1100px) {
