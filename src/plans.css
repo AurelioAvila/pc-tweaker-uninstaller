@@ -18,8 +18,6 @@
   /* The scrollbar sits at the window edge, not inside the content padding. */
   margin: -8px -28px -22px;
   padding: 8px 28px 32px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--line-strong) transparent;
 }
 .plans-inner {
   max-width: 1000px;

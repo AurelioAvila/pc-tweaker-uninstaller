@@ -2573,7 +2573,9 @@ export default function App() {
                             </span>
                           </span>
                           <span role="cell" className="dim cell-version">
-                            {p.version ?? "—"}
+                            <span className="version-text" title={p.version ?? undefined}>
+                              {p.version ?? "—"}
+                            </span>
                             <small title={badgeHint(p.uninstall)}>{badgeLabel(p.uninstall)}</small>
                           </span>
                           <span role="cell" className="dim num">

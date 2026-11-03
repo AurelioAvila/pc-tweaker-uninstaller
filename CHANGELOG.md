@@ -11,6 +11,7 @@ Leftovers from programs you removed earlier, and a new Free and Pro split for cl
 - The leftovers dialog groups what it finds (files and folders, what still starts with Windows, registry keys, and what is kept for safety), shows why each item is listed, and has a Preview changes step before anything is cleaned.
 - Free and Pro: cleaning leftover files and folders, sent to the Recycle Bin, is now free. Cleaning registry keys and startup entries still needs Pro. The app enforces this itself, not only in the interface.
 - Interface copy about the Free and Pro split is updated in all six languages.
+- Scrollbars now match the theme everywhere, like PC Tweaker's: a thin rounded bar without arrow buttons that lights up in the accent colour when you point at it. A long version number now ends in "…" and shows in full when you point at it.
 
 ## 0.14.0
 
