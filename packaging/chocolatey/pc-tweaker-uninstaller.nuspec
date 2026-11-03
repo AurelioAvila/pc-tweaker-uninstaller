@@ -9,7 +9,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <licenseUrl>https://github.com/AurelioAvila/pc-tweaker-uninstaller/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://pctweaker.app/uninstaller/</projectUrl>
-    <iconUrl>https://raw.githubusercontent.com/AurelioAvila/pc-tweaker-uninstaller/master/docs/icon.png</iconUrl>
+    <iconUrl>https://cdn.jsdelivr.net/gh/AurelioAvila/pc-tweaker-uninstaller@385c56a6d303013dded85398486dea819e08112f/docs/icon.png</iconUrl>
     <summary>Inspect Windows uninstall commands, permissions and removal receipts</summary>
     <description>PC Tweaker Uninstaller inventories installed Windows programs and shows the program's registered removal command, requested permissions and estimated size before a removal runs.
 
