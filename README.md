@@ -78,7 +78,8 @@ Uninstall Windows programs cleanly, with a safety net. Every removal is explaine
 | **Removal Brief** | Before anything runs you see the exact command, the method (Windows Installer or the program's own uninstaller), the permissions it will ask for and the reported size. |
 | **Related programs** | Programs installed inside another program's folder are named before you remove the parent, so a game library or plugin host does not take other software with it by surprise. |
 | **Restore-point attempt** | Before elevated removals, the app asks Windows for a restore point and records what Windows actually did: a new point, the existing point it reused (Windows makes at most one a day), or why none was made. The confirmation says beforehand which to expect. |
-| **Leftover scan** | After the uninstall, the program's remaining folders, shortcuts and registry keys are listed. Protected system and personal folders are never offered. |
+| **Leftover scan** | After the uninstall, the program's remaining folders, shortcuts and registry keys are listed, each with the reason it is listed. Only the install folder Windows recorded for the program is pre-selected; items found by name only are marked and never pre-selected. Protected system and personal folders are never offered. |
+| **Programs removed earlier** | The app notices programs that disappeared from the installed list between launches, whoever removed them, and keeps the last 50. Any of them, or a name and folder you type, can be scanned for leftovers later. |
 | **Removal Ledger** | A local receipt of what was removed, how, with what result and how much space was actually freed. Exportable, and it never leaves your PC. |
 | **Store apps too** | Classic desktop software and Microsoft Store apps in one list, with search, filters, sorting and CSV export. |
 
@@ -89,9 +90,10 @@ Uninstall Windows programs cleanly, with a safety net. Every removal is explaine
 | Free | Pro |
 | --- | --- |
 | Unlimited single uninstalls, desktop and Store apps | Everything in Free |
-| Confidence Score and Removal Brief for every program | **Leftover cleanup**: remove the files, folders and registry keys the scan finds. Files go to the Recycle Bin. |
+| Confidence Score and Removal Brief for every program | **Registry and startup cleanup**: remove the leftover registry keys and startup entries the scan finds, each saved as a .reg file first |
 | Restore-point attempt before elevated removals, with the outcome recorded | **Batch removal**: queue several programs and let them run in a safe order |
-| Leftover scan and the Removal Ledger | **Broken entries**: remove programs whose own uninstaller is gone |
+| Cleanup of leftover files and folders, sent to the Recycle Bin | |
+| Leftover scan, programs removed earlier, and the Removal Ledger | **Broken entries**: remove programs whose own uninstaller is gone |
 
 **Plans & pricing** in the app's top bar compares both plans, shows your account
 and plan, and opens Stripe's billing portal to manage a subscription. Current

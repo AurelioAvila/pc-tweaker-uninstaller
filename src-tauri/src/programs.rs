@@ -259,7 +259,7 @@ mod imp {
         hive: winreg::HKEY,
         access_flags: u32,
         source: &'static str,
-        out: &mut Vec<ProgramInfo>,
+        out: &mut Vec<(&'static str, RawEntry, bool)>,
     ) {
         let root = RegKey::predef(hive);
         // A missing/unreadable view is skipped, not fatal: HKCU always
@@ -279,7 +279,7 @@ mod imp {
             // can reveal the complete picture.
             if has_display_name(&entry) {
                 let hidden = !is_listable(&entry);
-                out.push(to_program_info(entry, source, hidden));
+                out.push((source, entry, hidden));
             }
         }
     }
@@ -307,22 +307,25 @@ mod imp {
         Ok(read_entry(&sub, key_name))
     }
 
-    pub fn list() -> Vec<ProgramInfo> {
-        let mut programs = Vec::new();
-        read_view(
-            HKEY_LOCAL_MACHINE,
-            KEY_WOW64_64KEY,
-            "machine64",
-            &mut programs,
-        );
-        read_view(
-            HKEY_LOCAL_MACHINE,
-            KEY_WOW64_32KEY,
-            "machine32",
-            &mut programs,
-        );
+    /// Every named entry of the three views, as read.
+    pub fn collect() -> Vec<(&'static str, RawEntry, bool)> {
+        let mut raw = Vec::new();
+        read_view(HKEY_LOCAL_MACHINE, KEY_WOW64_64KEY, "machine64", &mut raw);
+        read_view(HKEY_LOCAL_MACHINE, KEY_WOW64_32KEY, "machine32", &mut raw);
         // HKCU has a single view; extra WOW flags are unnecessary there.
-        read_view(HKEY_CURRENT_USER, 0, "user", &mut programs);
+        read_view(HKEY_CURRENT_USER, 0, "user", &mut raw);
+        raw
+    }
+
+    pub fn list() -> Vec<ProgramInfo> {
+        build(collect())
+    }
+
+    pub fn build(raw: Vec<(&'static str, RawEntry, bool)>) -> Vec<ProgramInfo> {
+        let mut programs: Vec<ProgramInfo> = raw
+            .into_iter()
+            .map(|(source, entry, hidden)| to_program_info(entry, source, hidden))
+            .collect();
         programs.sort_by_key(|p| p.name.to_lowercase());
         let rel_entries: Vec<crate::relations::RelEntry> = programs
             .iter()
@@ -387,7 +390,18 @@ pub fn read_raw_entry(_source: &str, _key_name: &str) -> Result<RawEntry, String
 pub fn list_programs() -> Result<Vec<ProgramInfo>, String> {
     #[cfg(windows)]
     {
-        Ok(imp::list())
+        let raw = imp::collect();
+        // What Add/Remove Programs lists is compared with the last launch's
+        // list: whatever vanished was removed outside this app.
+        if let Ok(dir) = crate::uninstall_exec::fixed_data_dir() {
+            let listable = raw
+                .iter()
+                .filter(|(_, _, hidden)| !hidden)
+                .map(|(source, entry, _)| crate::removed_programs::entry_from_raw(source, entry))
+                .collect();
+            crate::removed_programs::observe(&dir, listable, crate::removed_programs::now_secs());
+        }
+        Ok(imp::build(raw))
     }
     #[cfg(not(windows))]
     {

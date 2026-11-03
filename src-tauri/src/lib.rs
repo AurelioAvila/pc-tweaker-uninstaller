@@ -19,7 +19,10 @@ pub mod program_icons;
 pub mod programs;
 pub mod recycle_bin;
 pub mod relations;
+pub mod removed_programs;
 pub mod residue;
+pub mod residue_rules;
+pub mod residue_startup;
 pub mod restore_point;
 pub mod rollback;
 pub mod store_apps;
@@ -87,7 +90,13 @@ pub fn run() {
             uninstall_exec::execute_uninstall,
             forget::forget_broken_entry,
             residue::scan_residue,
+            residue::scan_removed_program,
+            residue::scan_manual,
+            residue::scan_startup_sweep,
+            residue::plan_residue_clean,
             residue::clean_residue,
+            removed_programs::removed_overview,
+            removed_programs::dismiss_startup_card,
             ledger::list_removal_ledger,
             ledger::clear_removal_ledger,
             ledger::export_removal_ledger,

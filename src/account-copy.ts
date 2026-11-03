@@ -37,7 +37,8 @@ const en = {
     "Included with your account until {date}. Nothing renews, so there is nothing to cancel.",
   included: "Included with your account. Nothing renews, so there is nothing to cancel.",
   none: "There is no subscription on this account.",
-  noneHint: "Uninstalls stay free. Pro adds leftover cleanup and removes several programs at once.",
+  noneHint:
+    "Uninstalls and file cleanup stay free. Pro adds registry and startup cleanup and removes several programs at once.",
   seePlans: "See plans & pricing",
   monthly: "Monthly",
   yearly: "Yearly",
@@ -133,7 +134,7 @@ export const accountCopy: Record<Locale, typeof en> = {
     included: "Incluso nel tuo account. Non si rinnova, quindi non c'è nulla da disdire.",
     none: "Su questo account non c'è alcun abbonamento.",
     noneHint:
-      "Le disinstallazioni restano gratuite. Pro aggiunge la pulizia dei residui e la rimozione di più programmi insieme.",
+      "Disinstallazioni e pulizia dei file restano gratuite. Pro aggiunge la pulizia di registro e voci di avvio e la rimozione di più programmi insieme.",
     seePlans: "Vedi piani e prezzi",
     monthly: "Mensile",
     yearly: "Annuale",
@@ -227,7 +228,7 @@ export const accountCopy: Record<Locale, typeof en> = {
     included: "Inclus avec votre compte. Rien ne se renouvelle, il n'y a donc rien à résilier.",
     none: "Aucun abonnement sur ce compte.",
     noneHint:
-      "Les désinstallations restent gratuites. Pro ajoute le nettoyage des restes et la suppression de plusieurs programmes à la fois.",
+      "Les désinstallations et le nettoyage des fichiers restent gratuits. Pro ajoute le nettoyage du registre et des entrées de démarrage, et la suppression de plusieurs programmes à la fois.",
     seePlans: "Voir les formules et tarifs",
     monthly: "Mensuel",
     yearly: "Annuel",
@@ -319,7 +320,7 @@ export const accountCopy: Record<Locale, typeof en> = {
     included: "Incluida con tu cuenta. No se renueva, así que no hay nada que cancelar.",
     none: "Esta cuenta no tiene ninguna suscripción.",
     noneHint:
-      "Las desinstalaciones siguen siendo gratis. Pro añade la limpieza de restos y la eliminación de varios programas a la vez.",
+      "Las desinstalaciones y la limpieza de archivos siguen siendo gratis. Pro añade la limpieza del registro y de las entradas de inicio, y la eliminación de varios programas a la vez.",
     seePlans: "Ver planes y precios",
     monthly: "Mensual",
     yearly: "Anual",
@@ -414,7 +415,7 @@ export const accountCopy: Record<Locale, typeof en> = {
       "In deinem Konto enthalten. Es verlängert sich nichts, daher gibt es nichts zu kündigen.",
     none: "Für dieses Konto besteht kein Abo.",
     noneHint:
-      "Deinstallationen bleiben kostenlos. Pro räumt Reste auf und entfernt mehrere Programme auf einmal.",
+      "Deinstallationen und die Bereinigung von Dateien bleiben kostenlos. Pro räumt Registrierung und Autostart-Einträge auf und entfernt mehrere Programme auf einmal.",
     seePlans: "Tarife und Preise ansehen",
     monthly: "Monatlich",
     yearly: "Jährlich",
@@ -508,7 +509,7 @@ export const accountCopy: Record<Locale, typeof en> = {
     included: "Incluída na sua conta. Não se renova, por isso não há nada a cancelar.",
     none: "Esta conta não tem nenhuma subscrição.",
     noneHint:
-      "As desinstalações continuam gratuitas. O Pro acrescenta a limpeza de resíduos e a remoção de vários programas de uma vez.",
+      "As desinstalações e a limpeza de ficheiros continuam gratuitas. O Pro acrescenta a limpeza do registo e das entradas de arranque e a remoção de vários programas de uma vez.",
     seePlans: "Ver planos e preços",
     monthly: "Mensal",
     yearly: "Anual",

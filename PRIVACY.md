@@ -11,6 +11,7 @@ PC Tweaker Uninstaller is a desktop app. Everything it does to your system — l
 - The list of programs installed on your PC.
 - The results of leftover scans, and anything about the files and registry keys they find.
 - Uninstall history, snapshots, and the quarantine's contents.
+- The list of programs removed earlier (`removed-programs.json`) and the last-seen list it is compared with (`inventory-snapshot.json`), both in the app's own data folder: program names, publishers, install folders and removal times. They are never uploaded.
 - The diagnostic log. The app writes one to `uninstaller.log`, next to the removal ledger in its own data folder, recording the decisions it took: version and start time, elevation attempts, uninstall exit codes and durations, leftover-cleanup outcomes, and any crash. It therefore contains program names and file paths from your machine. It is never uploaded, never scheduled, and never read by us. "Open log folder" in the Removal Ledger dialog is the only way it is surfaced, and it reaches anyone else only if you attach it to a support message yourself. The file rotates once at about 1 MB and you can delete both generations at any time.
 
 The app contains no analytics and no ad or tracking SDKs of any kind. There is no crash-reporting service.

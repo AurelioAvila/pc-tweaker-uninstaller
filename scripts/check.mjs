@@ -17,6 +17,7 @@ const steps = [
   ["Manage subscription state tests", "node --test scripts/subscription.test.mjs"],
   ["Default language regression tests", "node --test scripts/i18n-default.test.mjs"],
   ["Translation table tests", "node --test scripts/i18n-tables.test.mjs"],
+  ["Leftover grouping and selection tests", "node --test scripts/leftovers.test.mjs"],
   ["Account request regression tests", "node --test scripts/account-registration.test.mjs"],
   ["Tauri JavaScript packages on their crates' versions", "node --test scripts/tauri-versions.test.mjs"],
   ["Accent contrast", "npm run check:contrast"],

@@ -10,7 +10,7 @@ import ts from 'typescript';
 // dashes and informal "du", Italian accents, no "illustrative") hold everywhere.
 globalThis.localStorage = { getItem: () => null, setItem: () => {} };
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pcu-i18n-'));
-for (const name of ['i18n', 'plans-copy', 'trial-copy', 'workspace-copy', 'inventory-copy', 'backend-copy', 'account-copy']) {
+for (const name of ['i18n', 'plans-copy', 'trial-copy', 'workspace-copy', 'inventory-copy', 'backend-copy', 'account-copy', 'leftovers-copy']) {
   const source = fs.readFileSync(new URL(`../src/${name}.ts`, import.meta.url), 'utf8');
   let js = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } }).outputText;
   js = js.replace(/from "\.\/([\w-]+)"/g, 'from "./$1.mjs"');
@@ -25,6 +25,7 @@ const tables = {
   workspace: (await load('workspace-copy')).workspaceCopy,
   inventory: (await load('inventory-copy')).inventoryCopy,
   account: (await load('account-copy')).accountCopy,
+  leftovers: (await load('leftovers-copy')).leftoversCopy,
 };
 const LANGS = ['en', 'it', 'fr', 'es', 'de', 'pt'];
 
@@ -80,7 +81,7 @@ test('German never uses the formal Sie', () => {
 // A control character slipped in once where a colon belonged (seven French
 // messages) and where \b belonged (the check above, which then never matched).
 test('no control characters hide in the text tables or in this check', () => {
-  const files = ['i18n', 'plans-copy', 'trial-copy', 'workspace-copy', 'inventory-copy', 'backend-copy']
+  const files = ['i18n', 'plans-copy', 'trial-copy', 'workspace-copy', 'inventory-copy', 'backend-copy', 'leftovers-copy']
     .map((name) => new URL(`../src/${name}.ts`, import.meta.url))
     .concat(new URL(import.meta.url));
   for (const file of files) {
@@ -118,6 +119,22 @@ test('the uninstall refusals written in Rust are translated in every language', 
   for (const name of ['PER_USER_ELEVATION_REFUSED', 'PER_USER_ELEVATION_WRITABLE', 'COMMAND_CHANGED']) {
     const literal = rust.match(new RegExp(`const ${name}: &str =\\s*"((?:[^"\\\\]|\\\\[\\s\\S])*)"`));
     assert.ok(literal, `${name} not found in uninstall_exec.rs`);
+    const message = literal[1].replace(/\\\r?\n\s*/g, '');
+    for (const l of LANGS.slice(1)) {
+      i18n.setLocale(l);
+      assert.notEqual(backendText(message), message, `${name} is not translated in ${l}`);
+    }
+  }
+  i18n.setLocale('en');
+});
+// The refusals of the leftover scan are English constants in Rust too; the
+// table must keep matching them word for word, or they show up in English.
+test('the leftover scan refusals written in Rust are translated in every language', async () => {
+  const { backendText } = await load('backend-copy');
+  const rust = fs.readFileSync(new URL('../src-tauri/src/residue.rs', import.meta.url), 'utf8');
+  for (const name of ['NOT_REMOVED', 'SCAN_GONE', 'MANUAL_EMPTY', 'MANUAL_NAME', 'MANUAL_SHAPE', 'MANUAL_GONE', 'MANUAL_PROTECTED', 'MANUAL_OTHER', 'MANUAL_LINKED']) {
+    const literal = rust.match(new RegExp(`const ${name}: &str =\\s*"((?:[^"\\\\]|\\\\[\\s\\S])*)"`));
+    assert.ok(literal, `${name} not found in residue.rs`);
     const message = literal[1].replace(/\\\r?\n\s*/g, '');
     for (const l of LANGS.slice(1)) {
       i18n.setLocale(l);

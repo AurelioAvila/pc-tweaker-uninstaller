@@ -54,11 +54,11 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     trialUsed: "Free trial used",
     pausedTitle: "Pro is paused",
     pausedBody:
-      "The latest payment didn't go through, so leftover cleanup and batch removal are locked until it does. Programs you already removed stay removed, and anything moved to the Recycle Bin can still be restored from there.",
+      "The latest payment didn't go through, so cleaning leftover registry keys and startup entries, and batch removal, are locked until it does. Programs you already removed stay removed, and anything moved to the Recycle Bin can still be restored from there.",
     trialEndedTitle: "Your free trial has ended",
     endedTitle: "Your Pro plan has ended",
     endedBody:
-      "Leftover cleanup and batch removal are locked now. Single uninstalls, the leftover scan and the Removal Ledger stay free, and anything moved to the Recycle Bin can still be restored from there.",
+      "Cleaning leftover registry keys and startup entries, and batch removal, are locked now. Single uninstalls, the leftover scan, cleaning leftover files and folders, and the Removal Ledger stay free, and anything moved to the Recycle Bin can still be restored from there.",
     converted: "Your free trial is now a Pro subscription. Thank you!",
     seePlans: "See plans",
     notNow: "Not now",
@@ -86,11 +86,11 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     trialUsed: "Prova gratuita già usata",
     pausedTitle: "Pro è in pausa",
     pausedBody:
-      "L'ultimo pagamento non è andato a buon fine, quindi la pulizia dei residui e la rimozione multipla restano bloccate finché non riesce. I programmi già rimossi restano rimossi e ciò che è finito nel Cestino si può ancora ripristinare da lì.",
+      "L'ultimo pagamento non è andato a buon fine, quindi la pulizia delle chiavi di registro e delle voci di avvio residue e la rimozione multipla restano bloccate finché non riesce. I programmi già rimossi restano rimossi e ciò che è finito nel Cestino si può ancora ripristinare da lì.",
     trialEndedTitle: "La prova gratuita è terminata",
     endedTitle: "Il tuo piano Pro è terminato",
     endedBody:
-      "La pulizia dei residui e la rimozione multipla ora sono bloccate. Disinstallazioni singole, ricerca dei residui e Registro rimozioni restano gratuiti e ciò che è finito nel Cestino si può ancora ripristinare da lì.",
+      "La pulizia delle chiavi di registro e delle voci di avvio residue e la rimozione multipla ora sono bloccate. Disinstallazioni singole, ricerca dei residui, pulizia di file e cartelle e Registro rimozioni restano gratuiti e ciò che è finito nel Cestino si può ancora ripristinare da lì.",
     converted: "La prova gratuita ora è un abbonamento Pro. Grazie!",
     seePlans: "Vedi i piani",
     notNow: "Non ora",
@@ -118,11 +118,11 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     trialUsed: "Essai gratuit déjà utilisé",
     pausedTitle: "Pro est en pause",
     pausedBody:
-      "Le dernier paiement n'a pas abouti : le nettoyage des restes et la suppression par lot restent verrouillés jusqu'à ce qu'il réussisse. Les programmes déjà supprimés le restent, et ce qui a été placé dans la Corbeille peut toujours y être restauré.",
+      "Le dernier paiement n'a pas abouti : le nettoyage des clés de registre et des entrées de démarrage laissées derrière et la suppression par lot restent verrouillés jusqu'à ce qu'il réussisse. Les programmes déjà supprimés le restent, et ce qui a été placé dans la Corbeille peut toujours y être restauré.",
     trialEndedTitle: "Votre essai gratuit est terminé",
     endedTitle: "Votre offre Pro est terminée",
     endedBody:
-      "Le nettoyage des restes et la suppression par lot sont maintenant verrouillés. Les désinstallations individuelles, la recherche de restes et le Registre des suppressions restent gratuits, et ce qui a été placé dans la Corbeille peut toujours y être restauré.",
+      "Le nettoyage des clés de registre et des entrées de démarrage laissées derrière et la suppression par lot sont maintenant verrouillés. Les désinstallations individuelles, la recherche de restes, le nettoyage des fichiers et dossiers et le Registre des suppressions restent gratuits, et ce qui a été placé dans la Corbeille peut toujours y être restauré.",
     converted: "Votre essai gratuit est devenu un abonnement Pro. Merci !",
     seePlans: "Voir les offres",
     notNow: "Plus tard",
@@ -150,11 +150,11 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     trialUsed: "Prueba gratuita ya usada",
     pausedTitle: "Pro está en pausa",
     pausedBody:
-      "El último pago no se ha completado, así que la limpieza de restos y la eliminación por lotes quedan bloqueadas hasta que se complete. Los programas que ya quitaste siguen quitados y lo que se movió a la Papelera aún se puede restaurar desde allí.",
+      "El último pago no se ha completado, así que la limpieza de las claves del registro y las entradas de inicio, y la eliminación por lotes quedan bloqueadas hasta que se complete. Los programas que ya quitaste siguen quitados y lo que se movió a la Papelera aún se puede restaurar desde allí.",
     trialEndedTitle: "Tu prueba gratuita ha terminado",
     endedTitle: "Tu plan Pro ha terminado",
     endedBody:
-      "La limpieza de restos y la eliminación por lotes ya están bloqueadas. Las desinstalaciones individuales, la búsqueda de restos y el Registro de eliminaciones siguen siendo gratis, y lo que se movió a la Papelera aún se puede restaurar desde allí.",
+      "La limpieza de las claves del registro y las entradas de inicio, y la eliminación por lotes ya están bloqueadas. Las desinstalaciones individuales, la búsqueda de restos, la limpieza de archivos y carpetas y el Registro de eliminaciones siguen siendo gratis, y lo que se movió a la Papelera aún se puede restaurar desde allí.",
     converted: "Tu prueba gratuita ya es una suscripción Pro. ¡Gracias!",
     seePlans: "Ver planes",
     notNow: "Ahora no",
@@ -182,11 +182,11 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     trialUsed: "Kostenlose Testphase bereits genutzt",
     pausedTitle: "Pro ist pausiert",
     pausedBody:
-      "Die letzte Zahlung ist nicht durchgegangen, daher bleiben die Bereinigung von Resten und die Stapelentfernung gesperrt, bis sie gelingt. Bereits entfernte Programme bleiben entfernt, und was in den Papierkorb verschoben wurde, lässt sich dort weiterhin wiederherstellen.",
+      "Die letzte Zahlung ist nicht durchgegangen, daher bleiben die Bereinigung übrig gebliebener Registrierungsschlüssel und Autostart-Einträge sowie die Stapelentfernung gesperrt, bis sie gelingt. Bereits entfernte Programme bleiben entfernt, und was in den Papierkorb verschoben wurde, lässt sich dort weiterhin wiederherstellen.",
     trialEndedTitle: "Deine kostenlose Testphase ist beendet",
     endedTitle: "Dein Pro-Tarif ist beendet",
     endedBody:
-      "Die Bereinigung von Resten und die Stapelentfernung sind jetzt gesperrt. Einzelne Deinstallationen, die Restesuche und das Entfernungsprotokoll bleiben kostenlos, und was in den Papierkorb verschoben wurde, lässt sich dort weiterhin wiederherstellen.",
+      "Die Bereinigung übrig gebliebener Registrierungsschlüssel und Autostart-Einträge sowie die Stapelentfernung sind jetzt gesperrt. Einzelne Deinstallationen, die Restesuche, die Bereinigung von Dateien und Ordnern und das Entfernungsprotokoll bleiben kostenlos, und was in den Papierkorb verschoben wurde, lässt sich dort weiterhin wiederherstellen.",
     converted: "Deine kostenlose Testphase ist jetzt ein Pro-Abo. Vielen Dank!",
     seePlans: "Tarife ansehen",
     notNow: "Nicht jetzt",
@@ -214,11 +214,11 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     trialUsed: "Avaliação gratuita já utilizada",
     pausedTitle: "O Pro está em pausa",
     pausedBody:
-      "O último pagamento não foi concluído, por isso a limpeza de resíduos e a remoção em lote ficam bloqueadas até que seja. Os programas já removidos continuam removidos e o que foi para a Reciclagem ainda pode ser restaurado a partir de lá.",
+      "O último pagamento não foi concluído, por isso a limpeza das chaves do registo e das entradas de arranque e a remoção em lote ficam bloqueadas até que seja. Os programas já removidos continuam removidos e o que foi para a Reciclagem ainda pode ser restaurado a partir de lá.",
     trialEndedTitle: "A sua avaliação gratuita terminou",
     endedTitle: "O seu plano Pro terminou",
     endedBody:
-      "A limpeza de resíduos e a remoção em lote estão agora bloqueadas. As desinstalações individuais, a análise de resíduos e o Registo de remoções continuam gratuitos, e o que foi para a Reciclagem ainda pode ser restaurado a partir de lá.",
+      "A limpeza das chaves do registo e das entradas de arranque e a remoção em lote estão agora bloqueadas. As desinstalações individuais, a análise de resíduos, a limpeza de ficheiros e pastas e o Registo de remoções continuam gratuitos, e o que foi para a Reciclagem ainda pode ser restaurado a partir de lá.",
     converted: "A sua avaliação gratuita passou a ser uma subscrição Pro. Obrigado!",
     seePlans: "Ver planos",
     notNow: "Agora não",

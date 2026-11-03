@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+Leftovers from programs you removed earlier, and a new Free and Pro split for cleaning them.
+
+- Programs removed earlier: the app remembers which programs have disappeared from your installed list, whether this app removed them or something else did, such as Windows Settings, the program's own uninstaller or a command-line tool. The new Removed programs list keeps the last 50 and offers to scan any of them for leftovers. An upgrade that only replaces a program with a newer version is not counted as a removal. The list stays on this PC.
+- Scan a removed program: type a program's name, its old folder, or both. The folder is checked first: protected and shared folders, folders another installed program lives in, links and network paths are refused. Nothing found this way is selected for you.
+- Dead startup entries: on first launch, the app lists Run and Startup entries of your account whose program is no longer on disk. Nothing is selected for you.
+- Only items that come from the removed program itself are pre-selected, meaning the install folder Windows recorded for it. Items found by name only are still shown, marked "Matched by name only", and are never pre-selected. Shared registry locations such as Classes, Policies and WOW6432Node are never offered, and WOW6432Node keys for the program are now reported.
+- The leftovers dialog groups what it finds (files and folders, what still starts with Windows, registry keys, and what is kept for safety), shows why each item is listed, and has a Preview changes step before anything is cleaned.
+- Free and Pro: cleaning leftover files and folders, sent to the Recycle Bin, is now free. Cleaning registry keys and startup entries still needs Pro. The app enforces this itself, not only in the interface.
+- Interface copy about the Free and Pro split is updated in all six languages.
+
 ## 0.14.0
 
 PC Tweaker Uninstaller 0.14.0 adds a Support panel and subscription management in the account menu, and opens at the same size as PC Tweaker.
