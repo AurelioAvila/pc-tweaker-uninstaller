@@ -399,7 +399,7 @@ impl GateEnv {
                 FOLDERID_ProgramFiles, FOLDERID_ProgramFilesX86, FOLDERID_Public,
                 FOLDERID_RoamingAppData, FOLDERID_Windows,
             };
-            let known = |id| {
+            let known = |id: &windows_sys::core::GUID| {
                 crate::elevation::known_folder(id)
                     .map(|v| clean_path(&v).to_lowercase())
                     .filter(|v| !v.is_empty())
