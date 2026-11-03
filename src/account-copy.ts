@@ -470,8 +470,7 @@ export const accountCopy: Record<Locale, typeof en> = {
     contactHint: "Öffnet die Support-Seite in deinem Browser.",
     copyInfo: "Diagnoseinformationen kopieren",
     copied: "Kopiert. Füge sie in deine Nachricht ein.",
-    copyFailed:
-      "Kopieren nicht möglich. Öffne den Protokollordner und häng die Datei an.",
+    copyFailed: "Kopieren nicht möglich. Öffne den Protokollordner und häng die Datei an.",
     openLog: "Protokollordner öffnen",
     logHint: "Das Protokoll bleibt auf diesem PC. Es wird nur gesendet, wenn du es anhängst.",
   },
