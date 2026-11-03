@@ -70,11 +70,13 @@ import { LeftoversView, RemovedNotice, RemovedPanel } from "./leftovers-ui";
 import {
   defaultSelection,
   summarize,
+  undoSummary,
   type CleanOutcome,
+  type CleanPlan,
   type LeftoverReport,
-  type PlanStep,
   type RemovedOverview,
   type RemovedProgramRow,
+  type UndoReport,
 } from "./leftovers";
 
 /** Mirror of the Rust `ProgramInfo` shape (src-tauri/src/programs.rs). Every
@@ -190,6 +192,14 @@ interface RemovalReceipt {
   estimatedSizeKb: number | null;
   verifiedFreedKb: number | null;
   message: string;
+  /** A leftover cleanup: its backup, and whether Undo can still use it. */
+  leftovers?: {
+    stamp: string;
+    userItems: number;
+    machineItems: number;
+    undone: boolean;
+    available: boolean;
+  };
 }
 
 /** Mirror of `RestorePointOutcome` (src-tauri/src/restore_point.rs). Times
@@ -241,9 +251,15 @@ type FlowState =
       subject: string;
       residue: LeftoverReport;
       selected: readonly string[];
-      plan: PlanStep[] | null;
+      plan: CleanPlan | null;
     }
-  | { step: "residueDone"; subject: string; result: CleanOutcome }
+  | {
+      step: "residueDone";
+      subject: string;
+      result: CleanOutcome | null;
+      /** Why nothing was cleaned, in the app's language. */
+      error: string | null;
+    }
   | { step: "storeConfirm"; program: ProgramInfo }
   | { step: "storeRunning"; program: ProgramInfo }
   | { step: "storeDone"; program: ProgramInfo }
@@ -397,10 +413,59 @@ function restoreForecastNote(forecast: RestoreForecast | null) {
   return <li>{text.uninstall.restorePointNote}</li>;
 }
 
+type UndoState = { busy: boolean; report: UndoReport | null; error: string | null };
+
+/** Undo for one leftover cleanup in the ledger, and what it did. */
+function LedgerUndo({
+  lang,
+  stamp,
+  undone,
+  available,
+  state,
+  onUndo,
+}: {
+  lang: Locale;
+  stamp: string;
+  undone: boolean;
+  available: boolean;
+  state: UndoState | undefined;
+  onUndo: (stamp: string) => void;
+}) {
+  const c = leftoversCopy[lang];
+  const report = state?.report ?? null;
+  const summary = report ? undoSummary(report) : null;
+  return (
+    <span className="ledger-undo">
+      {available && !undone && !report && (
+        <button
+          type="button"
+          className="button-ghost small"
+          disabled={state?.busy === true}
+          onClick={() => {
+            onUndo(stamp);
+          }}
+        >
+          {state?.busy === true ? c.undoing : c.undo}
+        </button>
+      )}
+      {undone && !report && <span className="badge badge-hidden">{c.undone}</span>}
+      <span role="status">
+        {summary && summary.restored > 0 && `${c.undoRestored(summary.restored)} `}
+        {summary && summary.kept > 0 && `${c.undoKept(summary.kept)} `}
+        {summary && summary.failed > 0 && `${c.undoFailed(summary.failed)} `}
+        {report !== null && report.refused !== null && backendText(report.refused)}
+        {state?.error}
+      </span>
+    </span>
+  );
+}
+
 /** History line: receipts before 0.13.8 said "created" for any request
  *  Windows accepted, so that word is not repeated as a fact. */
 function ledgerRestoreLine(r: RemovalReceipt): string {
   if (r.restorePointOutcome) return restorePointLine(r.restorePointOutcome);
+  if (r.leftovers)
+    return `${text.ledger.restorePointLabel}: ${leftoversCopy[currentLocale()].restoreNotNeeded}`;
   const legacy = r.restorePoint === "created" ? text.ledger.restorePointLegacy : r.restorePoint;
   return `${text.ledger.restorePointLabel}: ${legacy}`;
 }
@@ -551,6 +616,26 @@ export default function App() {
     }
   };
   const [receipts, setReceipts] = useState<RemovalReceipt[] | null>(null);
+  /* Undo of a leftover cleanup, per backup stamp. Always free. */
+  const [undos, setUndos] = useState<Record<string, UndoState>>({});
+  const undoLeftovers = useCallback((stamp: string) => {
+    setUndos((all) => ({ ...all, [stamp]: { busy: true, report: null, error: null } }));
+    invoke<UndoReport>("undo_leftovers", { stamp })
+      .then((report) => {
+        setUndos((all) => ({ ...all, [stamp]: { busy: false, report, error: null } }));
+      })
+      .catch((error: unknown) => {
+        const message = typeof error === "string" ? backendText(error) : text.errors.generic;
+        setUndos((all) => ({ ...all, [stamp]: { busy: false, report: null, error: message } }));
+      })
+      .finally(() => {
+        invoke<RemovalReceipt[]>("list_removal_ledger")
+          .then(setReceipts)
+          .catch(() => {
+            // The rows already shown stay; the result line says what happened.
+          });
+      });
+  }, []);
   /* What the ledger adds up to: the one number no other uninstaller shows,
      because no other uninstaller measures it. Read at start and after every
      removal, so the tile and the report both speak from the receipts. */
@@ -1105,29 +1190,65 @@ export default function App() {
     [startScan],
   );
 
+  const showResiduePlan = useCallback((plan: CleanPlan) => {
+    setFlow((current) => (current.step === "residue" ? { ...current, plan } : current));
+  }, []);
+
+  /* Cleaning always carries the fingerprint of a plan. Without a preview the
+     plan is fetched first; when it needs the administrator step, the preview
+     with that note is shown and the next click cleans. */
   const runResidueClean = useCallback(
-    (subject: string, token: string, selected: readonly string[]) => {
-      setFlow({ step: "residueScanning", subject });
-      invoke<CleanOutcome>("clean_residue", { token, itemIds: [...selected] })
-        .then((result) => {
-          setFlow({ step: "residueDone", subject, result });
-        })
-        .catch(() => {
-          setFlow({ step: "idle" });
+    async (
+      subject: string,
+      token: string,
+      selected: readonly string[],
+      shown: CleanPlan | null,
+    ) => {
+      const failed = (error: unknown) => {
+        setFlow({
+          step: "residueDone",
+          subject,
+          result: null,
+          error: typeof error === "string" ? backendText(error) : text.errors.generic,
         });
+      };
+      let plan = shown;
+      if (plan === null) {
+        try {
+          plan = await invoke<CleanPlan>("plan_residue_clean", { token, itemIds: [...selected] });
+        } catch (error) {
+          failed(error);
+          return;
+        }
+        if (plan.needsAdmin) {
+          showResiduePlan(plan);
+          return;
+        }
+      }
+      setFlow({ step: "residueScanning", subject });
+      invoke<CleanOutcome>("clean_residue", {
+        token,
+        itemIds: [...selected],
+        fingerprint: plan.fingerprint,
+      })
+        .then((result) => {
+          setFlow({ step: "residueDone", subject, result, error: null });
+        })
+        .catch(failed);
     },
-    [],
+    [showResiduePlan],
   );
 
-  const previewResidue = useCallback((token: string, selected: readonly string[]) => {
-    invoke<PlanStep[]>("plan_residue_clean", { token, itemIds: [...selected] })
-      .then((plan) => {
-        setFlow((current) => (current.step === "residue" ? { ...current, plan } : current));
-      })
-      .catch(() => {
-        setFlow((current) => (current.step === "residue" ? { ...current, plan: [] } : current));
-      });
-  }, []);
+  const previewResidue = useCallback(
+    (token: string, selected: readonly string[]) => {
+      invoke<CleanPlan>("plan_residue_clean", { token, itemIds: [...selected] })
+        .then(showResiduePlan)
+        .catch(() => {
+          showResiduePlan({ steps: [], fingerprint: "", needsAdmin: false, restorePoint: null });
+        });
+    },
+    [showResiduePlan],
+  );
 
   // Safe Batch: sequential removals with the same per-item machinery as a
   // single uninstall — the backend's one-at-a-time lock stays authoritative,
@@ -2839,7 +2960,9 @@ export default function App() {
                     <span className="ledger-main">
                       <span className="ledger-name">
                         {r.programName}
-                        <span className="badge badge-user">{r.method.toUpperCase()}</span>
+                        <span className="badge badge-user">
+                          {r.leftovers ? leftoversCopy[lang].ledgerBadge : r.method.toUpperCase()}
+                        </span>
                         {r.rebootRequired && (
                           <span className="badge badge-hidden">{text.ledger.rebootFlag}</span>
                         )}
@@ -2857,6 +2980,16 @@ export default function App() {
                         · {ledgerRestoreLine(r)}
                       </span>
                       <span className="ledger-message">{backendText(r.message)}</span>
+                      {r.leftovers && (
+                        <LedgerUndo
+                          lang={lang}
+                          stamp={r.leftovers.stamp}
+                          undone={r.leftovers.undone}
+                          available={r.leftovers.available}
+                          state={undos[r.leftovers.stamp]}
+                          onUndo={undoLeftovers}
+                        />
+                      )}
                     </span>
                   </li>
                 ))}
@@ -3308,6 +3441,11 @@ export default function App() {
                 }
                 proAction={proGateAction(closeFlow)}
                 plan={flow.plan}
+                adminNotes={
+                  <ul className="dialog-notes">
+                    {restoreForecastNote(flow.plan?.restorePoint ?? null)}
+                  </ul>
+                }
                 onPreview={() => {
                   previewResidue(flow.residue.token, flow.selected);
                 }}
@@ -3315,7 +3453,7 @@ export default function App() {
                   setFlow({ ...flow, plan: null });
                 }}
                 onClean={() => {
-                  runResidueClean(flow.subject, flow.residue.token, flow.selected);
+                  void runResidueClean(flow.subject, flow.residue.token, flow.selected, flow.plan);
                 }}
                 onClose={closeFlow}
                 formatSize={formatSize}
@@ -3327,7 +3465,21 @@ export default function App() {
               />
             )}
 
-            {flow.step === "residueDone" && (
+            {flow.step === "residueDone" && flow.result === null && (
+              <>
+                <h2>{text.uninstall.residueTitle}</h2>
+                <p className="dialog-body" role="alert">
+                  {flow.error}
+                </p>
+                <div className="dialog-actions">
+                  <button type="button" className="button" onClick={closeFlow}>
+                    {text.uninstall.close}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {flow.step === "residueDone" && flow.result !== null && (
               <>
                 <h2>{text.uninstall.residueTitle}</h2>
                 <p className="dialog-body">
@@ -3345,6 +3497,19 @@ export default function App() {
                   <p className="dialog-body subtle">
                     {leftoversCopy[lang].lockedLine(flow.result.locked.length)}
                   </p>
+                )}
+                {flow.result.adminRefused !== null && (
+                  <p className="dialog-body subtle" role="alert">
+                    {leftoversCopy[lang].adminRefused} {backendText(flow.result.adminRefused)}
+                  </p>
+                )}
+                {flow.result.restorePoint !== null && (
+                  <p className="dialog-body subtle">
+                    {restorePointLine(flow.result.restorePoint as RestorePointOutcome)}
+                  </p>
+                )}
+                {flow.result.stamp !== null && (
+                  <p className="dialog-body subtle">{leftoversCopy[lang].undoHint}</p>
                 )}
                 <div className="dialog-actions">
                   <button type="button" className="button" onClick={closeFlow}>

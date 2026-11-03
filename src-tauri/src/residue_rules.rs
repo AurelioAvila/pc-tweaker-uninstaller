@@ -150,6 +150,51 @@ const WELL_KNOWN_KEYS: &[&str] = &[
     "wow6432node",
     "clients",
     "registeredapplications",
+    "python",
+    "javasoft",
+    "khronos",
+    "odbc",
+    "partner",
+    "description",
+    "setup",
+    "defaultuserenvironment",
+    "intel",
+    "nvidia corporation",
+    "amd",
+    // This app's own backup store.
+    "pc tweaker uninstaller",
+];
+
+/// Folders shared by many programs or by Windows: a folder with one of these
+/// anywhere in its path never anchors a scan, so neither it nor anything in
+/// it is ever cleaned as a whole.
+const SHARED_FOLDERS: &[&str] = &[
+    "common files",
+    "package cache",
+    "microsoft",
+    "windows",
+    "windowsapps",
+    "modifiablewindowsapps",
+    "microsoft shared",
+    "microsoft.net",
+    "windows nt",
+    "windows defender",
+    "windows defender advanced threat protection",
+    "windows mail",
+    "windows media player",
+    "windows photo viewer",
+    "windows sidebar",
+    "windows security",
+    "windowspowershell",
+    "reference assemblies",
+    "msbuild",
+    "dotnet",
+    "uninstall information",
+    "installshield installation information",
+    "usoshared",
+    "usoprivate",
+    "regid.1991-06.com.microsoft",
+    "ssh",
 ];
 
 /// False for a key path that is a well-known shared root or not a single
@@ -173,6 +218,11 @@ pub fn registry_candidate_ok(path: &str) -> bool {
     !rest.is_empty()
         && !rest.contains('\\')
         && !WELL_KNOWN_KEYS.contains(&rest.to_ascii_lowercase().as_str())
+}
+
+/// A folder name shared by many programs or by Windows, never one program's.
+pub fn shared_folder(name: &str) -> bool {
+    SHARED_FOLDERS.contains(&name.to_lowercase().as_str())
 }
 
 /// What the anchor gate looks at, gathered once.
@@ -259,9 +309,7 @@ pub fn anchor_gate(
     if parts.len() < 2
         || env.protected.iter().any(|p| &lower == p)
         || env.shared_roots.iter().any(|r| inside(r))
-        || parts
-            .iter()
-            .any(|p| p == "common files" || p == "package cache")
+        || parts.iter().any(|p| SHARED_FOLDERS.contains(&p.as_str()))
         || own_ancestor
     {
         return Err(Refusal::Blocked(Blocker::ProtectedFolder));
@@ -308,7 +356,8 @@ fn env_dir(var: &str) -> Option<String> {
 
 impl GateEnv {
     pub fn from_process(others: Option<Vec<Option<String>>>) -> GateEnv {
-        let windows = ["SystemRoot", "windir"]
+        #[allow(unused_mut)]
+        let mut windows: Vec<String> = ["SystemRoot", "windir"]
             .iter()
             .filter_map(|v| env_dir(v))
             .collect();
@@ -339,6 +388,36 @@ impl GateEnv {
                 "videos",
             ] {
                 protected.push(format!(r"{profile}\{folder}"));
+            }
+        }
+        // The same folders as Windows records them: the user's own variables
+        // reach the elevated child too, so they alone are not trusted.
+        #[cfg(windows)]
+        {
+            use windows_sys::Win32::UI::Shell::{
+                FOLDERID_LocalAppData, FOLDERID_Profile, FOLDERID_ProgramData,
+                FOLDERID_ProgramFiles, FOLDERID_ProgramFilesX86, FOLDERID_Public,
+                FOLDERID_RoamingAppData, FOLDERID_Windows,
+            };
+            let known = |id: &windows_sys::core::GUID| {
+                crate::elevation::known_folder(id)
+                    .map(|v| clean_path(&v).to_lowercase())
+                    .filter(|v| !v.is_empty())
+            };
+            windows.extend(known(&FOLDERID_Windows));
+            for id in [
+                FOLDERID_ProgramFiles,
+                FOLDERID_ProgramFilesX86,
+                FOLDERID_ProgramData,
+                FOLDERID_Public,
+                FOLDERID_Profile,
+                FOLDERID_RoamingAppData,
+                FOLDERID_LocalAppData,
+            ] {
+                protected.extend(known(&id));
+            }
+            if let Some(local) = known(&FOLDERID_LocalAppData) {
+                protected.push(format!(r"{local}\programs"));
             }
         }
         let shared_roots = ["TEMP", "TMP"].iter().filter_map(|v| env_dir(v)).collect();
@@ -508,6 +587,10 @@ mod tests {
             r"HKLM\Software\WOW6432Node\Microsoft",
             r"HKCU\Software\Clients",
             r"HKLM\Software\RegisteredApplications",
+            r"HKLM\SOFTWARE\Python",
+            r"HKLM\Software\WOW6432Node\JavaSoft",
+            r"HKLM\SOFTWARE\ODBC",
+            r"HKLM\SOFTWARE\PC Tweaker Uninstaller",
             r"HKCU\Software\Foo\Bar",
             r"HKCU\Software",
             r"HKCU\Software\",
@@ -575,6 +658,17 @@ mod tests {
             blocker(r"C:\Users\me\AppData\Local\Temp\Foo"),
             Some(Blocker::ProtectedFolder)
         );
+        for shared in [
+            r"C:\Program Files (x86)\Microsoft\EdgeUpdate",
+            r"C:\Program Files\WindowsApps\Foo_1.0_x64",
+            r"C:\Program Files\Windows Defender",
+            r"C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Foo",
+            r"C:\Program Files (x86)\Reference Assemblies\Foo",
+            r"D:\Tools\dotnet",
+        ] {
+            assert_eq!(blocker(shared), Some(Blocker::ProtectedFolder), "{shared}");
+        }
+        assert!(gate(r"C:\Program Files\Microsoft VS Code").is_ok());
         // This app's own folder, and any folder that contains it.
         assert_eq!(
             blocker(r"C:\Program Files\PC Tweaker Uninstaller"),

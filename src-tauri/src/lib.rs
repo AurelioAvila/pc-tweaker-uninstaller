@@ -21,10 +21,11 @@ pub mod recycle_bin;
 pub mod relations;
 pub mod removed_programs;
 pub mod residue;
+pub mod residue_backup;
+pub mod residue_elevated;
 pub mod residue_rules;
 pub mod residue_startup;
 pub mod restore_point;
-pub mod rollback;
 pub mod store_apps;
 mod tray;
 pub mod uninstall_command;
@@ -95,7 +96,9 @@ pub fn run() {
             residue::scan_startup_sweep,
             residue::plan_residue_clean,
             residue::clean_residue,
+            residue::undo_leftovers,
             removed_programs::removed_overview,
+            removed_programs::dismiss_removed,
             removed_programs::dismiss_startup_card,
             ledger::list_removal_ledger,
             ledger::clear_removal_ledger,

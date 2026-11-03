@@ -26,12 +26,21 @@ fn main() {
     // <fingerprint> <pipe>` runs ONE uninstall (restore point + execution),
     // only if the entry still yields the plan the user confirmed, and sends
     // its report into the parent's pipe; `--elevated-forget <source> <id>
-    // <pipe>` removes one broken entry the same way (forget.rs). One UAC
+    // <pipe>` removes one broken entry the same way (forget.rs);
+    // `--elevated-clean-leftovers <request> <fingerprint> <pipe>` and
+    // `--elevated-undo-leftovers <stamp> <pipe>` clean, or put back, the
+    // leftovers of all users of one cleanup (residue_elevated.rs). One UAC
     // consent covers exactly one action; the GUI never runs elevated. The
     // child re-validates and re-derives everything from source and id — see
     // uninstall_exec's module docs for the trust model.
     let args: Vec<String> = std::env::args().collect();
-    if args.len() > 1 && (args[1] == "--elevated-uninstall" || args[1] == "--elevated-forget") {
+    const ELEVATED: [&str; 4] = [
+        "--elevated-uninstall",
+        "--elevated-forget",
+        "--elevated-clean-leftovers",
+        "--elevated-undo-leftovers",
+    ];
+    if args.len() > 1 && ELEVATED.contains(&args[1].as_str()) {
         // First, before anything can load a DLL by name from the per-user
         // install folder or the working directory.
         pc_tweaker_uninstaller_lib::elevation::restrict_dll_search_to_system32();
@@ -54,6 +63,14 @@ fn main() {
                 pc_tweaker_uninstaller_lib::uninstall_exec::run_elevated_child(
                     source, id, confirmed, pipe,
                 )
+            }
+            ("--elevated-clean-leftovers", [request, confirmed, pipe]) => {
+                pc_tweaker_uninstaller_lib::residue_elevated::run_clean_child(
+                    request, confirmed, pipe,
+                )
+            }
+            ("--elevated-undo-leftovers", [stamp, pipe]) => {
+                pc_tweaker_uninstaller_lib::residue_elevated::run_undo_child(stamp, pipe)
             }
             _ => 2,
         });

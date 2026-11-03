@@ -321,7 +321,7 @@ pub fn license_device_hash() -> Option<String> {
 }
 
 /// Persists the raw, still-signed response so it survives a restart.
-/// Written via temp-file-then-rename (same pattern as `rollback.rs`), so an
+/// Written via temp-file-then-rename (same pattern as the ledger), so an
 /// interrupted write can never leave a half-written — and therefore
 /// Pro-denying — file behind.
 pub struct LicenseStore {

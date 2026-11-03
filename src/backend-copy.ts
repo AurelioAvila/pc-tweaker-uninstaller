@@ -458,6 +458,101 @@ const ENTRIES: Entry[] = [
       pt: "Só é possível procurar resíduos logo depois de esta aplicação remover o programa.",
     },
   ],
+  [
+    /^The leftovers changed after the preview\. Preview the cleanup again\.$/,
+    {
+      it: "I residui sono cambiati dopo l'anteprima. Apri di nuovo l'anteprima della pulizia.",
+      fr: "Les restes ont changé depuis l'aperçu. Affichez de nouveau l'aperçu du nettoyage.",
+      es: "Los restos cambiaron después de la vista previa. Vuelve a abrir la vista previa de la limpieza.",
+      de: "Die Reste haben sich seit der Vorschau geändert. Sieh dir die Änderungen noch einmal an.",
+      pt: "Os resíduos mudaram depois da pré-visualização. Pré-visualize a limpeza novamente.",
+    },
+  ],
+  [
+    /^Too many items in one cleanup\.$/,
+    {
+      it: "Troppi elementi in un'unica pulizia.",
+      fr: "Trop d'éléments pour un seul nettoyage.",
+      es: "Demasiados elementos en una sola limpieza.",
+      de: "Zu viele Einträge für eine einzige Bereinigung.",
+      pt: "Demasiados itens numa só limpeza.",
+    },
+  ],
+  [
+    /^The backup store of this app can be changed by other accounts, so it was not used\.$/,
+    {
+      it: "L'archivio dei backup di questa app può essere modificato da altri account, quindi non è stato usato.",
+      fr: "L'emplacement des sauvegardes de cette application peut être modifié par d'autres comptes, il n'a donc pas été utilisé.",
+      es: "El almacén de copias de seguridad de esta aplicación puede ser modificado por otras cuentas, así que no se usó.",
+      de: "Der Sicherungsspeicher dieser App kann von anderen Konten geändert werden, daher wurde er nicht verwendet.",
+      pt: "O arquivo de cópias de segurança desta aplicação pode ser alterado por outras contas, por isso não foi usado.",
+    },
+  ],
+  [
+    /^The leftovers changed while Windows asked for permission, so nothing was changed\. Preview the cleanup again\.$/,
+    {
+      it: "I residui sono cambiati mentre Windows chiedeva l'autorizzazione, quindi non è stato modificato nulla. Apri di nuovo l'anteprima della pulizia.",
+      fr: "Les restes ont changé pendant que Windows demandait l'autorisation, donc rien n'a été modifié. Affichez de nouveau l'aperçu du nettoyage.",
+      es: "Los restos cambiaron mientras Windows pedía permiso, así que no se cambió nada. Vuelve a abrir la vista previa de la limpieza.",
+      de: "Die Reste haben sich geändert, während Windows nach der Erlaubnis gefragt hat, daher wurde nichts verändert. Sieh dir die Änderungen noch einmal an.",
+      pt: "Os resíduos mudaram enquanto o Windows pedia autorização, por isso nada foi alterado. Pré-visualize a limpeza novamente.",
+    },
+  ],
+  [
+    /^This cleanup's backup is no longer kept, so it cannot be undone\.$/,
+    {
+      it: "Il backup di questa pulizia non è più conservato, quindi non si può annullare.",
+      fr: "La sauvegarde de ce nettoyage n'est plus conservée, il ne peut donc pas être annulé.",
+      es: "La copia de seguridad de esta limpieza ya no se conserva, así que no se puede deshacer.",
+      de: "Die Sicherung dieser Bereinigung wird nicht mehr aufbewahrt, daher kann sie nicht rückgängig gemacht werden.",
+      pt: "A cópia de segurança desta limpeza já não é guardada, por isso não pode ser anulada.",
+    },
+  ],
+  [
+    /^This cleanup's backup is damaged, so it was not used\.$/,
+    {
+      it: "Il backup di questa pulizia è danneggiato, quindi non è stato usato.",
+      fr: "La sauvegarde de ce nettoyage est endommagée, elle n'a donc pas été utilisée.",
+      es: "La copia de seguridad de esta limpieza está dañada, así que no se usó.",
+      de: "Die Sicherung dieser Bereinigung ist beschädigt, daher wurde sie nicht verwendet.",
+      pt: "A cópia de segurança desta limpeza está danificada, por isso não foi usada.",
+    },
+  ],
+  [
+    /^The administrator step did not run, so nothing was changed for all users \(([\s\S]*)\)\.$/,
+    {
+      it: (e) =>
+        `Il passaggio da amministratore non è stato eseguito, quindi per tutti gli utenti non è cambiato nulla (${e}).`,
+      fr: (e) =>
+        `L'étape administrateur n'a pas été exécutée, donc rien n'a changé pour tous les utilisateurs (${e}).`,
+      es: (e) =>
+        `El paso de administrador no se ejecutó, así que no cambió nada para todos los usuarios (${e}).`,
+      de: (e) =>
+        `Der Administratorschritt wurde nicht ausgeführt, daher wurde für alle Benutzer nichts verändert (${e}).`,
+      pt: (e) =>
+        `O passo de administrador não foi executado, por isso nada mudou para todos os utilizadores (${e}).`,
+    },
+  ],
+  [
+    /^The administrator step finished, but its report could not be read\.$/,
+    {
+      it: "Il passaggio da amministratore è terminato, ma non è stato possibile leggerne il resoconto.",
+      fr: "L'étape administrateur est terminée, mais son rapport n'a pas pu être lu.",
+      es: "El paso de administrador terminó, pero no se pudo leer su informe.",
+      de: "Der Administratorschritt ist abgeschlossen, aber sein Bericht konnte nicht gelesen werden.",
+      pt: "O passo de administrador terminou, mas não foi possível ler o respetivo relatório.",
+    },
+  ],
+  [
+    /^Leftovers cleaned: (\d+)\.$/,
+    {
+      it: (n) => `Residui puliti: ${n}.`,
+      fr: (n) => `Restes nettoyés : ${n}.`,
+      es: (n) => `Restos limpiados: ${n}.`,
+      de: (n) => `Bereinigte Reste: ${n}.`,
+      pt: (n) => `Resíduos limpos: ${n}.`,
+    },
+  ],
 ];
 
 /** The message in the app's language; unknown messages come back unchanged. */
