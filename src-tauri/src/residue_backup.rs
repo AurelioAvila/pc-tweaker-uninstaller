@@ -78,8 +78,10 @@ impl RawValue {
         }
         let units: Vec<u16> = self
             .bytes
-            .chunks_exact(2)
-            .map(|c| u16::from_le_bytes([c[0], c[1]]))
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .map(|c| u16::from_le_bytes(*c))
             .collect();
         let parts = units.split(|u| *u == 0).map(String::from_utf16_lossy);
         if self.kind == REG_MULTI_SZ {

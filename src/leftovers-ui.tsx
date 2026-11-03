@@ -215,6 +215,7 @@ export function LeftoversView({
                 return (
                   <li key={step.id} className={step.locked || step.refused ? "skipped" : ""}>
                     <span className="leftover-name">{item?.label ?? step.id}</span>
+                    {item && <span className="leftover-path">{item.command ?? item.path}</span>}
                     <span className="leftover-note">
                       {step.refused
                         ? c.previewRefused
