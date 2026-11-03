@@ -41,6 +41,39 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ---- Scrollbars ------------------------------------------------------ */
+/* The same thumb as PC Tweaker: a hairline that picks up the accent on hover,
+   no track, no arrow buttons. Only the ::-webkit-scrollbar rules are used on
+   purpose: WebView2 ignores them on any element that also sets
+   scrollbar-width or scrollbar-color, and its standard thin scrollbar keeps
+   the arrow buttons. */
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 99px;
+  /* The transparent border plus background-clip makes the visible thumb
+     narrower than its hit area: easy to grab, quiet to look at. */
+  border: 3px solid transparent;
+  background-clip: content-box;
+  background-color: color-mix(in oklab, var(--fg) 16%, transparent);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in oklab, var(--accent) 60%, transparent);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--accent);
+}
+
 /* ---- Selection ------------------------------------------------------- */
 /* An app, not a document: the top bar, buttons, headings, rows and cards do
    not highlight on drag or double-click. What people copy stays selectable:
@@ -360,8 +393,6 @@ svg {
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--bg-raised);
-  scrollbar-width: thin;
-  scrollbar-color: var(--line-strong) transparent;
 }
 
 .list-head,
@@ -593,6 +624,13 @@ svg {
 .cell-version {
   display: grid;
   gap: 2px;
+}
+/* A grid cell does not ellipsize its text, so the version gets its own box;
+   the full value is in its title. */
+.version-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .cell-version small {
   font-size: 10.5px;
