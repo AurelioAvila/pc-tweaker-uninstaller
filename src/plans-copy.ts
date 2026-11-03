@@ -538,14 +538,14 @@ const de: Copy = {
   back: "Installierte Apps",
   title: "Kostenlos deinstallieren. Mit Pro gründlich aufräumen.",
   intro: "Einzelne Deinstallationen bleiben kostenlos. Pro räumt alles auf, was danach kommt.",
-  accountTitle: "Ihr Konto",
-  signedOut: "Sie sind nicht angemeldet",
+  accountTitle: "Dein Konto",
+  signedOut: "Du bist nicht angemeldet",
   signedOutBody:
-    "Ein Konto brauchen Sie nur für Pro. Ein kostenloses Konto gilt für PC Tweaker, Uninstaller und Tweaky Driver.",
+    "Ein Konto brauchst du nur für Pro. Ein kostenloses Konto gilt für PC Tweaker, Uninstaller und Tweaky Driver.",
   signIn: "Anmelden",
   createAccount: "Konto erstellen",
   checking: "Konto wird geprüft…",
-  offline: "Ihr Konto konnte gerade nicht überprüft werden. Versuchen Sie es gleich noch einmal.",
+  offline: "Dein Konto konnte gerade nicht überprüft werden. Versuche es gleich noch einmal.",
   retry: "Erneut versuchen",
   refresh: "Status aktualisieren",
   freePlan: "Free-Tarif",
@@ -556,7 +556,7 @@ const de: Copy = {
   loyaltyNote: (price) =>
     `PC Tweaker Pro ist auf diesem Konto aktiv: Uninstaller Pro kostet ${price}/Jahr.`,
   unverified:
-    "Bestätigen Sie vor dem Upgrade Ihre E-Mail-Adresse: Öffnen Sie den Link, den wir Ihnen gesendet haben.",
+    "Bestätige vor dem Upgrade deine E-Mail-Adresse: Öffne den Link, den wir dir gesendet haben.",
   promoTitle: "Halloween-Angebot",
   ends: "Angebotsende",
   endsIn: "Endet in",
@@ -565,14 +565,14 @@ const de: Copy = {
     "Durchgestrichene Preise sind die niedrigsten Preise der 30 Tage vor dem Angebot. Preise ohne MwSt.",
   preview: "Kampagnenvorschau · nicht aktiv",
   freeName: "Free",
-  freeTagline: "Alles, was Sie zum sicheren Entfernen von Programmen brauchen.",
+  freeTagline: "Alles, was du zum sicheren Entfernen von Programmen brauchen.",
   freeNote: "Dauerhaft kostenlos. Kein Konto nötig.",
-  onFree: "Sie nutzen den Free-Tarif",
-  includedInPro: "In Ihrem Tarif enthalten",
+  onFree: "Du nutzt den Free-Tarif",
+  includedInPro: "In deinem Tarif enthalten",
   current: "Aktueller Tarif",
   proName: "Pro",
   proTagline:
-    "Räumen Sie auf, was Deinstallationsprogramme zurücklassen, und entfernen Sie mehrere Programme in einem Durchgang.",
+    "Räume auf, was Deinstallationsprogramme zurücklassen, und entferne mehrere Programme in einem Durchgang.",
   recommended: "Empfohlen",
   perYear: "/Jahr",
   was: "Vorher",
@@ -584,13 +584,13 @@ const de: Copy = {
   manage: "Abo verwalten",
   proActiveStatus: "Pro ist auf diesem Konto aktiv",
   bonusStatus: "In PC Tweaker Lifetime enthalten",
-  signInFirst: "Melden Sie sich an oder erstellen Sie ein kostenloses Konto, um fortzufahren.",
+  signInFirst: "Melde dich an oder erstelle ein kostenloses Konto, um fortzufahren.",
   checkoutOpened:
-    "Die Zahlung ist in Ihrem Browser geöffnet. Kommen Sie danach hierher zurück und aktualisieren Sie.",
+    "Die Zahlung ist in deinem Browser geöffnet. Komm danach hierher zurück und aktualisiere.",
   checkoutDone: "Zahlung abgeschlossen – aktualisieren",
-  checkoutError: "Die Zahlung konnte nicht gestartet werden. Bitte versuchen Sie es erneut.",
+  checkoutError: "Die Zahlung konnte nicht gestartet werden. Bitte versuche es erneut.",
   portalError:
-    "Das Abrechnungsportal konnte nicht geöffnet werden. Bitte versuchen Sie es gleich noch einmal.",
+    "Das Abrechnungsportal konnte nicht geöffnet werden. Bitte versuche es gleich noch einmal.",
   freeHighlights: [
     "Alle Programme auf diesem PC, einschließlich Microsoft-Store-Apps",
     "Einschätzung und Übersicht vor jeder Deinstallation",
@@ -618,32 +618,32 @@ const de: Copy = {
     "Stapelentfernung: mehrere Programme in sicherer Reihenfolge",
     "Entfernen defekter Einträge, deren Deinstallationsprogramm fehlt",
   ],
-  faqTitle: "Bevor Sie wählen",
+  faqTitle: "Bevor du wählst",
   renewQ: "Wie funktioniert die Verlängerung?",
   renewA:
     "Uninstaller Pro wird einmal im Jahr abgerechnet und verlängert sich automatisch bis zur Kündigung.",
   promoTerms:
-    "Halloween-Angebot: Der Rabatt gilt nur für das erste Jahr; Verlängerungen erfolgen zum regulären Preis. Wenn Sie den Checkout in den letzten 30 Minuten des Angebots öffnen, haben Sie noch 30 Minuten Zeit, ihn zum Angebotspreis abzuschließen.",
+    "Halloween-Angebot: Der Rabatt gilt nur für das erste Jahr; Verlängerungen erfolgen zum regulären Preis. Wenn du den Checkout in den letzten 30 Minuten des Angebots öffnest, hast du noch 30 Minuten Zeit, ihn zum Angebotspreis abzuschließen.",
   cancelQ: "Wie kündige ich?",
   cancelA:
-    "Öffnen Sie das Kontomenü und wählen Sie „Abo verwalten“. Dort sehen Sie Ihren Tarif und können kündigen; Pro bleibt bis zum Ende des bezahlten Zeitraums aktiv. Zahlungsmethode und Rechnungen öffnen sich im Abrechnungsportal von Stripe. Wenn Pro endet, funktioniert alles aus Free weiter.",
+    "Öffne das Kontomenü und wähle „Abo verwalten“. Dort siehst du deinen Tarif und kannst kündigen; Pro bleibt bis zum Ende des bezahlten Zeitraums aktiv. Zahlungsmethode und Rechnungen öffnen sich im Abrechnungsportal von Stripe. Wenn Pro endet, funktioniert alles aus Free weiter.",
   lifetimeQ: "Ich habe PC Tweaker Lifetime. Ist Pro enthalten?",
   lifetimeA:
-    "Ja: 12 Monate Uninstaller Pro ab der ersten Anmeldung hier, ohne automatische Verlängerung. Melden Sie sich mit demselben Konto an, dann wird es automatisch angewendet.",
+    "Ja: 12 Monate Uninstaller Pro ab der ersten Anmeldung hier, ohne automatische Verlängerung. Melde dich mit demselben Konto an, dann wird es automatisch angewendet.",
   loyaltyQ: "Ich zahle bereits für PC Tweaker Pro.",
   loyaltyA: (price) =>
     `Jeder aktive PC-Tweaker-Tarif schaltet den Treuepreis frei: Uninstaller Pro kostet ${price}/Jahr auf demselben Konto. Der Checkout berücksichtigt ihn automatisch.`,
-  dataTitle: "Was die App mit Ihren Daten macht",
+  dataTitle: "Was die App mit deinen Daten macht",
   data: [
-    "Ihre Programmliste, die Suche nach Resten, das Entfernungsprotokoll und das Diagnoseprotokoll bleiben auf diesem PC. Nichts davon wird hochgeladen.",
+    "Deine Programmliste, die Suche nach Resten, das Entfernungsprotokoll und das Diagnoseprotokoll bleiben auf diesem PC. Nichts davon wird hochgeladen.",
     "Keine Analyse-Tools, keine Werbung, keine Tracking-SDKs und kein Absturzmeldedienst.",
-    "Ein Konto ist nur für Pro nötig. Es speichert Ihre E-Mail-Adresse, einen Hash des Passworts, Ihren Namen, Ihr Geburtsdatum und Ihren Tarif.",
-    "Die Zahlung läuft über Stripe Checkout in Ihrem Browser. Kartendaten gelangen nie auf unsere Server.",
-    "Die signierte Lizenz auf diesem PC enthält Ihre Konto-ID, den Tarifstatus, den Produktnamen und einen Zeitstempel. Beim Abmelden wird sie gelöscht.",
+    "Ein Konto ist nur für Pro nötig. Es speichert deine E-Mail-Adresse, einen Hash des Passworts, deinen Namen, dein Geburtsdatum und deinen Tarif.",
+    "Die Zahlung läuft über Stripe Checkout in deinem Browser. Kartendaten gelangen nie auf unsere Server.",
+    "Die signierte Lizenz auf diesem PC enthält deine Konto-ID, den Tarifstatus, den Produktnamen und einen Zeitstempel. Beim Abmelden wird sie gelöscht.",
   ],
   privacy: "Datenschutzerklärung lesen",
   checkoutNote:
-    "Die Zahlung wird von Stripe in Ihrem Browser abgewickelt. Endpreis, Steuern und Zahlungsbedingungen werden beim Bezahlen angezeigt.",
+    "Die Zahlung wird von Stripe in deinem Browser abgewickelt. Endpreis, Steuern und Zahlungsbedingungen werden beim Bezahlen angezeigt.",
 };
 
 const pt: Copy = {
