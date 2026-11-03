@@ -7,7 +7,7 @@ import { pathToFileURL } from 'node:url';
 import ts from 'typescript';
 // Every table that holds user-facing text, in all six languages: same shape as
 // English, and the house rules (plan names, pt-PT, French spacing, German
-// dashes and "Sie", Italian accents, no "illustrative") hold everywhere.
+// dashes and informal "du", Italian accents, no "illustrative") hold everywhere.
 globalThis.localStorage = { getItem: () => null, setItem: () => {} };
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pcu-i18n-'));
 for (const name of ['i18n', 'plans-copy', 'trial-copy', 'workspace-copy', 'inventory-copy', 'backend-copy', 'account-copy']) {
@@ -69,8 +69,10 @@ test('trial and plans keep the same placeholders as English', () => {
     }
   }
 });
-test('German never uses the informal "du" in any table', () => {
-  const words = /\b(?:du|dich|dir|dein(?:e[mnrs]?)?|finde|prüfe|beende|versuche es)\b/i; // not the noun: "Zu viele Versuche"
+test('German never uses the formal Sie', () => {
+  // Address is always the informal "du". "Sie" also means "they"/"it"/"she", so
+  // only the forms that can only be formal are checked: Ihr-, and a verb followed by Sie.
+  const words = /\b(?:Ihr(?:e[mnrs]?)?|Ihnen|(?:[a-zäöüß]+en|sind|haben|können|müssen|werden|dürfen|sollen|wollen|möchten) Sie)\b/;
   for (const [name, table] of Object.entries(tables)) {
     for (const s of strings(table.de)) assert.ok(!words.test(s), `${name}.de: "${s}"`);
   }
