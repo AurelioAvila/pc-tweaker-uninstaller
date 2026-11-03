@@ -72,7 +72,7 @@ test('trial and plans keep the same placeholders as English', () => {
 test('German never uses the formal Sie', () => {
   // Address is always the informal "du". "Sie" also means "they"/"it"/"she", so
   // only the forms that can only be formal are checked: Ihr-, and a verb followed by Sie.
-  const words = /\b(?:Ihr(?:e[mnrs]?)?|Ihnen|(?:[a-zäöüß]+en|sind|haben|können|müssen|werden|dürfen|sollen|wollen|möchten) Sie)\b/;
+  const words = /\b(?:Ihr(?:e[mnrs]?)?|Ihnen|(?:[A-Za-zäöüß]+en|[Ss]ind|[Hh]aben|[Kk]önnen|[Mm]üssen|[Ww]erden|[Dd]ürfen|[Ss]ollen|[Ww]ollen|[Mm]öchten) Sie)\b/;
   for (const [name, table] of Object.entries(tables)) {
     for (const s of strings(table.de)) assert.ok(!words.test(s), `${name}.de: "${s}"`);
   }
