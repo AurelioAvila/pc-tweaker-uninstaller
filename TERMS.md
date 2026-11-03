@@ -11,7 +11,7 @@ PC Tweaker Uninstaller is a Windows desktop app that lists installed programs, r
 ## 2. Free and Pro tiers
 
 - Core uninstalling is free to use, with no account required.
-- Pro unlocks the advanced features (deep leftover scanning and related power-user tools) via an annual subscription that renews automatically until cancelled.
+- Pro unlocks the advanced cleanup features (removing the leftover registry keys and startup entries a scan finds, and related power-user tools) via an annual subscription that renews automatically until cancelled. Scanning for leftovers, sending leftover files and folders to the Recycle Bin, and undo stay free.
 - Purchases are sold through Link, Stripe's merchant of record, which collects any applicable tax, sends the receipt and handles payment support. Link's own buyer terms apply to the transaction.
 - Customers with an active PC Tweaker Pro subscription are offered a discounted annual price, applied automatically at checkout based on the account's actual subscription status.
 - You can cancel anytime; Pro access continues until the end of the current billing period, then reverts to the Free tier.
