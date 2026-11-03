@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>pc-tweaker-uninstaller</id>
+    <version>0.14.0</version>
+    <title>PC Tweaker Uninstaller</title>
+    <authors>Aurelio Avila</authors>
+    <owners>AurelioAvila</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <licenseUrl>https://github.com/AurelioAvila/pc-tweaker-uninstaller/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://pctweaker.app/uninstaller/</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/AurelioAvila/pc-tweaker-uninstaller/master/docs/icon.png</iconUrl>
+    <summary>Inspect Windows uninstall commands, permissions and removal receipts</summary>
+    <description>PC Tweaker Uninstaller inventories installed Windows programs and shows the program's registered removal command, requested permissions and estimated size before a removal runs.
+
+Single-program uninstalls and leftover scanning are free. Optional paid Pro adds selected leftover cleanup and batch removals. Paid features use a PC Tweaker suite account with a separate Uninstaller entitlement; see the official product page for current prices, eligibility and renewal terms.
+
+Elevated removals attempt a Windows restore point. The local Removal Ledger records the actual outcome and distinguishes reported size from verified reclaimed space. A confidence label is guidance, not a guarantee. Restore-point requests can fail or remain unverified and do not replace an independent backup. Inspect each leftover candidate before deleting it.
+
+This package downloads the publisher's version-specific, signed Windows x64 setup. The installer identifies Aurelio Avila and includes a trusted timestamp. It installs the application for the current Windows user. Installing this package does not uninstall any other program or run a cleanup.
+
+The application is proprietary, with source available for inspection under its own non-OSI license. This package contains only metadata and scripts, not embedded application binaries.</description>
+    <releaseNotes>https://github.com/AurelioAvila/pc-tweaker-uninstaller/releases/tag/v0.14.0</releaseNotes>
+    <copyright>2026 Aurelio Avila</copyright>
+    <tags>pc-tweaker-uninstaller uninstaller software-removal windows inventory admin</tags>
+    <projectSourceUrl>https://github.com/AurelioAvila/pc-tweaker-uninstaller</projectSourceUrl>
+    <packageSourceUrl>https://github.com/AurelioAvila/pc-tweaker-uninstaller/tree/master/packaging/chocolatey</packageSourceUrl>
+    <docsUrl>https://pctweaker.app/uninstaller/</docsUrl>
+    <bugTrackerUrl>https://github.com/AurelioAvila/pc-tweaker-uninstaller/issues</bugTrackerUrl>
+  </metadata>
+  <files>
+    <file src="tools\*.ps1" target="tools" />
+  </files>
+</package>
