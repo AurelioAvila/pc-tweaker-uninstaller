@@ -1,7 +1,7 @@
 import type { Locale } from "./i18n";
 
 /** Free-trial wording for Plans & pricing, the account panel and the notice
- *  shown on return. German follows the app's "Sie". */
+ *  shown on return. German follows the app's informal "du". */
 type TrialCopy = {
   start: string;
   subscribeNow: string;
@@ -176,18 +176,18 @@ export const trialCopy: Record<Locale, TrialCopy> = {
     firstCharge: "Erste Abbuchung am {date}",
     noCharge: "Gekündigt: endet am {date}, keine Abbuchung",
     paymentFailed: "Zahlung fehlgeschlagen",
-    paymentFailedHint: "Aktualisieren Sie Ihre Zahlungsmethode, um Pro wieder freizuschalten.",
+    paymentFailedHint: "Aktualisiere deine Zahlungsmethode, um Pro wieder freizuschalten.",
     updatePayment: "Zahlungsmethode aktualisieren",
     ended: "Beendet",
     trialUsed: "Kostenlose Testphase bereits genutzt",
     pausedTitle: "Pro ist pausiert",
     pausedBody:
       "Die letzte Zahlung ist nicht durchgegangen, daher bleiben die Bereinigung von Resten und die Stapelentfernung gesperrt, bis sie gelingt. Bereits entfernte Programme bleiben entfernt, und was in den Papierkorb verschoben wurde, lässt sich dort weiterhin wiederherstellen.",
-    trialEndedTitle: "Ihre kostenlose Testphase ist beendet",
-    endedTitle: "Ihr Pro-Tarif ist beendet",
+    trialEndedTitle: "Deine kostenlose Testphase ist beendet",
+    endedTitle: "Dein Pro-Tarif ist beendet",
     endedBody:
       "Die Bereinigung von Resten und die Stapelentfernung sind jetzt gesperrt. Einzelne Deinstallationen, die Restesuche und das Entfernungsprotokoll bleiben kostenlos, und was in den Papierkorb verschoben wurde, lässt sich dort weiterhin wiederherstellen.",
-    converted: "Ihre kostenlose Testphase ist jetzt ein Pro-Abo. Vielen Dank!",
+    converted: "Deine kostenlose Testphase ist jetzt ein Pro-Abo. Vielen Dank!",
     seePlans: "Tarife ansehen",
     notNow: "Nicht jetzt",
   },

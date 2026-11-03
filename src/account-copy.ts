@@ -380,14 +380,14 @@ export const accountCopy: Record<Locale, typeof en> = {
   },
   de: {
     manage: "Abo verwalten",
-    loading: "Ihr Abo wird geprüft …",
+    loading: "Dein Abo wird geprüft …",
     retry: "Erneut versuchen",
     close: "Schließen",
     errors: {
-      offline: "Sie sind offline. Verbinden Sie sich mit dem Internet und versuchen Sie es erneut.",
-      auth: "Ihre Sitzung ist abgelaufen. Melden Sie sich über das Kontomenü erneut an.",
-      rate: "Zu viele Versuche. Warten Sie einen Moment und versuchen Sie es erneut.",
-      billing: "Die Abrechnung ist nicht erreichbar. Versuchen Sie es erneut.",
+      offline: "Du bist offline. Verbinde dich mit dem Internet und versuche es erneut.",
+      auth: "Deine Sitzung ist abgelaufen. Melde dich über das Kontomenü erneut an.",
+      rate: "Zu viele Versuche. Warte einen Moment und versuche es erneut.",
+      billing: "Die Abrechnung ist nicht erreichbar. Versuche es erneut.",
     },
     pills: {
       active: "Aktiv",
@@ -402,16 +402,16 @@ export const accountCopy: Record<Locale, typeof en> = {
     renews: "Verlängert sich am {date}.",
     trialUntil: "Kostenloser Test bis {date}. Die erste Zahlung erfolgt an diesem Tag.",
     endingBody: "Pro bleibt bis {date} aktiv. Es wird nichts mehr abgebucht.",
-    trialEnding: "Ihr Test endet am {date}. Es wird nichts abgebucht.",
+    trialEnding: "Dein Test endet am {date}. Es wird nichts abgebucht.",
     pastDue:
-      "Ihre letzte Zahlung ist fehlgeschlagen. Aktualisieren Sie Ihre Zahlungsmethode, um Pro zu behalten.",
+      "Deine letzte Zahlung ist fehlgeschlagen. Aktualisiere deine Zahlungsmethode, um Pro zu behalten.",
     paused:
-      "Die Zahlungen sind pausiert. Aktualisieren Sie Ihre Zahlungsmethode, um Pro wieder zu aktivieren.",
+      "Die Zahlungen sind pausiert. Aktualisiere deine Zahlungsmethode, um Pro wieder zu aktivieren.",
     lifetime: "Lifetime-Lizenz: Es verlängert sich nichts, daher gibt es nichts zu kündigen.",
     includedUntil:
-      "Bis {date} in Ihrem Konto enthalten. Es verlängert sich nichts, daher gibt es nichts zu kündigen.",
+      "Bis {date} in deinem Konto enthalten. Es verlängert sich nichts, daher gibt es nichts zu kündigen.",
     included:
-      "In Ihrem Konto enthalten. Es verlängert sich nichts, daher gibt es nichts zu kündigen.",
+      "In deinem Konto enthalten. Es verlängert sich nichts, daher gibt es nichts zu kündigen.",
     none: "Für dieses Konto besteht kein Abo.",
     noneHint:
       "Deinstallationen bleiben kostenlos. Pro räumt Reste auf und entfernt mehrere Programme auf einmal.",
@@ -422,24 +422,24 @@ export const accountCopy: Record<Locale, typeof en> = {
     perYear: "/Jahr",
     payment: "Zahlungsmethode",
     card: "{brand} mit Endziffern {last4}",
-    alsoOn: "Ebenfalls in Ihrem Konto",
+    alsoOn: "Ebenfalls in deinem Konto",
     cancel: "Abo kündigen",
     resume: "Abo fortsetzen",
     portal: "Zahlungsmethode und Rechnungen",
     portalError:
-      "Das Abrechnungsportal konnte nicht geöffnet werden. Versuchen Sie es gleich noch einmal.",
+      "Das Abrechnungsportal konnte nicht geöffnet werden. Versuche es gleich noch einmal.",
     cancelNote:
       "Eine Kündigung stoppt die nächste Verlängerung. Pro bleibt bis zum Ende des bereits bezahlten Zeitraums aktiv.",
     confirmTitle: "Abo kündigen?",
     confirmBody: "Pro bleibt bis {date} aktiv. Es wird nichts mehr abgebucht.",
-    confirmTrial: "Ihr Test läuft bis {date} weiter. Es wird nichts abgebucht.",
+    confirmTrial: "Dein Test läuft bis {date} weiter. Es wird nichts abgebucht.",
     confirmNoDate:
       "Pro bleibt bis zum Ende des bezahlten Zeitraums aktiv. Es wird nichts mehr abgebucht.",
     keep: "Abo behalten",
     cancelled: "Erledigt. Pro bleibt bis {date} aktiv.",
-    resumed: "Erledigt. Ihr Abo verlängert sich am {date}.",
+    resumed: "Erledigt. Dein Abo verlängert sich am {date}.",
     step: "Schritt {n} von 2",
-    reasonTitle: "Bevor Sie gehen: Was ist der Hauptgrund?",
+    reasonTitle: "Bevor du gehst: Was ist der Hauptgrund?",
     reasonHint: "Optional. Das hilft uns, besser zu werden.",
     reasons: {
       too_expensive: "Zu teuer",
@@ -453,7 +453,7 @@ export const accountCopy: Record<Locale, typeof en> = {
     },
     commentLabel: "Was könnten wir besser machen?",
     otherLabel: "Was ist der Grund?",
-    commentPlaceholder: "Erzählen Sie uns mehr (optional)",
+    commentPlaceholder: "Erzähl uns mehr (optional)",
     skip: "Überspringen",
     next: "Weiter",
     back: "Zurück",
@@ -465,15 +465,14 @@ export const accountCopy: Record<Locale, typeof en> = {
     support: "Support",
     supportTitle: "Hilfe und Support",
     supportIntro:
-      "Beschreiben Sie, was passiert ist. Mit den Diagnoseinformationen und dem Protokoll können wir gleich beim ersten Mal helfen.",
+      "Beschreibe, was passiert ist. Mit den Diagnoseinformationen und dem Protokoll können wir gleich beim ersten Mal helfen.",
     contact: "Support kontaktieren",
-    contactHint: "Öffnet die Support-Seite in Ihrem Browser.",
+    contactHint: "Öffnet die Support-Seite in deinem Browser.",
     copyInfo: "Diagnoseinformationen kopieren",
-    copied: "Kopiert. Fügen Sie sie in Ihre Nachricht ein.",
-    copyFailed:
-      "Kopieren nicht möglich. Öffnen Sie den Protokollordner und hängen Sie die Datei an.",
+    copied: "Kopiert. Füge sie in deine Nachricht ein.",
+    copyFailed: "Kopieren nicht möglich. Öffne den Protokollordner und häng die Datei an.",
     openLog: "Protokollordner öffnen",
-    logHint: "Das Protokoll bleibt auf diesem PC. Es wird nur gesendet, wenn Sie es anhängen.",
+    logHint: "Das Protokoll bleibt auf diesem PC. Es wird nur gesendet, wenn du es anhängst.",
   },
   pt: {
     manage: "Gerir subscrição",

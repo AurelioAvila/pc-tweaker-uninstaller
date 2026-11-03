@@ -1582,7 +1582,7 @@ const de: Dictionary = {
     tagline: "Installierte Programme prüfen. Sicher deinstallieren.",
     suiteDetected: "PC Tweaker erkannt – Suite-Mitglied",
     suiteDetectedHint:
-      "PC Tweaker ist auf diesem PC installiert. Melden Sie sich mit Ihrem PC-Tweaker-Pro-Konto an, um den Treuepreis freizuschalten.",
+      "PC Tweaker ist auf diesem PC installiert. Melde dich mit deinem PC-Tweaker-Pro-Konto an, um den Treuepreis freizuschalten.",
   },
   programs: {
     searchPlaceholder: "Nach Name oder Herausgeber suchen...",
@@ -1595,9 +1595,9 @@ const de: Dictionary = {
     statTotalSize: "auf der Festplatte",
     emptyTitle: "Keine Programme gefunden",
     emptyBody:
-      "In der Windows-Registrierung wurden keine deinstallierbaren Programme gefunden. Das ist ungewöhnlich – wenn Sie glauben, dass das ein Fehler ist, melden Sie es bitte.",
+      "In der Windows-Registrierung wurden keine deinstallierbaren Programme gefunden. Das ist ungewöhnlich – wenn du glaubst, dass das ein Fehler ist, melde es bitte.",
     noMatchesTitle: "Keine Treffer",
-    noMatchesBody: "Kein installiertes Programm entspricht Ihrer Suche.",
+    noMatchesBody: "Kein installiertes Programm entspricht deiner Suche.",
     errorTitle: "Installierte Programme konnten nicht gelesen werden",
     retry: "Erneut versuchen",
     columnProgram: "Programm",
@@ -1625,9 +1625,9 @@ const de: Dictionary = {
     badgeUserHint: "Nur für diesen Benutzer installiert, nicht PC-weit.",
     badgeHidden: "Verborgen",
     badgeHiddenHint:
-      "Windows verbirgt diesen Eintrag normalerweise (Systemkomponente oder Unter-Update). Das Entfernen kann andere Software beeinträchtigen – stellen Sie sicher, dass Sie wissen, was es ist.",
+      "Windows verbirgt diesen Eintrag normalerweise (Systemkomponente oder Unter-Update). Das Entfernen kann andere Software beeinträchtigen – stelle sicher, dass du weißt, was es ist.",
     badgeSuite: "Suite",
-    badgeSuiteHint: "Teil Ihrer PC-Tweaker-Suite.",
+    badgeSuiteHint: "Teil deiner PC-Tweaker-Suite.",
     filterAll: "Alle",
     filterLarge: "Groß",
     filterRecent: "Neu",
@@ -1692,7 +1692,7 @@ const de: Dictionary = {
       "Es wird genau der folgende Befehl ausgeführt – nichts anderes. Er wurde aus der Windows-Registrierung neu aufgebaut und wird im Moment der Ausführung erneut geprüft.",
     commandLabel: "Befehl",
     storeConfirmBody:
-      "Windows entfernt dieses Paket für den aktuellen Benutzer. Es bleibt nichts zum Aufräumen und Sie können es jederzeit aus dem Microsoft Store neu installieren.",
+      "Windows entfernt dieses Paket für den aktuellen Benutzer. Es bleibt nichts zum Aufräumen und du kannst es jederzeit aus dem Microsoft Store neu installieren.",
     storeRemoving: "Paket wird entfernt...",
     storeRemoved: (name: string) => `${name} wurde entfernt.`,
     methodLabel: "Methode",
@@ -1705,7 +1705,7 @@ const de: Dictionary = {
     sizeUnknown: "Nicht erfasst",
     confidenceLabel: "Einschätzung",
     notRemovedNote:
-      "Nicht automatisch entfernt: übrig gebliebene Dateien, Ordner und Registrierungseinträge. Sie können direkt nach der Deinstallation danach suchen, und nichts wird ohne Rückfrage gelöscht.",
+      "Nicht automatisch entfernt: übrig gebliebene Dateien, Ordner und Registrierungseinträge. Du kannst direkt nach der Deinstallation danach suchen, und nichts wird ohne Rückfrage gelöscht.",
     elevationNote: "Windows fragt zuerst nach Administrator-Bestätigung (UAC).",
     restorePointNote:
       "Bevor etwas ausgeführt wird, wird Windows um einen neuen Wiederherstellungspunkt gebeten. Kann Windows keinen erstellen, läuft die Deinstallation trotzdem, und der Bericht sagt es.",
@@ -1719,11 +1719,11 @@ const de: Dictionary = {
     planning: "Es wird geprüft, was ausgeführt würde...",
     planFailedTitle: "Automatische Deinstallation nicht möglich",
     forgetOffer:
-      "Das Deinstallationsprogramm des Programms existiert nicht mehr und kann daher nie ausgeführt werden. Stattdessen können Sie den Eintrag aus den installierten Programmen entfernen und anschließend die Reste bereinigen.",
+      "Das Deinstallationsprogramm des Programms existiert nicht mehr und kann daher nie ausgeführt werden. Stattdessen kannst du den Eintrag aus den installierten Programmen entfernen und anschließend die Reste bereinigen.",
     forgetAction: "Defekten Eintrag entfernen",
     forgetConfirmTitle: (name) => `Eintrag für ${name} entfernen?`,
     forgetConfirmBody:
-      "Nur der Eintrag in den installierten Programmen wird entfernt. Es wird nichts ausgeführt und keine Datei gelöscht; danach können Sie nach Resten suchen, und alles Bereinigte landet im Papierkorb.",
+      "Nur der Eintrag in den installierten Programmen wird entfernt. Es wird nichts ausgeführt und keine Datei gelöscht; danach kannst du nach Resten suchen, und alles Bereinigte landet im Papierkorb.",
     forgetLedgerNote:
       "Die entfernten Registrierungswerte bleiben im Entfernungsprotokoll gespeichert.",
     forgetProGate: "Das Entfernen defekter Einträge gehört zu Uninstaller Pro.",
@@ -1733,7 +1733,7 @@ const de: Dictionary = {
     runningNote:
       "Das Deinstallationsprogramm des Programms läuft. Dieses Fenster bleibt bedienbar; manche Deinstallationsprogramme öffnen eigene Fenster.",
     runningSlowNote:
-      "Das dauert länger als üblich. Manche Deinstallationsprogramme öffnen ein eigenes Fenster, das hinter diesem liegen kann – sehen Sie in der Taskleiste nach. Es geht nichts verloren, wenn Sie warten.",
+      "Das dauert länger als üblich. Manche Deinstallationsprogramme öffnen ein eigenes Fenster, das hinter diesem liegen kann – sieh in der Taskleiste nach. Es geht nichts verloren, wenn du wartest.",
     reportSuccessTitle: "Deinstalliert",
     reportFailureTitle: "Deinstallation nicht abgeschlossen",
     rebootNote: "Ein Neustart ist nötig, um die Dateien vollständig zu entfernen.",
@@ -1742,7 +1742,7 @@ const de: Dictionary = {
     restorePointReused: (when) =>
       `Wiederherstellungspunkt: kein neuer. Windows hat den vom ${when} wiederverwendet. Wird er wiederhergestellt, wird auch alles rückgängig gemacht, was seitdem geändert wurde.`,
     restorePointUnverified:
-      "Wiederherstellungspunkt: Windows hat die Anfrage angenommen, aber die App konnte nicht bestätigen, dass ein neuer Punkt existiert. Prüfen Sie es unter Wiederherstellungspunkte verwalten.",
+      "Wiederherstellungspunkt: Windows hat die Anfrage angenommen, aber die App konnte nicht bestätigen, dass ein neuer Punkt existiert. Prüfe es unter Wiederherstellungspunkte verwalten.",
     restorePointSkipped: (reason) => `Wiederherstellungspunkt: übersprungen – ${reason}`,
     restorePointFailed: (reason) => `Wiederherstellungspunkt: nicht erstellt – ${reason}`,
     restorePointCauses: {
@@ -1780,7 +1780,7 @@ const de: Dictionary = {
     batchClear: "Auswahl leeren",
     batchConfirmTitle: (count) => `${String(count)} Programme entfernen?`,
     batchConfirmBody:
-      "Sie laufen nacheinander, enthaltene Programme vor ihren Containern, mit denselben Prüfungen wie eine einzelne Deinstallation. Geschützte Einträge (Systemkomponenten, gemeinsame Runtimes, Ihre PC-Tweaker-Suite) sind nicht auswählbar.",
+      "Sie laufen nacheinander, enthaltene Programme vor ihren Containern, mit denselben Prüfungen wie eine einzelne Deinstallation. Geschützte Einträge (Systemkomponenten, gemeinsame Runtimes, deine PC-Tweaker-Suite) sind nicht auswählbar.",
     batchNotBatchable: "Geschützt – nicht für Stapelentfernung verfügbar.",
     batchRunningStep: (name, index, total) =>
       `${name} wird deinstalliert (${String(index)} von ${String(total)})...`,
@@ -1788,7 +1788,7 @@ const de: Dictionary = {
     batchFailedNote: (count) =>
       `Nicht abgeschlossene Programme: ${String(count)} – Details im Protokoll.`,
     familyNote:
-      "Diese App gehört zu Ihrer PC-Tweaker-Suite. Sie können sie entfernen, aber davon abhängige Suite-Funktionen hören auf zu funktionieren.",
+      "Diese App gehört zu deiner PC-Tweaker-Suite. Du kannst sie entfernen, aber davon abhängige Suite-Funktionen hören auf zu funktionieren.",
     hiddenNote:
       "Windows verbirgt diesen Eintrag normalerweise. Das Entfernen von Systemkomponenten oder Unter-Updates kann andere Software beeinträchtigen.",
   },
@@ -1798,11 +1798,11 @@ const de: Dictionary = {
     subtitle:
       "Eine lokale Quittung für jede Entfernung, die diese App ausgeführt hat – Erfolge wie Fehlschläge. Auf diesem PC gespeichert, nie hochgeladen.",
     empty:
-      "Noch keine Entfernungen aufgezeichnet. Ihre erste Deinstallation hinterlässt hier ihre Quittung.",
+      "Noch keine Entfernungen aufgezeichnet. Deine erste Deinstallation hinterlässt hier ihre Quittung.",
     exportButton: "Als JSON exportieren",
     logButton: "Protokollordner öffnen",
     logAt: (path) =>
-      `Diagnoseprotokoll: ${path}. Es wird nirgendwohin gesendet; hängen Sie es bei Bedarf an eine Supportnachricht an.`,
+      `Diagnoseprotokoll: ${path}. Es wird nirgendwohin gesendet; häng es bei Bedarf an eine Supportnachricht an.`,
     exportedTo: (path) => `Exportiert nach ${path}`,
     verifiedFreed: (size) => `${size} freigegeben (verifiziert)`,
     estimatedOnly: (size) => `~${size} (Registrierungs-Schätzung)`,
@@ -1843,42 +1843,42 @@ const de: Dictionary = {
       "Die Stapelentfernung ist eine Uninstaller-Pro-Funktion. Einzelne Deinstallationen bleiben immer kostenlos.",
     proGateSignIn: "Zuerst über das Kontomenü anmelden, dann Pro freischalten.",
     loyaltyLocked:
-      "Melden Sie sich mit Ihrem PC-Tweaker-Pro-Konto an, um den Treuepreis freizuschalten.",
-    checkFailed: "Konto konnte gerade nicht überprüft werden. Versuchen Sie es gleich noch einmal.",
+      "Melde dich mit deinem PC-Tweaker-Pro-Konto an, um den Treuepreis freizuschalten.",
+    checkFailed: "Konto konnte gerade nicht überprüft werden. Versuche es gleich noch einmal.",
     createAccount: "Konto erstellen",
     sharedAccount:
-      "Ein Konto für PC Tweaker, PC Tweaker Uninstaller und Tweaky Driver. Sie haben bereits ein Konto bei PC Tweaker oder Tweaky Driver? Dann melden Sie sich damit an.",
+      "Ein Konto für PC Tweaker, PC Tweaker Uninstaller und Tweaky Driver. Du hast bereits ein Konto bei PC Tweaker oder Tweaky Driver? Dann melde dich damit an.",
     firstNameLabel: "Vorname",
     lastNameLabel: "Nachname",
     birthDateLabel: "Geburtsdatum",
-    verifyEmail: "Prüfen Sie Ihr Postfach, um Ihre E-Mail-Adresse zu bestätigen.",
+    verifyEmail: "Prüfe dein Postfach, um deine E-Mail-Adresse zu bestätigen.",
     verifyEmailFailed:
-      "Konto erstellt, aber die Bestätigungs-E-Mail konnte nicht gesendet werden. Kontaktieren Sie den Support.",
+      "Konto erstellt, aber die Bestätigungs-E-Mail konnte nicht gesendet werden. Kontaktiere den Support.",
     errorCredentials: "E-Mail-Adresse oder Passwort ist falsch.",
     errorAlreadyRegistered:
-      "Für diese E-Mail-Adresse gibt es bereits ein Konto, vielleicht aus PC Tweaker oder Tweaky Driver. Melden Sie sich damit an oder setzen Sie das Passwort zurück.",
-    errorRateLimited: "Zu viele Versuche. Bitte warten Sie 15 Minuten und versuchen Sie es erneut.",
+      "Für diese E-Mail-Adresse gibt es bereits ein Konto, vielleicht aus PC Tweaker oder Tweaky Driver. Melde dich damit an oder setze das Passwort zurück.",
+    errorRateLimited: "Zu viele Versuche. Bitte warte 15 Minuten und versuche es erneut.",
     errorRateLimitedWait: (wait) =>
-      `Zu viele Versuche. Bitte warten Sie ${wait} und versuchen Sie es erneut.`,
-    errorInvalid: "Bitte prüfen Sie Ihre Eingaben und versuchen Sie es erneut.",
+      `Zu viele Versuche. Bitte warte ${wait} und versuche es erneut.`,
+    errorInvalid: "Bitte prüfe deine Eingaben und versuche es erneut.",
     errorServer:
-      "Der Kontodienst antwortet gerade nicht. Bitte versuchen Sie es in einigen Minuten erneut.",
+      "Der Kontodienst antwortet gerade nicht. Bitte versuche es in einigen Minuten erneut.",
     errorNetwork:
-      "Der Kontodienst ist nicht erreichbar. Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
+      "Der Kontodienst ist nicht erreichbar. Bitte prüfe deine Internetverbindung und versuche es erneut.",
     errorOffline:
-      "Dieser PC ist offline. Bitte stellen Sie eine Internetverbindung her und versuchen Sie es erneut.",
+      "Dieser PC ist offline. Bitte stelle eine Internetverbindung her und versuche es erneut.",
     errorTimeout:
-      "api.pctweaker.app hat zu lange nicht geantwortet. Das kann an einer langsamen Verbindung, einem VPN oder einem Proxy liegen. Bitte versuchen Sie es gleich noch einmal.",
+      "api.pctweaker.app hat zu lange nicht geantwortet. Das kann an einer langsamen Verbindung, einem VPN oder einem Proxy liegen. Bitte versuche es gleich noch einmal.",
     errorDns:
-      "Dieser PC findet api.pctweaker.app nicht. Bitte prüfen Sie die DNS-Einstellungen oder erlauben Sie die Adresse in Ihrem Werbeblocker oder Router-Filter und versuchen Sie es dann erneut.",
+      "Dieser PC findet api.pctweaker.app nicht. Bitte prüfe die DNS-Einstellungen oder erlaube die Adresse in deinem Werbeblocker oder Router-Filter und versuche es dann erneut.",
     errorClock:
-      "Die sichere Verbindung wurde abgelehnt, weil Datum oder Uhrzeit auf diesem PC falsch sind. Bitte aktivieren Sie in den Windows-Einstellungen die automatische Uhrzeit und versuchen Sie es dann erneut.",
+      "Die sichere Verbindung wurde abgelehnt, weil Datum oder Uhrzeit auf diesem PC falsch sind. Bitte aktiviere in den Windows-Einstellungen die automatische Uhrzeit und versuche es dann erneut.",
     errorTls:
-      "Die sichere Verbindung zu api.pctweaker.app wurde unterwegs verändert – meist durch die HTTPS-Prüfung eines Virenscanners oder durch einen Proxy. Bitte erlauben Sie api.pctweaker.app dort und versuchen Sie es dann erneut.",
+      "Die sichere Verbindung zu api.pctweaker.app wurde unterwegs verändert – meist durch die HTTPS-Prüfung eines Virenscanners oder durch einen Proxy. Bitte erlaube api.pctweaker.app dort und versuche es dann erneut.",
     errorBlocked:
-      "Die Verbindung zu api.pctweaker.app wurde auf diesem PC oder im Netzwerk blockiert. Bitte erlauben Sie PC Tweaker Uninstaller und api.pctweaker.app in Ihrer Firewall, Ihrem Virenscanner oder VPN und versuchen Sie es dann erneut.",
+      "Die Verbindung zu api.pctweaker.app wurde auf diesem PC oder im Netzwerk blockiert. Bitte erlaube PC Tweaker Uninstaller und api.pctweaker.app in deiner Firewall, deinem Virenscanner oder VPN und versuche es dann erneut.",
     errorFiltered:
-      "Der Kontodienst läuft, aber seine Antwort ist nicht bei PC Tweaker Uninstaller angekommen. Bitte versuchen Sie es erneut. Wenn das weiterhin passiert, erlauben Sie api.pctweaker.app im Webschutz Ihres Virenscanners, in der Firewall oder im VPN.",
+      "Der Kontodienst läuft, aber seine Antwort ist nicht bei PC Tweaker Uninstaller angekommen. Bitte versuche es erneut. Wenn das weiterhin passiert, erlaube api.pctweaker.app im Webschutz deines Virenscanners, in der Firewall oder im VPN.",
     forgotPassword: "Passwort vergessen?",
     securityTitle: "Passwort und E-Mail",
     currentPassword: "Aktuelles Passwort",
@@ -1888,14 +1888,14 @@ const de: Dictionary = {
     newEmail: "Neue E-Mail-Adresse",
     changeEmail: "E-Mail ändern",
     changeEmailSent:
-      "Sehen Sie im neuen Postfach nach: Die Änderung erfolgt, wenn Sie den Link dort bestätigen.",
+      "Sieh im neuen Postfach nach: Die Änderung erfolgt, wenn du den Link dort bestätigst.",
     errorCurrentPassword: "Das aktuelle Passwort ist nicht korrekt.",
     resetSent:
       "Wenn zu dieser E-Mail-Adresse ein Konto gehört, ist ein Link zum Zurücksetzen unterwegs.",
-    emailUnverified: "Ihre E-Mail-Adresse ist noch nicht bestätigt.",
+    emailUnverified: "Deine E-Mail-Adresse ist noch nicht bestätigt.",
     resendVerification: "Bestätigungs-E-Mail erneut senden",
     verificationResent:
-      "Bestätigungs-E-Mail gesendet. Bitte prüfen Sie Ihr Postfach und den Spam-Ordner.",
+      "Bestätigungs-E-Mail gesendet. Bitte prüfe dein Postfach und den Spam-Ordner.",
     planLifetime: "Lifetime",
   },
   updater: {
@@ -1908,7 +1908,7 @@ const de: Dictionary = {
     error: (message) => `Das Update konnte nicht installiert werden: ${message}`,
   },
   errors: {
-    generic: "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+    generic: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
   },
 };
 
