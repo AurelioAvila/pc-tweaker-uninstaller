@@ -20,9 +20,25 @@ For Windows users reviewing installed software and its removal risk. Inspect the
   <a href="https://github.com/AurelioAvila/pc-tweaker-uninstaller/releases/latest"><img src="https://img.shields.io/github/v/release/AurelioAvila/pc-tweaker-uninstaller?display_name=tag&style=for-the-badge&color=7C3AED" alt="Latest release"></a>
 </p>
 
-<p align="center"><img src="docs/screenshots/inventory-0.13.3.png" width="100%" alt="Uninstaller 0.13.3 interface preview with example programs; no software was removed."></p>
+<p align="center"><img src="docs/screenshots/uninstaller-0.14.0-inventory-sample-data.jpg" width="100%" alt="Uninstaller 0.14.0 installed-program inventory with clearly labelled fictional sample data."></p>
 
-*Uninstaller 0.13.3 interface preview with example programs; no software was removed.* [Capture details and hashes](docs/SCREENSHOTS.md).
+*Current 0.14.0 frontend, captured November 3, 2026. All program names, sizes and receipts are fictional sample data. No software was removed.* [Capture details and hashes](docs/SCREENSHOTS.md).
+
+## Before you uninstall, see the plan
+
+Inspect the exact command, requested permissions and recovery limits before
+confirming a removal. Confidence labels explain the available evidence; they do
+not guarantee that an application or its data can be recovered.
+
+![Uninstaller 0.14.0 removal brief showing an example command and administrator requirement; sample data, no command executed.](docs/screenshots/uninstaller-0.14.0-removal-brief-sample-data.jpg)
+
+## Afterward, read what actually happened
+
+The local Removal Ledger separates reported size from verified recovered space
+and records the restore-point outcome. This fictional example explicitly shows
+an unverified restore point and no measured reclaimed space.
+
+![Uninstaller 0.14.0 Removal Ledger with a fictional receipt and an explicitly unverified restore point; sample data only.](docs/screenshots/uninstaller-0.14.0-removal-ledger-sample-data.jpg)
 
 ## Download
 
