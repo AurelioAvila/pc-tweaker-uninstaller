@@ -1,10 +1,8 @@
 # Terms of Service
 
-Last updated: 2026-08-20
+Last updated: 2026-11-03
 
-Welcome to PC Tweaker Uninstaller ("we", "us", "our"). By downloading, installing, or using PC Tweaker Uninstaller, you agree to these Terms of Service.
-
-**Pre-release notice**: PC Tweaker Uninstaller is under active development and has not yet had a public release. These terms take effect with the first public build and are published now for transparency.
+Welcome to PC Tweaker Uninstaller ("we", "us", "our"), run by Aurelio Avila. By downloading, installing, or using PC Tweaker Uninstaller, you agree to these Terms of Service.
 
 ## 1. What PC Tweaker Uninstaller does
 
@@ -13,11 +11,12 @@ PC Tweaker Uninstaller is a Windows desktop app that lists installed programs, r
 ## 2. Free and Pro tiers
 
 - Core uninstalling is free to use, with no account required.
-- Pro unlocks the advanced features (deep leftover scanning and related power-user tools) via an annual subscription billed through Stripe Checkout that renews automatically until cancelled.
+- Pro unlocks the advanced features (deep leftover scanning and related power-user tools) via an annual subscription that renews automatically until cancelled.
+- Purchases are sold through Link, Stripe's merchant of record, which collects any applicable tax, sends the receipt and handles payment support. Link's own buyer terms apply to the transaction.
 - Customers with an active PC Tweaker Pro subscription are offered a discounted annual price, applied automatically at checkout based on the account's actual subscription status.
 - You can cancel anytime; Pro access continues until the end of the current billing period, then reverts to the Free tier.
 - Prices are listed in the app and may change; changes do not affect the price of an active subscription until its next renewal.
-- Refund requests can be opened as an issue at [github.com/AurelioAvila/pc-tweaker-uninstaller/issues](https://github.com/AurelioAvila/pc-tweaker-uninstaller/issues) and will be reviewed case by case.
+- Pro is digital content that starts as soon as payment completes, so purchases are not refundable, except where Link's buyer terms or the law require a refund. A refunded or charged-back purchase ends the Pro access it paid for.
 
 ## 3. Accounts
 
