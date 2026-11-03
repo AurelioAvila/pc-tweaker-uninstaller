@@ -158,12 +158,8 @@ export type Dictionary = {
     readonly residueScanning: string;
     readonly residueTitle: string;
     readonly residueNone: string;
-    readonly residueIntro: (count: number, mb: string) => string;
-    readonly residueClean: string;
-    readonly residueRegistryNote: string;
     readonly residueDone: (count: number, mb: string) => string;
     readonly residueFailed: (count: number) => string;
-    readonly residueKinds: Readonly<Record<string, string>>;
     readonly relDependentsWarning: (names: string) => string;
     readonly relInstalledVia: (name: string) => string;
     readonly relSiblings: (count: number) => string;
@@ -217,7 +213,6 @@ export type Dictionary = {
     readonly upsCheckoutHint: string;
     readonly upsRefresh: string;
     readonly upsError: string;
-    readonly proGateResidue: string;
     readonly proGateBatch: string;
     readonly proGateSignIn: string;
     readonly loyaltyLocked: string;
@@ -449,20 +444,8 @@ const en: Dictionary = {
     residueScanning: "Scanning for leftovers...",
     residueTitle: "Leftovers found",
     residueNone: "No leftovers found. Clean removal.",
-    residueIntro: (count, mb) =>
-      `${String(count)} item(s) left behind, about ${mb} MB. Everything you select goes to the Recycle Bin, so it stays recoverable.`,
-    residueClean: "Move selected to Recycle Bin",
-    residueRegistryNote:
-      "User registry keys are deleted directly (not recoverable); machine-wide keys are listed for reference only.",
     residueDone: (count, mb) => `Cleaned ${String(count)} item(s), freed about ${mb} MB.`,
     residueFailed: (count) => `${String(count)} item(s) could not be removed.`,
-    residueKinds: {
-      "install-dir": "Install folder",
-      "app-data": "App data",
-      shortcut: "Shortcut",
-      "registry-user": "Registry (user)",
-      "registry-machine": "Registry (machine)",
-    },
     relDependentsWarning: (names) =>
       `Removing this also takes down programs installed inside its folder: ${names}.`,
     relInstalledVia: (name) => `Installed via ${name} — consider removing it from there instead.`,
@@ -526,8 +509,6 @@ const en: Dictionary = {
     upsCheckoutHint: "Checkout opens in your browser. Come back here afterwards and refresh.",
     upsRefresh: "I've completed checkout — refresh",
     upsError: "Checkout could not be started. Please try again.",
-    proGateResidue:
-      "Cleaning leftovers is an Uninstaller Pro feature. The scan above is free — removing what it found takes Pro.",
     proGateBatch:
       "Batch removal is an Uninstaller Pro feature. Single uninstalls stay free, always.",
     proGateSignIn: "Sign in from the account menu first, then unlock Pro.",
@@ -772,20 +753,8 @@ const it: Dictionary = {
     residueScanning: "Ricerca dei residui...",
     residueTitle: "Residui trovati",
     residueNone: "Nessun residuo trovato. Rimozione pulita.",
-    residueIntro: (count, mb) =>
-      `Elementi rimasti: ${String(count)}, circa ${mb} MB. Tutto ciò che selezioni va nel Cestino, quindi resta recuperabile.`,
-    residueClean: "Sposta selezionati nel Cestino",
-    residueRegistryNote:
-      "Le chiavi di registro utente vengono eliminate direttamente (non recuperabili); quelle di sistema sono elencate solo per riferimento.",
     residueDone: (count, mb) => `Elementi puliti: ${String(count)}, liberati circa ${mb} MB.`,
     residueFailed: (count) => `Elementi non rimossi: ${String(count)}.`,
-    residueKinds: {
-      "install-dir": "Cartella di installazione",
-      "app-data": "Dati applicazione",
-      shortcut: "Collegamento",
-      "registry-user": "Registro (utente)",
-      "registry-machine": "Registro (sistema)",
-    },
     relDependentsWarning: (names) =>
       `Rimuovendolo elimini anche i programmi installati nella sua cartella: ${names}.`,
     relInstalledVia: (name) => `Installato tramite ${name} — valuta di rimuoverlo da lì.`,
@@ -849,8 +818,6 @@ const it: Dictionary = {
     upsCheckoutHint: "Il pagamento si apre nel browser. Al termine torna qui e aggiorna.",
     upsRefresh: "Ho completato il pagamento — aggiorna",
     upsError: "Impossibile avviare il pagamento. Riprova.",
-    proGateResidue:
-      "La pulizia dei residui è una funzione di Uninstaller Pro. La scansione qui sopra è gratuita — rimuovere ciò che trova richiede Pro.",
     proGateBatch:
       "La rimozione multipla è una funzione di Uninstaller Pro. Le disinstallazioni singole restano gratuite, sempre.",
     proGateSignIn: "Accedi prima dal menu account, poi sblocca Pro.",
@@ -1098,20 +1065,8 @@ const fr: Dictionary = {
     residueScanning: "Recherche des restes...",
     residueTitle: "Restes trouvés",
     residueNone: "Aucun reste trouvé. Désinstallation propre.",
-    residueIntro: (count, mb) =>
-      `Éléments restants : ${String(count)}, environ ${mb} Mo. Tout ce que vous sélectionnez va à la Corbeille et reste récupérable.`,
-    residueClean: "Déplacer la sélection vers la Corbeille",
-    residueRegistryNote:
-      "Les clés de registre utilisateur sont supprimées directement (non récupérables) ; les clés machine sont listées à titre indicatif.",
     residueDone: (count, mb) => `Éléments nettoyés : ${String(count)}, environ ${mb} Mo libérés.`,
     residueFailed: (count) => `Éléments non supprimés : ${String(count)}.`,
-    residueKinds: {
-      "install-dir": "Dossier d'installation",
-      "app-data": "Données d'application",
-      shortcut: "Raccourci",
-      "registry-user": "Registre (utilisateur)",
-      "registry-machine": "Registre (machine)",
-    },
     relDependentsWarning: (names) =>
       `Sa suppression emporte aussi les programmes installés dans son dossier : ${names}.`,
     relInstalledVia: (name) => `Installé via ${name} — envisagez de le supprimer depuis là.`,
@@ -1176,8 +1131,6 @@ const fr: Dictionary = {
       "Le paiement s'ouvre dans votre navigateur. Revenez ici ensuite et actualisez.",
     upsRefresh: "Paiement terminé — actualiser",
     upsError: "Impossible de démarrer le paiement. Réessayez.",
-    proGateResidue:
-      "Le nettoyage des restes est une fonction d'Uninstaller Pro. L'analyse ci-dessus est gratuite — supprimer ce qu'elle trouve requiert Pro.",
     proGateBatch:
       "La suppression par lot est une fonction d'Uninstaller Pro. Les désinstallations individuelles restent gratuites, toujours.",
     proGateSignIn: "Connectez-vous d'abord depuis le menu compte, puis débloquez Pro.",
@@ -1426,20 +1379,8 @@ const es: Dictionary = {
     residueScanning: "Buscando restos...",
     residueTitle: "Restos encontrados",
     residueNone: "No se encontraron restos. Desinstalación limpia.",
-    residueIntro: (count, mb) =>
-      `Elementos restantes: ${String(count)}, unos ${mb} MB. Todo lo que selecciones va a la Papelera y sigue siendo recuperable.`,
-    residueClean: "Mover selección a la Papelera",
-    residueRegistryNote:
-      "Las claves de registro del usuario se eliminan directamente (no recuperables); las de sistema se listan solo como referencia.",
     residueDone: (count, mb) => `Elementos limpiados: ${String(count)}, unos ${mb} MB liberados.`,
     residueFailed: (count) => `Elementos que no se pudieron eliminar: ${String(count)}.`,
-    residueKinds: {
-      "install-dir": "Carpeta de instalación",
-      "app-data": "Datos de la aplicación",
-      shortcut: "Acceso directo",
-      "registry-user": "Registro (usuario)",
-      "registry-machine": "Registro (equipo)",
-    },
     relDependentsWarning: (names) =>
       `Al eliminarlo también se eliminan los programas instalados en su carpeta: ${names}.`,
     relInstalledVia: (name) => `Instalado a través de ${name}; considera eliminarlo desde allí.`,
@@ -1503,8 +1444,6 @@ const es: Dictionary = {
     upsCheckoutHint: "El pago se abre en tu navegador. Vuelve aquí después y actualiza.",
     upsRefresh: "He completado el pago — actualizar",
     upsError: "No se pudo iniciar el pago. Inténtalo de nuevo.",
-    proGateResidue:
-      "Limpiar los restos es una función de Uninstaller Pro. El análisis de arriba es gratuito; eliminar lo encontrado requiere Pro.",
     proGateBatch:
       "La eliminación por lotes es una función de Uninstaller Pro. Las desinstalaciones individuales siguen siendo gratuitas, siempre.",
     proGateSignIn: "Inicia sesión primero desde el menú de cuenta y luego desbloquea Pro.",
@@ -1758,20 +1697,8 @@ const de: Dictionary = {
     residueScanning: "Suche nach Resten...",
     residueTitle: "Reste gefunden",
     residueNone: "Keine Reste gefunden. Saubere Deinstallation.",
-    residueIntro: (count, mb) =>
-      `Übrig gebliebene Elemente: ${String(count)}, etwa ${mb} MB. Alles Ausgewählte wandert in den Papierkorb und bleibt wiederherstellbar.`,
-    residueClean: "Auswahl in den Papierkorb verschieben",
-    residueRegistryNote:
-      "Benutzer-Registrierungsschlüssel werden direkt gelöscht (nicht wiederherstellbar); systemweite Schlüssel werden nur zur Information aufgelistet.",
     residueDone: (count, mb) => `Bereinigte Elemente: ${String(count)}, etwa ${mb} MB freigegeben.`,
     residueFailed: (count) => `Nicht entfernte Elemente: ${String(count)}.`,
-    residueKinds: {
-      "install-dir": "Installationsordner",
-      "app-data": "Anwendungsdaten",
-      shortcut: "Verknüpfung",
-      "registry-user": "Registrierung (Benutzer)",
-      "registry-machine": "Registrierung (System)",
-    },
     relDependentsWarning: (names) =>
       `Beim Entfernen werden auch Programme in seinem Ordner entfernt: ${names}.`,
     relInstalledVia: (name) => `Installiert über ${name} – besser dort entfernen.`,
@@ -1837,8 +1764,6 @@ const de: Dictionary = {
       "Die Zahlung öffnet sich im Browser. Danach hierher zurückkehren und aktualisieren.",
     upsRefresh: "Zahlung abgeschlossen – aktualisieren",
     upsError: "Die Zahlung konnte nicht gestartet werden. Bitte erneut versuchen.",
-    proGateResidue:
-      "Das Bereinigen von Resten ist eine Uninstaller-Pro-Funktion. Der Scan oben ist kostenlos – das Entfernen der Funde erfordert Pro.",
     proGateBatch:
       "Die Stapelentfernung ist eine Uninstaller-Pro-Funktion. Einzelne Deinstallationen bleiben immer kostenlos.",
     proGateSignIn: "Zuerst über das Kontomenü anmelden, dann Pro freischalten.",
@@ -2090,20 +2015,8 @@ const pt: Dictionary = {
     residueScanning: "A procurar resíduos...",
     residueTitle: "Resíduos encontrados",
     residueNone: "Nenhum resíduo encontrado. Remoção limpa.",
-    residueIntro: (count, mb) =>
-      `Itens deixados para trás: ${String(count)}, cerca de ${mb} MB. Tudo o que selecionar vai para a Reciclagem, por isso continua recuperável.`,
-    residueClean: "Mover selecionados para a Reciclagem",
-    residueRegistryNote:
-      "As chaves de registo do utilizador são apagadas diretamente (não recuperáveis); as chaves de todo o computador são apresentadas apenas como referência.",
     residueDone: (count, mb) => `Itens limpos: ${String(count)}, cerca de ${mb} MB libertados.`,
     residueFailed: (count) => `Itens que não foi possível remover: ${String(count)}.`,
-    residueKinds: {
-      "install-dir": "Pasta de instalação",
-      "app-data": "Dados da aplicação",
-      shortcut: "Atalho",
-      "registry-user": "Registo (utilizador)",
-      "registry-machine": "Registo (computador)",
-    },
     relDependentsWarning: (names) =>
       `Remover este programa também remove os programas instalados dentro da sua pasta: ${names}.`,
     relInstalledVia: (name) => `Instalado através de ${name} — considere removê-lo a partir daí.`,
@@ -2166,8 +2079,6 @@ const pt: Dictionary = {
     upsCheckoutHint: "O pagamento abre no seu navegador. Volte aqui depois e atualize.",
     upsRefresh: "Concluí o pagamento — atualizar",
     upsError: "Não foi possível iniciar o pagamento. Tente novamente.",
-    proGateResidue:
-      "Limpar resíduos é uma funcionalidade do Uninstaller Pro. A análise acima é gratuita — remover o que encontrou requer o Pro.",
     proGateBatch:
       "A remoção em lote é uma funcionalidade do Uninstaller Pro. As desinstalações individuais continuam gratuitas, sempre.",
     proGateSignIn: "Inicie sessão no menu da conta primeiro e depois desbloqueie o Pro.",

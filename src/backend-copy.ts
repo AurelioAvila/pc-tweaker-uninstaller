@@ -368,6 +368,96 @@ const ENTRIES: Entry[] = [
       pt: (c) => `O Windows recusou-se a criar um ponto de restauro (estado ${c}).`,
     },
   ],
+  [
+    /^Type a program name, a folder, or both\.$/,
+    {
+      it: "Scrivi il nome di un programma, una cartella o entrambi.",
+      fr: "Saisissez un nom de programme, un dossier, ou les deux.",
+      es: "Escribe el nombre de un programa, una carpeta o ambos.",
+      de: "Gib einen Programmnamen, einen Ordner oder beides ein.",
+      pt: "Escreva o nome de um programa, uma pasta ou ambos.",
+    },
+  ],
+  [
+    /^That name is too short or too common to search for\. Use the full name of the program\.$/,
+    {
+      it: "Quel nome è troppo corto o troppo comune per la ricerca. Usa il nome completo del programma.",
+      fr: "Ce nom est trop court ou trop courant pour être recherché. Utilisez le nom complet du programme.",
+      es: "Ese nombre es demasiado corto o común para buscarlo. Usa el nombre completo del programa.",
+      de: "Dieser Name ist zu kurz oder zu allgemein für die Suche. Gib den vollständigen Namen des Programms ein.",
+      pt: "Esse nome é demasiado curto ou comum para a pesquisa. Use o nome completo do programa.",
+    },
+  ],
+  [
+    /^Type the folder as a full path that starts with a drive letter, such as C:\.$/,
+    {
+      it: "Scrivi la cartella come percorso completo che inizia con una lettera di unità, ad esempio C:.",
+      fr: "Saisissez le dossier sous forme de chemin complet commençant par une lettre de lecteur, par exemple C:.",
+      es: "Escribe la carpeta como una ruta completa que empiece por una letra de unidad, por ejemplo C:.",
+      de: "Gib den Ordner als vollständigen Pfad ein, der mit einem Laufwerksbuchstaben beginnt, zum Beispiel C:.",
+      pt: "Escreva a pasta como um caminho completo que comece por uma letra de unidade, por exemplo C:.",
+    },
+  ],
+  [
+    /^That folder does not exist, so there is nothing to scan in it\.$/,
+    {
+      it: "Quella cartella non esiste, quindi non c'è nulla da cercare al suo interno.",
+      fr: "Ce dossier n'existe pas, il n'y a donc rien à y rechercher.",
+      es: "Esa carpeta no existe, así que no hay nada que buscar en ella.",
+      de: "Dieser Ordner existiert nicht, daher gibt es darin nichts zu suchen.",
+      pt: "Essa pasta não existe, por isso não há nada para procurar nela.",
+    },
+  ],
+  [
+    /^That folder is a protected or shared location, so it is never offered for cleanup\.$/,
+    {
+      it: "Quella cartella è una posizione protetta o condivisa, quindi non viene mai proposta per la pulizia.",
+      fr: "Ce dossier est un emplacement protégé ou partagé, il n'est donc jamais proposé au nettoyage.",
+      es: "Esa carpeta es una ubicación protegida o compartida, así que nunca se ofrece para limpiar.",
+      de: "Dieser Ordner ist ein geschützter oder gemeinsam genutzter Ort und wird nie zum Bereinigen angeboten.",
+      pt: "Essa pasta é uma localização protegida ou partilhada, por isso nunca é proposta para limpeza.",
+    },
+  ],
+  [
+    /^Another installed program is in that folder, so it is never offered for cleanup\.$/,
+    {
+      it: "In quella cartella c'è un altro programma installato, quindi non viene mai proposta per la pulizia.",
+      fr: "Un autre programme installé se trouve dans ce dossier, qui n'est donc jamais proposé au nettoyage.",
+      es: "Hay otro programa instalado en esa carpeta, así que nunca se ofrece para limpiar.",
+      de: "In diesem Ordner liegt ein anderes installiertes Programm, daher wird er nie zum Bereinigen angeboten.",
+      pt: "Há outro programa instalado nessa pasta, por isso nunca é proposta para limpeza.",
+    },
+  ],
+  [
+    /^That folder is reached through a link, so it is never offered for cleanup\.$/,
+    {
+      it: "Quella cartella è raggiunta tramite un collegamento, quindi non viene mai proposta per la pulizia.",
+      fr: "Ce dossier est atteint par un lien, il n'est donc jamais proposé au nettoyage.",
+      es: "A esa carpeta se llega mediante un vínculo, así que nunca se ofrece para limpiar.",
+      de: "Dieser Ordner wird über einen Link erreicht und wird daher nie zum Bereinigen angeboten.",
+      pt: "Essa pasta é alcançada através de uma ligação, por isso nunca é proposta para limpeza.",
+    },
+  ],
+  [
+    /^This scan is no longer available\. Scan again\.$/,
+    {
+      it: "Questa ricerca non è più disponibile. Eseguila di nuovo.",
+      fr: "Cette recherche n'est plus disponible. Relancez-la.",
+      es: "Esta búsqueda ya no está disponible. Vuelve a buscar.",
+      de: "Diese Suche ist nicht mehr verfügbar. Starte sie erneut.",
+      pt: "Esta pesquisa já não está disponível. Procure novamente.",
+    },
+  ],
+  [
+    /^Leftovers can be looked for only right after this app removed the program\.$/,
+    {
+      it: "I residui si possono cercare solo subito dopo che questa app ha rimosso il programma.",
+      fr: "Les restes ne peuvent être recherchés qu'immédiatement après la suppression du programme par cette application.",
+      es: "Los restos solo se pueden buscar justo después de que esta aplicación elimine el programa.",
+      de: "Nach Resten kann nur unmittelbar gesucht werden, nachdem diese App das Programm entfernt hat.",
+      pt: "Só é possível procurar resíduos logo depois de esta aplicação remover o programa.",
+    },
+  ],
 ];
 
 /** The message in the app's language; unknown messages come back unchanged. */

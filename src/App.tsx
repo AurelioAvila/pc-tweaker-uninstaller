@@ -65,6 +65,17 @@ import { UiIcon } from "./ui-icon";
 import { CoffeeRow } from "./coffee";
 import { workspaceCopy } from "./workspace-copy";
 import { backendText } from "./backend-copy";
+import { leftoversCopy } from "./leftovers-copy";
+import { LeftoversView, RemovedNotice, RemovedPanel } from "./leftovers-ui";
+import {
+  defaultSelection,
+  summarize,
+  type CleanOutcome,
+  type LeftoverReport,
+  type PlanStep,
+  type RemovedOverview,
+  type RemovedProgramRow,
+} from "./leftovers";
 
 /** Mirror of the Rust `ProgramInfo` shape (src-tauri/src/programs.rs). Every
  *  string here originates in the registry and is untrusted display data —
@@ -224,9 +235,15 @@ type FlowState =
   | { step: "running"; program: ProgramInfo }
   | { step: "report"; program: ProgramInfo; report: UninstallReport }
   | { step: "execError"; program: ProgramInfo; message: string }
-  | { step: "residueScanning"; program: ProgramInfo }
-  | { step: "residue"; program: ProgramInfo; residue: ResidueReport; selected: readonly string[] }
-  | { step: "residueDone"; program: ProgramInfo; result: CleanResult }
+  | { step: "residueScanning"; subject: string }
+  | {
+      step: "residue";
+      subject: string;
+      residue: LeftoverReport;
+      selected: readonly string[];
+      plan: PlanStep[] | null;
+    }
+  | { step: "residueDone"; subject: string; result: CleanOutcome }
   | { step: "storeConfirm"; program: ProgramInfo }
   | { step: "storeRunning"; program: ProgramInfo }
   | { step: "storeDone"; program: ProgramInfo }
@@ -260,23 +277,6 @@ function batchOrder(programs: ProgramInfo[]): ProgramInfo[] {
   return [...programs].sort(
     (a, b) => (b.installLocation ?? "").length - (a.installLocation ?? "").length,
   );
-}
-
-/** Mirror of `ResidueReport` / `CleanResult` (src-tauri/src/residue.rs). */
-interface ResidueItem {
-  kind: string;
-  path: string;
-  sizeKb: number | null;
-  deletable: boolean;
-}
-interface ResidueReport {
-  items: ResidueItem[];
-  totalKb: number;
-}
-interface CleanResult {
-  removed: string[];
-  failed: string[];
-  freedKb: number;
 }
 
 function formatSize(kb: number | null): string {
@@ -448,7 +448,7 @@ export default function App() {
      removal succeeds and the report offers the result itself: a count and a
      size to review, or the reassurance that nothing was left. Cleaning
      remains the user's explicit step. "error" keeps the manual button. */
-  const [reportResidue, setReportResidue] = useState<ResidueReport | "scanning" | "error" | null>(
+  const [reportResidue, setReportResidue] = useState<LeftoverReport | "scanning" | "error" | null>(
     null,
   );
   const [chip, setChip] = useState<FilterChip>("all");
@@ -841,6 +841,30 @@ export default function App() {
     setLoginEmail("");
   }, []);
 
+  /* Programs removed earlier: this app's own removals and the ones seen
+     disappearing between launches (removed-programs.json, on this PC only). */
+  const [removedOpen, setRemovedOpen] = useState(false);
+  const [removedOverview, setRemovedOverview] = useState<RemovedOverview | null>(null);
+  const [removedBusy, setRemovedBusy] = useState(false);
+  const [removedError, setRemovedError] = useState<string | null>(null);
+  const refreshRemoved = useCallback(() => {
+    invoke<RemovedOverview>("removed_overview")
+      .then(setRemovedOverview)
+      .catch(() => {
+        /* The list simply stays as it was. */
+      });
+  }, []);
+
+  const openRemoved = useCallback(() => {
+    setRemovedError(null);
+    setRemovedOpen(true);
+    refreshRemoved();
+  }, [refreshRemoved]);
+  const closeRemoved = useCallback(() => {
+    setRemovedOpen(false);
+  }, []);
+  const outsideRemoval = removedOverview?.records.find((r) => r.how === "outside" && !r.seen);
+
   const load = useCallback(() => {
     setState({ phase: "loading" });
     // Two independent sources, one list. The registry read decides whether
@@ -857,6 +881,8 @@ export default function App() {
           phase: "ready",
           programs: [...programs, ...storeApps.map(storeAppAsProgram)],
         });
+        // list_programs has just compared this list with the last one.
+        refreshRemoved();
       })
       .catch((error: unknown) => {
         setState({
@@ -864,7 +890,7 @@ export default function App() {
           message: typeof error === "string" ? error : text.errors.generic,
         });
       });
-  }, []);
+  }, [refreshRemoved]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1033,38 +1059,73 @@ export default function App() {
     [load],
   );
 
-  const beginResidueScan = useCallback((program: ProgramInfo) => {
-    setFlow({ step: "residueScanning", program });
-    invoke<ResidueReport>("scan_residue", { source: program.source, id: program.id })
-      .then((residue) => {
-        setFlow({
-          step: "residue",
-          program,
-          residue,
-          // Files start selected: they go to the Recycle Bin and can be put
-          // back. Registry keys are deleted outright, so the user opts in.
-          selected: residue.items
-            .filter((item) => item.deletable && item.kind !== "registry-user")
-            .map((item) => item.path),
-        });
-      })
-      .catch(() => {
-        setFlow({ step: "idle" });
+  const proActive = uninstallerPro?.active === true;
+  const showResidue = useCallback(
+    (subject: string, residue: LeftoverReport) => {
+      // Only items proven to come from the removed program start selected.
+      setFlow({
+        step: "residue",
+        subject,
+        residue,
+        selected: defaultSelection(residue, proActive),
+        plan: null,
       });
-  }, []);
+    },
+    [proActive],
+  );
 
-  const runResidueClean = useCallback((program: ProgramInfo, selected: readonly string[]) => {
-    setFlow({ step: "residueScanning", program });
-    invoke<CleanResult>("clean_residue", {
-      source: program.source,
-      id: program.id,
-      paths: [...selected],
-    })
-      .then((result) => {
-        setFlow({ step: "residueDone", program, result });
+  /** Scans for leftovers; the webview only ever names a scan, never a path. */
+  const startScan = useCallback(
+    (subject: string, command: string, args: Record<string, unknown>) => {
+      setFlow({ step: "residueScanning", subject });
+      setRemovedBusy(true);
+      invoke<LeftoverReport>(command, args)
+        .then((residue) => {
+          setRemovedOpen(false);
+          setRemovedError(null);
+          showResidue(subject, residue);
+        })
+        .catch((error: unknown) => {
+          // A refused folder or name goes back to the form that asked.
+          setFlow({ step: "idle" });
+          setRemovedError(typeof error === "string" ? backendText(error) : text.errors.generic);
+        })
+        .finally(() => {
+          setRemovedBusy(false);
+          refreshRemoved();
+        });
+    },
+    [showResidue, refreshRemoved],
+  );
+
+  const beginResidueScan = useCallback(
+    (program: ProgramInfo) => {
+      startScan(program.name, "scan_residue", { source: program.source, id: program.id });
+    },
+    [startScan],
+  );
+
+  const runResidueClean = useCallback(
+    (subject: string, token: string, selected: readonly string[]) => {
+      setFlow({ step: "residueScanning", subject });
+      invoke<CleanOutcome>("clean_residue", { token, itemIds: [...selected] })
+        .then((result) => {
+          setFlow({ step: "residueDone", subject, result });
+        })
+        .catch(() => {
+          setFlow({ step: "idle" });
+        });
+    },
+    [],
+  );
+
+  const previewResidue = useCallback((token: string, selected: readonly string[]) => {
+    invoke<PlanStep[]>("plan_residue_clean", { token, itemIds: [...selected] })
+      .then((plan) => {
+        setFlow((current) => (current.step === "residue" ? { ...current, plan } : current));
       })
       .catch(() => {
-        setFlow({ step: "idle" });
+        setFlow((current) => (current.step === "residue" ? { ...current, plan: [] } : current));
       });
   }, []);
 
@@ -1117,7 +1178,7 @@ export default function App() {
     let cancelled = false;
     setReportResidue("scanning");
     const program = flow.program;
-    invoke<ResidueReport>("scan_residue", { source: program.source, id: program.id })
+    invoke<LeftoverReport>("scan_residue", { source: program.source, id: program.id })
       .then((residue) => {
         if (!cancelled) setReportResidue(residue);
       })
@@ -1318,6 +1379,16 @@ export default function App() {
           >
             <UiIcon name="lifebuoy" />
             <span className="nav-label">{accountCopy[lang].support}</span>
+          </button>
+          <button
+            type="button"
+            className="button-ghost small"
+            title={leftoversCopy[lang].removedTitle}
+            data-test="removed-programs"
+            onClick={openRemoved}
+          >
+            <UiIcon name="inspect" />
+            <span className="topbar-label">{leftoversCopy[lang].removedButton}</span>
           </button>
           <button
             type="button"
@@ -2026,6 +2097,41 @@ export default function App() {
             )}
           </div>
         </div>
+        {state.phase === "ready" && flow.step === "idle" && outsideRemoval !== undefined && (
+          <RemovedNotice
+            title={leftoversCopy[lang].outsidePrompt(outsideRemoval.name)}
+            body={leftoversCopy[lang].removedOn(
+              new Date(outsideRemoval.removedAt * 1000).toLocaleDateString(uiTag(), {
+                dateStyle: "medium",
+              }),
+            )}
+            action={leftoversCopy[lang].outsideScan}
+            onAction={() => {
+              startScan(outsideRemoval.name, "scan_removed_program", { rid: outsideRemoval.rid });
+            }}
+            dismiss={leftoversCopy[lang].notNow}
+            onDismiss={() => {
+              void invoke("dismiss_removed", { rid: outsideRemoval.rid }).then(refreshRemoved);
+            }}
+          />
+        )}
+        {state.phase === "ready" &&
+          flow.step === "idle" &&
+          outsideRemoval === undefined &&
+          removedOverview?.startupCard != null && (
+            <RemovedNotice
+              title={leftoversCopy[lang].cardTitle}
+              body={leftoversCopy[lang].cardBody(removedOverview.startupCard)}
+              action={leftoversCopy[lang].cardReview}
+              onAction={() => {
+                startScan("", "scan_startup_sweep", {});
+              }}
+              dismiss={leftoversCopy[lang].notNow}
+              onDismiss={() => {
+                void invoke("dismiss_startup_card").then(refreshRemoved);
+              }}
+            />
+          )}
         {state.phase === "loading" && (
           <div className="inventory-loading" role="status">
             <p>
@@ -2666,6 +2772,29 @@ export default function App() {
 
       <UpdateBanner updater={updater} busy={flow.step !== "idle"} words={words} />
 
+      {removedOpen && (
+        <RemovedPanel
+          lang={lang}
+          rows={removedOverview?.records ?? null}
+          busy={removedBusy}
+          error={removedError}
+          onScan={(row: RemovedProgramRow) => {
+            startScan(row.name, "scan_removed_program", { rid: row.rid });
+          }}
+          onManual={(name, folder) => {
+            startScan(name.trim() || folder.trim(), "scan_manual", { name, folder });
+          }}
+          onSweep={() => {
+            startScan("", "scan_startup_sweep", {});
+          }}
+          onClose={closeRemoved}
+          formatDate={(seconds) =>
+            new Date(seconds * 1000).toLocaleDateString(uiTag(), { dateStyle: "medium" })
+          }
+          closeLabel={text.uninstall.close}
+        />
+      )}
+
       {ledgerOpen && (
         <div
           className="overlay"
@@ -2822,7 +2951,7 @@ export default function App() {
           }
         >
           <div
-            className="dialog"
+            className={flow.step === "residue" ? "dialog dialog-wide" : "dialog"}
             role="dialog"
             aria-modal="true"
             onClick={(e) => {
@@ -3125,18 +3254,11 @@ export default function App() {
                         type="button"
                         className="button primary"
                         onClick={() => {
-                          setFlow({
-                            step: "residue",
-                            program: flow.program,
-                            residue: reportResidue,
-                            selected: reportResidue.items
-                              .filter((item) => item.deletable && item.kind !== "registry-user")
-                              .map((item) => item.path),
-                          });
+                          showResidue(flow.program.name, reportResidue);
                         }}
                       >
                         {text.uninstall.residueFound(
-                          reportResidue.items.length,
+                          summarize(reportResidue.items).count || reportResidue.items.length,
                           (reportResidue.totalKb / 1024).toFixed(1),
                         )}
                       </button>
@@ -3162,85 +3284,45 @@ export default function App() {
             {flow.step === "residueScanning" && (
               <>
                 <h2>{text.uninstall.residueScanning}</h2>
-                <p className="dialog-body">{flow.program.name}</p>
+                <p className="dialog-body">{flow.subject}</p>
               </>
             )}
 
             {flow.step === "residue" && (
-              <>
-                <h2>
-                  {flow.residue.items.length === 0
-                    ? text.uninstall.reportSuccessTitle
-                    : text.uninstall.residueTitle}
-                </h2>
-                {flow.residue.items.length === 0 ? (
-                  <p className="dialog-body">{text.uninstall.residueNone}</p>
-                ) : (
+              <LeftoversView
+                lang={lang}
+                subject={flow.subject}
+                report={flow.residue}
+                selected={flow.selected}
+                onSelected={(ids) => {
+                  setFlow({ ...flow, selected: ids, plan: null });
+                }}
+                pro={proActive}
+                proNotice={
                   <>
-                    <p className="dialog-body">
-                      {text.uninstall.residueIntro(
-                        flow.residue.items.length,
-                        (flow.residue.totalKb / 1024).toFixed(1),
-                      )}
-                    </p>
-                    <ul className="residue-list">
-                      {flow.residue.items.map((item) => (
-                        <li key={item.path} className="residue-item">
-                          <label>
-                            <input
-                              type="checkbox"
-                              disabled={!item.deletable}
-                              checked={flow.selected.includes(item.path)}
-                              onChange={() => {
-                                setFlow({
-                                  ...flow,
-                                  selected: flow.selected.includes(item.path)
-                                    ? flow.selected.filter((p) => p !== item.path)
-                                    : [...flow.selected, item.path],
-                                });
-                              }}
-                            />
-                            <span className="residue-kind">
-                              {text.uninstall.residueKinds[item.kind] ?? item.kind}
-                            </span>
-                            <span className="residue-path">{item.path}</span>
-                            {item.sizeKb !== null && (
-                              <span className="residue-size">{formatSize(item.sizeKb)}</span>
-                            )}
-                          </label>
-                        </li>
-                      ))}
-                    </ul>
-                    <p className="dialog-body subtle">{text.uninstall.residueRegistryNote}</p>
-                  </>
-                )}
-                {flow.residue.items.length > 0 && !uninstallerPro?.active && (
-                  <p className="dialog-body reboot">
-                    {text.menu.proGateResidue}
+                    {leftoversCopy[lang].proNote}
                     {account.status !== "signed-in" && ` ${text.menu.proGateSignIn}`}
-                  </p>
-                )}
-                <div className="dialog-actions">
-                  {flow.residue.items.length > 0 && uninstallerPro?.active && (
-                    <button
-                      type="button"
-                      className="button primary"
-                      disabled={flow.selected.length === 0}
-                      onClick={() => {
-                        runResidueClean(flow.program, flow.selected);
-                      }}
-                    >
-                      {text.uninstall.residueClean}
-                    </button>
-                  )}
-                  {flow.residue.items.length > 0 &&
-                    !uninstallerPro?.active &&
-                    proGateAction(closeFlow)}
-                  <button type="button" className="button" onClick={closeFlow}>
-                    {text.uninstall.close}
-                  </button>
-                </div>
-              </>
+                  </>
+                }
+                proAction={proGateAction(closeFlow)}
+                plan={flow.plan}
+                onPreview={() => {
+                  previewResidue(flow.residue.token, flow.selected);
+                }}
+                onBack={() => {
+                  setFlow({ ...flow, plan: null });
+                }}
+                onClean={() => {
+                  runResidueClean(flow.subject, flow.residue.token, flow.selected);
+                }}
+                onClose={closeFlow}
+                formatSize={formatSize}
+                words={{
+                  empty: text.uninstall.residueNone,
+                  emptyTitle: text.uninstall.reportSuccessTitle,
+                  close: text.uninstall.close,
+                }}
+              />
             )}
 
             {flow.step === "residueDone" && (
@@ -3255,6 +3337,11 @@ export default function App() {
                 {flow.result.failed.length > 0 && (
                   <p className="dialog-body subtle">
                     {text.uninstall.residueFailed(flow.result.failed.length)}
+                  </p>
+                )}
+                {flow.result.locked.length > 0 && (
+                  <p className="dialog-body subtle">
+                    {leftoversCopy[lang].lockedLine(flow.result.locked.length)}
                   </p>
                 )}
                 <div className="dialog-actions">

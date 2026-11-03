@@ -83,6 +83,9 @@ windows = { version = "0.58", features = [
   "ApplicationModel",
   "Win32_System_Com",
   "Win32_System_Wmi",
+  # IShellLinkW: the raw target of a Startup shortcut (residue_startup.rs).
+  "Win32_UI_Shell",
+  "Win32_Storage_FileSystem",
 ] }
 
 [features]
