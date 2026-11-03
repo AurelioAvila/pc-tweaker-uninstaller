@@ -52,7 +52,8 @@ type Copy = {
   proNote: string;
   preview: string;
   previewRecycle: string;
-  previewRegFile: string;
+  previewBackup: string;
+  previewAdmin: string;
   previewLocked: string;
   previewRefused: string;
   previewNone: string;
@@ -61,7 +62,16 @@ type Copy = {
   clean: string;
   selected: (count: number) => string;
   lockedLine: (count: number) => string;
-  reportOnly: string;
+  adminRefused: string;
+  undoHint: string;
+  undo: string;
+  undoing: string;
+  undone: string;
+  undoRestored: (count: number) => string;
+  undoKept: (count: number) => string;
+  undoFailed: (count: number) => string;
+  ledgerBadge: string;
+  restoreNotNeeded: string;
 };
 
 const en: Copy = {
@@ -115,8 +125,8 @@ const en: Copy = {
     "startup-run": "Startup entry",
     "startup-shortcut": "Startup shortcut",
   },
-  scope: { user: "This user", machine: "All users" },
-  restore: { recycle: "Recycle Bin", regFile: "Saved as a .reg file first", none: "Listed only" },
+  scope: { user: "This user", machine: "All users · admin" },
+  restore: { recycle: "Recycle Bin", backup: "Backed up · undo", none: "Listed only" },
   proofPath: (name) => `Inside the install folder recorded for ${name}`,
   proofName: "Matched by name only",
   proofDangling: (missing) => `Runs ${missing}, which no longer exists`,
@@ -125,7 +135,8 @@ const en: Copy = {
     protectedFolder: "A protected or shared folder",
     otherProgram: "Another installed program lives here",
     linked: "Reached through a link",
-    notRestorable: "Cannot go to the Recycle Bin, so it could not be undone",
+    notRestorable:
+      "Could not go to the Recycle Bin or be backed up whole, so it could not be undone",
     wellKnownKey: "A shared registry location",
   },
   keptHint: "Not offered for cleaning. If you are sure it is a leftover, remove it yourself.",
@@ -133,7 +144,9 @@ const en: Copy = {
   proNote: "Files and folders are free to clean. Registry keys and startup entries need Pro.",
   preview: "Preview changes",
   previewRecycle: "Move to the Recycle Bin",
-  previewRegFile: "Save a .reg copy, then delete",
+  previewBackup: "Back up, then delete",
+  previewAdmin:
+    "Items for all users are cleaned in one administrator step, so Windows asks for permission once.",
   previewLocked: "Needs Pro. Skipped.",
   previewRefused: "Not allowed. Skipped.",
   previewNone: "Select something to preview.",
@@ -143,7 +156,20 @@ const en: Copy = {
   selected: (count) => `${String(count)} selected`,
   lockedLine: (count) =>
     `${String(count)} ${count === 1 ? "item needs" : "items need"} Pro and ${count === 1 ? "was" : "were"} not touched.`,
-  reportOnly: "Listed only. This app never changes machine-wide keys.",
+  adminRefused: "Items for all users were not cleaned.",
+  undoHint: "You can undo this cleanup from the Removal Ledger.",
+  undo: "Undo",
+  undoing: "Undoing…",
+  undone: "Undone",
+  undoRestored: (count) => (count === 1 ? "1 item put back." : `${String(count)} items put back.`),
+  undoKept: (count) =>
+    count === 1
+      ? "1 item left as it is, because something is in its place again."
+      : `${String(count)} items left as they are, because something is in their place again.`,
+  undoFailed: (count) =>
+    count === 1 ? "1 item could not be put back." : `${String(count)} items could not be put back.`,
+  ledgerBadge: "Leftovers",
+  restoreNotNeeded: "not needed, only this user's items changed",
 };
 
 const it: Copy = {
@@ -197,8 +223,8 @@ const it: Copy = {
     "startup-run": "Voce di avvio",
     "startup-shortcut": "Collegamento di avvio",
   },
-  scope: { user: "Questo utente", machine: "Tutti gli utenti" },
-  restore: { recycle: "Cestino", regFile: "Prima salvato in un file .reg", none: "Solo elenco" },
+  scope: { user: "Questo utente", machine: "Tutti gli utenti · amministratore" },
+  restore: { recycle: "Cestino", backup: "Backup · annullabile", none: "Solo elenco" },
   proofPath: (name) => `Nella cartella di installazione registrata per ${name}`,
   proofName: "Trovato solo per nome",
   proofDangling: (missing) => `Avvia ${missing}, che non esiste più`,
@@ -207,7 +233,8 @@ const it: Copy = {
     protectedFolder: "Cartella protetta o condivisa",
     otherProgram: "Qui c'è un altro programma installato",
     linked: "Raggiunta tramite un collegamento",
-    notRestorable: "Non può andare nel Cestino, quindi non si potrebbe annullare",
+    notRestorable:
+      "Non può andare nel Cestino né essere salvato per intero, quindi non si potrebbe annullare",
     wellKnownKey: "Posizione condivisa del registro",
   },
   keptHint:
@@ -217,7 +244,9 @@ const it: Copy = {
     "File e cartelle si puliscono gratis. Chiavi di registro e voci di avvio richiedono Pro.",
   preview: "Anteprima delle modifiche",
   previewRecycle: "Sposta nel Cestino",
-  previewRegFile: "Salva una copia .reg, poi elimina",
+  previewBackup: "Salva un backup, poi elimina",
+  previewAdmin:
+    "Gli elementi di tutti gli utenti vengono puliti in un unico passaggio da amministratore, quindi Windows chiede l'autorizzazione una sola volta.",
   previewLocked: "Richiede Pro. Saltato.",
   previewRefused: "Non consentito. Saltato.",
   previewNone: "Seleziona qualcosa per vedere l'anteprima.",
@@ -227,7 +256,23 @@ const it: Copy = {
   selected: (count) => `${String(count)} ${count === 1 ? "selezionato" : "selezionati"}`,
   lockedLine: (count) =>
     `${String(count)} ${count === 1 ? "elemento richiede" : "elementi richiedono"} Pro e ${count === 1 ? "non è stato toccato" : "non sono stati toccati"}.`,
-  reportOnly: "Solo elenco. Questa app non modifica le chiavi valide per tutto il computer.",
+  adminRefused: "Gli elementi di tutti gli utenti non sono stati puliti.",
+  undoHint: "Puoi annullare questa pulizia dal Registro rimozioni.",
+  undo: "Annulla",
+  undoing: "Annullamento…",
+  undone: "Annullata",
+  undoRestored: (count) =>
+    count === 1 ? "1 elemento ripristinato." : `${String(count)} elementi ripristinati.`,
+  undoKept: (count) =>
+    count === 1
+      ? "1 elemento lasciato com'è, perché al suo posto c'è di nuovo qualcosa."
+      : `${String(count)} elementi lasciati come sono, perché al loro posto c'è di nuovo qualcosa.`,
+  undoFailed: (count) =>
+    count === 1
+      ? "1 elemento non è stato ripristinato."
+      : `${String(count)} elementi non sono stati ripristinati.`,
+  ledgerBadge: "Residui",
+  restoreNotNeeded: "non necessario, sono cambiati solo elementi di questo utente",
 };
 
 const fr: Copy = {
@@ -283,10 +328,10 @@ const fr: Copy = {
     "startup-run": "Entrée de démarrage",
     "startup-shortcut": "Raccourci de démarrage",
   },
-  scope: { user: "Cet utilisateur", machine: "Tous les utilisateurs" },
+  scope: { user: "Cet utilisateur", machine: "Tous les utilisateurs · admin" },
   restore: {
     recycle: "Corbeille",
-    regFile: "D'abord enregistré dans un fichier .reg",
+    backup: "Sauvegardé · annulable",
     none: "Liste seulement",
   },
   proofPath: (name) => `Dans le dossier d'installation enregistré pour ${name}`,
@@ -297,7 +342,8 @@ const fr: Copy = {
     protectedFolder: "Dossier protégé ou partagé",
     otherProgram: "Un autre programme installé se trouve ici",
     linked: "Atteint par un lien",
-    notRestorable: "Ne peut pas aller dans la Corbeille, donc ne pourrait pas être annulé",
+    notRestorable:
+      "Ne peut ni aller dans la Corbeille ni être sauvegardé en entier, donc ne pourrait pas être annulé",
     wellKnownKey: "Emplacement de registre partagé",
   },
   keptHint:
@@ -307,7 +353,9 @@ const fr: Copy = {
     "Les fichiers et dossiers se nettoient gratuitement. Les clés de registre et les entrées de démarrage nécessitent Pro.",
   preview: "Aperçu des modifications",
   previewRecycle: "Déplacer vers la Corbeille",
-  previewRegFile: "Enregistrer une copie .reg, puis supprimer",
+  previewBackup: "Sauvegarder, puis supprimer",
+  previewAdmin:
+    "Les éléments de tous les utilisateurs sont nettoyés en une seule étape administrateur, donc Windows ne demande l'autorisation qu'une fois.",
   previewLocked: "Nécessite Pro. Ignoré.",
   previewRefused: "Non autorisé. Ignoré.",
   previewNone: "Sélectionnez quelque chose pour voir l'aperçu.",
@@ -317,8 +365,23 @@ const fr: Copy = {
   selected: (count) => `${String(count)} ${count > 1 ? "sélectionnés" : "sélectionné"}`,
   lockedLine: (count) =>
     `${String(count)} ${count > 1 ? "éléments nécessitent" : "élément nécessite"} Pro et ${count > 1 ? "n'ont pas été touchés" : "n'a pas été touché"}.`,
-  reportOnly:
-    "Liste seulement. Cette application ne modifie jamais les clés valables pour tout l'ordinateur.",
+  adminRefused: "Les éléments de tous les utilisateurs n'ont pas été nettoyés.",
+  undoHint: "Vous pouvez annuler ce nettoyage depuis le Registre des suppressions.",
+  undo: "Annuler",
+  undoing: "Annulation…",
+  undone: "Annulé",
+  undoRestored: (count) =>
+    `${String(count)} ${count === 1 ? "élément remis" : "éléments remis"} en place.`,
+  undoKept: (count) =>
+    count === 1
+      ? "1 élément laissé tel quel, car quelque chose a repris sa place."
+      : `${String(count)} éléments laissés tels quels, car quelque chose a repris leur place.`,
+  undoFailed: (count) =>
+    count === 1
+      ? "1 élément n'a pas pu être remis en place."
+      : `${String(count)} éléments n'ont pas pu être remis en place.`,
+  ledgerBadge: "Restes",
+  restoreNotNeeded: "inutile, seuls les éléments de cet utilisateur ont changé",
 };
 
 const es: Copy = {
@@ -373,10 +436,10 @@ const es: Copy = {
     "startup-run": "Entrada de inicio",
     "startup-shortcut": "Acceso directo de inicio",
   },
-  scope: { user: "Este usuario", machine: "Todos los usuarios" },
+  scope: { user: "Este usuario", machine: "Todos los usuarios · administrador" },
   restore: {
     recycle: "Papelera de reciclaje",
-    regFile: "Antes se guarda en un archivo .reg",
+    backup: "Copia de seguridad · se puede deshacer",
     none: "Solo en la lista",
   },
   proofPath: (name) => `Dentro de la carpeta de instalación registrada para ${name}`,
@@ -387,7 +450,8 @@ const es: Copy = {
     protectedFolder: "Carpeta protegida o compartida",
     otherProgram: "Aquí hay otro programa instalado",
     linked: "Se llega a ella mediante un vínculo",
-    notRestorable: "No puede ir a la Papelera de reciclaje, así que no se podría deshacer",
+    notRestorable:
+      "No puede ir a la Papelera de reciclaje ni guardarse entero, así que no se podría deshacer",
     wellKnownKey: "Ubicación compartida del registro",
   },
   keptHint: "No se ofrece para limpiar. Si estás seguro de que es un resto, elimínalo tú mismo.",
@@ -396,7 +460,9 @@ const es: Copy = {
     "Limpiar archivos y carpetas es gratis. Las claves del registro y las entradas de inicio requieren Pro.",
   preview: "Vista previa de los cambios",
   previewRecycle: "Mover a la Papelera de reciclaje",
-  previewRegFile: "Guardar una copia .reg y después eliminar",
+  previewBackup: "Hacer una copia de seguridad y después eliminar",
+  previewAdmin:
+    "Los elementos de todos los usuarios se limpian en un solo paso de administrador, así que Windows pide permiso una sola vez.",
   previewLocked: "Requiere Pro. Se omite.",
   previewRefused: "No permitido. Se omite.",
   previewNone: "Selecciona algo para ver la vista previa.",
@@ -406,7 +472,23 @@ const es: Copy = {
   selected: (count) => `${String(count)} ${count === 1 ? "seleccionado" : "seleccionados"}`,
   lockedLine: (count) =>
     `${String(count)} ${count === 1 ? "elemento requiere" : "elementos requieren"} Pro y no se ${count === 1 ? "tocó" : "tocaron"}.`,
-  reportOnly: "Solo en la lista. Esta aplicación nunca modifica las claves de todo el equipo.",
+  adminRefused: "Los elementos de todos los usuarios no se limpiaron.",
+  undoHint: "Puedes deshacer esta limpieza desde el Registro de eliminaciones.",
+  undo: "Deshacer",
+  undoing: "Deshaciendo…",
+  undone: "Deshecho",
+  undoRestored: (count) =>
+    count === 1 ? "1 elemento restaurado." : `${String(count)} elementos restaurados.`,
+  undoKept: (count) =>
+    count === 1
+      ? "1 elemento se dejó como está, porque vuelve a haber algo en su lugar."
+      : `${String(count)} elementos se dejaron como están, porque vuelve a haber algo en su lugar.`,
+  undoFailed: (count) =>
+    count === 1
+      ? "1 elemento no se pudo restaurar."
+      : `${String(count)} elementos no se pudieron restaurar.`,
+  ledgerBadge: "Restos",
+  restoreNotNeeded: "no hacía falta, solo cambiaron elementos de este usuario",
 };
 
 const de: Copy = {
@@ -461,10 +543,10 @@ const de: Copy = {
     "startup-run": "Autostart-Eintrag",
     "startup-shortcut": "Autostart-Verknüpfung",
   },
-  scope: { user: "Dieser Benutzer", machine: "Alle Benutzer" },
+  scope: { user: "Dieser Benutzer", machine: "Alle Benutzer · Admin" },
   restore: {
     recycle: "Papierkorb",
-    regFile: "Vorher als .reg-Datei gesichert",
+    backup: "Gesichert · rückgängig machbar",
     none: "Nur aufgelistet",
   },
   proofPath: (name) => `Im Installationsordner, der für ${name} eingetragen war`,
@@ -475,7 +557,8 @@ const de: Copy = {
     protectedFolder: "Geschützter oder gemeinsam genutzter Ordner",
     otherProgram: "Hier liegt ein anderes installiertes Programm",
     linked: "Über einen Link erreicht",
-    notRestorable: "Kann nicht in den Papierkorb, wäre also nicht rückgängig zu machen",
+    notRestorable:
+      "Kann weder in den Papierkorb noch vollständig gesichert werden, wäre also nicht rückgängig zu machen",
     wellKnownKey: "Gemeinsam genutzter Registrierungsort",
   },
   keptHint:
@@ -485,7 +568,9 @@ const de: Copy = {
     "Dateien und Ordner bereinigst du kostenlos. Registrierungsschlüssel und Autostart-Einträge brauchen Pro.",
   preview: "Änderungen ansehen",
   previewRecycle: "In den Papierkorb verschieben",
-  previewRegFile: ".reg-Kopie speichern, dann löschen",
+  previewBackup: "Sichern, dann löschen",
+  previewAdmin:
+    "Einträge für alle Benutzer werden in einem einzigen Administratorschritt bereinigt, Windows fragt also nur einmal nach der Erlaubnis.",
   previewLocked: "Braucht Pro. Übersprungen.",
   previewRefused: "Nicht erlaubt. Übersprungen.",
   previewNone: "Wähle etwas aus, um die Vorschau zu sehen.",
@@ -495,8 +580,23 @@ const de: Copy = {
   selected: (count) => `${String(count)} ausgewählt`,
   lockedLine: (count) =>
     `${String(count)} ${count === 1 ? "Eintrag braucht" : "Einträge brauchen"} Pro und ${count === 1 ? "wurde" : "wurden"} nicht angefasst.`,
-  reportOnly:
-    "Nur aufgelistet. Diese App ändert nie Schlüssel, die für den ganzen Computer gelten.",
+  adminRefused: "Die Einträge für alle Benutzer wurden nicht bereinigt.",
+  undoHint: "Du kannst diese Bereinigung im Entfernungsprotokoll rückgängig machen.",
+  undo: "Rückgängig machen",
+  undoing: "Wird rückgängig gemacht…",
+  undone: "Rückgängig gemacht",
+  undoRestored: (count) =>
+    count === 1 ? "1 Eintrag wiederhergestellt." : `${String(count)} Einträge wiederhergestellt.`,
+  undoKept: (count) =>
+    count === 1
+      ? "1 Eintrag blieb, wie er ist, weil an seiner Stelle wieder etwas liegt."
+      : `${String(count)} Einträge blieben, wie sie sind, weil an ihrer Stelle wieder etwas liegt.`,
+  undoFailed: (count) =>
+    count === 1
+      ? "1 Eintrag konnte nicht wiederhergestellt werden."
+      : `${String(count)} Einträge konnten nicht wiederhergestellt werden.`,
+  ledgerBadge: "Reste",
+  restoreNotNeeded: "nicht nötig, nur Einträge dieses Benutzers wurden geändert",
 };
 
 const pt: Copy = {
@@ -551,10 +651,10 @@ const pt: Copy = {
     "startup-run": "Entrada de arranque",
     "startup-shortcut": "Atalho de arranque",
   },
-  scope: { user: "Este utilizador", machine: "Todos os utilizadores" },
+  scope: { user: "Este utilizador", machine: "Todos os utilizadores · administrador" },
   restore: {
     recycle: "Reciclagem",
-    regFile: "Antes é guardado num ficheiro .reg",
+    backup: "Cópia de segurança · pode ser anulado",
     none: "Apenas listado",
   },
   proofPath: (name) => `Dentro da pasta de instalação registada para ${name}`,
@@ -565,7 +665,8 @@ const pt: Copy = {
     protectedFolder: "Pasta protegida ou partilhada",
     otherProgram: "Aqui está outro programa instalado",
     linked: "Alcançada através de uma ligação",
-    notRestorable: "Não pode ir para a Reciclagem, por isso não poderia ser anulado",
+    notRestorable:
+      "Não pode ir para a Reciclagem nem ser guardado por inteiro, por isso não poderia ser anulado",
     wellKnownKey: "Localização partilhada do registo",
   },
   keptHint:
@@ -575,7 +676,9 @@ const pt: Copy = {
     "Limpar ficheiros e pastas é grátis. As chaves do registo e as entradas de arranque requerem Pro.",
   preview: "Pré-visualizar as alterações",
   previewRecycle: "Mover para a Reciclagem",
-  previewRegFile: "Guardar uma cópia .reg e depois eliminar",
+  previewBackup: "Fazer uma cópia de segurança e depois eliminar",
+  previewAdmin:
+    "Os itens de todos os utilizadores são limpos num único passo de administrador, por isso o Windows pede autorização uma só vez.",
   previewLocked: "Requer Pro. Ignorado.",
   previewRefused: "Não permitido. Ignorado.",
   previewNone: "Selecione algo para ver a pré-visualização.",
@@ -585,7 +688,22 @@ const pt: Copy = {
   selected: (count) => `${String(count)} ${count === 1 ? "selecionado" : "selecionados"}`,
   lockedLine: (count) =>
     `${String(count)} ${count === 1 ? "item requer" : "itens requerem"} Pro e não ${count === 1 ? "foi tocado" : "foram tocados"}.`,
-  reportOnly: "Apenas listado. Esta aplicação nunca altera chaves de todo o computador.",
+  adminRefused: "Os itens de todos os utilizadores não foram limpos.",
+  undoHint: "Pode anular esta limpeza no Registo de remoções.",
+  undo: "Anular",
+  undoing: "A anular…",
+  undone: "Anulada",
+  undoRestored: (count) => (count === 1 ? "1 item reposto." : `${String(count)} itens repostos.`),
+  undoKept: (count) =>
+    count === 1
+      ? "1 item ficou como está, porque voltou a haver algo no seu lugar."
+      : `${String(count)} itens ficaram como estão, porque voltou a haver algo no seu lugar.`,
+  undoFailed: (count) =>
+    count === 1
+      ? "Não foi possível repor 1 item."
+      : `Não foi possível repor ${String(count)} itens.`,
+  ledgerBadge: "Resíduos",
+  restoreNotNeeded: "não foi necessário, só mudaram itens deste utilizador",
 };
 
 export const leftoversCopy: Record<Locale, Copy> = { en, it, fr, es, de, pt };

@@ -8,8 +8,8 @@ import {
   reviewIds,
   summarize,
   type LeftoverItem,
+  type CleanPlan,
   type LeftoverReport,
-  type PlanStep,
   type RemovedProgramRow,
 } from "./leftovers";
 import { UiIcon } from "./ui-icon";
@@ -45,12 +45,7 @@ function Row({
   const proof = proofLine(c, item, subject);
   const nameId = `lo-name-${item.id}`;
   const noteId = `lo-note-${item.id}`;
-  const note =
-    item.blocker !== null
-      ? `${c.blockers[item.blocker]}. ${c.keptHint}`
-      : item.tier !== "keep" && !item.deletable
-        ? c.reportOnly
-        : proof;
+  const note = item.blocker !== null ? `${c.blockers[item.blocker]}. ${c.keptHint}` : proof;
   return (
     <li className={`leftover leftover-${item.tier}${selectable ? "" : " leftover-fixed"}`}>
       <label className="leftover-main">
@@ -106,6 +101,7 @@ export function LeftoversView({
   proNotice,
   proAction,
   plan,
+  adminNotes,
   onPreview,
   onBack,
   onClean,
@@ -123,7 +119,10 @@ export function LeftoversView({
   proNotice: ReactNode;
   /** The trial or checkout button (empty when Pro is active). */
   proAction: ReactNode;
-  plan: PlanStep[] | null;
+  plan: CleanPlan | null;
+  /** Shown with a plan that needs the administrator step: the restore
+   *  point forecast. */
+  adminNotes: ReactNode;
   onPreview: () => void;
   onBack: () => void;
   onClean: () => void;
@@ -207,11 +206,11 @@ export function LeftoversView({
       ) : (
         <section className="leftovers-preview" aria-label={c.preview}>
           <h3>{c.preview}</h3>
-          {plan.length === 0 ? (
+          {plan.steps.length === 0 ? (
             <p className="dialog-body">{c.previewNone}</p>
           ) : (
             <ul>
-              {plan.map((step) => {
+              {plan.steps.map((step) => {
                 const item = items.find((candidate) => candidate.id === step.id);
                 return (
                   <li key={step.id} className={step.locked || step.refused ? "skipped" : ""}>
@@ -223,12 +222,19 @@ export function LeftoversView({
                           ? c.previewLocked
                           : step.step === "recycle"
                             ? c.previewRecycle
-                            : c.previewRegFile}
+                            : c.previewBackup}
+                      {step.admin && !step.locked && !step.refused && ` · ${c.scope.machine}`}
                     </span>
                   </li>
                 );
               })}
             </ul>
+          )}
+          {plan.needsAdmin && (
+            <>
+              <p className="dialog-body">{c.previewAdmin}</p>
+              {adminNotes}
+            </>
           )}
           <p className="dialog-body subtle">{c.previewUnchanged}</p>
         </section>

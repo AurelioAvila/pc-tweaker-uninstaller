@@ -142,6 +142,12 @@ pub struct AccessEntry {
 /// access list at all means everyone may do anything. Deny entries are
 /// ignored, which can only make the answer stricter.
 pub fn only_admins_can_change(owner: &str, dacl: Option<&[AccessEntry]>) -> bool {
+    only_admins_can_change_with(owner, dacl, CHANGE_RIGHTS)
+}
+
+/// [`only_admins_can_change`] for any kind of object, given the rights that
+/// change it.
+pub fn only_admins_can_change_with(owner: &str, dacl: Option<&[AccessEntry]>, rights: u32) -> bool {
     let Some(entries) = dacl else {
         return false;
     };
@@ -149,10 +155,16 @@ pub fn only_admins_can_change(owner: &str, dacl: Option<&[AccessEntry]>) -> bool
         && entries.iter().all(|e| {
             !e.allow
                 || e.inherit_only
-                || e.mask & CHANGE_RIGHTS == 0
+                || e.mask & rights == 0
                 || ADMIN_SIDS.contains(&e.sid.as_str())
         })
 }
+
+/// Rights that change a registry key: set value, create subkey, create link,
+/// delete, change permissions, take ownership, and the generic write/all
+/// bits.
+pub const KEY_CHANGE_RIGHTS: u32 =
+    0x2 | 0x4 | 0x20 | 0x1_0000 | 0x4_0000 | 0x8_0000 | 0x1000_0000 | 0x4000_0000;
 
 /// True when the real file behind `exe` (links resolved) is still under one
 /// of `roots`, and it and every folder up to that root pass
@@ -190,11 +202,35 @@ fn admin_only_path(exe: &str, roots: &[String]) -> bool {
 #[allow(clippy::type_complexity)]
 pub fn read_access(path: &std::path::Path) -> Option<(String, Option<Vec<AccessEntry>>)> {
     use std::os::windows::ffi::OsStrExt;
+    let wide: Vec<u16> = path.as_os_str().encode_wide().chain([0]).collect();
+    read_named_access(
+        &wide,
+        windows_sys::Win32::Security::Authorization::SE_FILE_OBJECT,
+    )
+}
+
+/// [`read_access`] for a registry key, named as `MACHINE\SOFTWARE\...`.
+#[cfg(windows)]
+#[allow(clippy::type_complexity)]
+pub fn read_key_access(name: &str) -> Option<(String, Option<Vec<AccessEntry>>)> {
+    let wide: Vec<u16> = name.encode_utf16().chain([0]).collect();
+    read_named_access(
+        &wide,
+        windows_sys::Win32::Security::Authorization::SE_REGISTRY_KEY,
+    )
+}
+
+#[cfg(windows)]
+#[allow(clippy::type_complexity)]
+fn read_named_access(
+    wide: &[u16],
+    object_type: windows_sys::Win32::Security::Authorization::SE_OBJECT_TYPE,
+) -> Option<(String, Option<Vec<AccessEntry>>)> {
     use windows_sys::Win32::{
         Foundation::{LocalFree, ERROR_SUCCESS},
         Security::{
             AclSizeInformation,
-            Authorization::{ConvertSidToStringSidW, GetNamedSecurityInfoW, SE_FILE_OBJECT},
+            Authorization::{ConvertSidToStringSidW, GetNamedSecurityInfoW},
             GetAce, GetAclInformation, ACE_HEADER, ACL, ACL_SIZE_INFORMATION,
             DACL_SECURITY_INFORMATION, INHERIT_ONLY_ACE, OWNER_SECURITY_INFORMATION, PSID,
         },
@@ -211,7 +247,6 @@ pub fn read_access(path: &std::path::Path) -> Option<(String, Option<Vec<AccessE
         LocalFree(raw as _);
         Some(text)
     }
-    let wide: Vec<u16> = path.as_os_str().encode_wide().chain([0]).collect();
     let mut owner: PSID = std::ptr::null_mut();
     let mut dacl: *mut ACL = std::ptr::null_mut();
     let mut descriptor = std::ptr::null_mut();
@@ -220,7 +255,7 @@ pub fn read_access(path: &std::path::Path) -> Option<(String, Option<Vec<AccessE
     unsafe {
         let status = GetNamedSecurityInfoW(
             wide.as_ptr(),
-            SE_FILE_OBJECT,
+            object_type,
             OWNER_SECURITY_INFORMATION | DACL_SECURITY_INFORMATION,
             &mut owner,
             std::ptr::null_mut(),
@@ -285,6 +320,12 @@ pub fn read_access(path: &std::path::Path) -> Option<(String, Option<Vec<AccessE
 #[cfg(not(windows))]
 #[allow(clippy::type_complexity)]
 pub fn read_access(_path: &std::path::Path) -> Option<(String, Option<Vec<AccessEntry>>)> {
+    None
+}
+
+#[cfg(not(windows))]
+#[allow(clippy::type_complexity)]
+pub fn read_key_access(_name: &str) -> Option<(String, Option<Vec<AccessEntry>>)> {
     None
 }
 
@@ -678,6 +719,7 @@ fn record_receipt(
         verified_freed_kb,
         message: report.message.clone(),
         removed_entry: None,
+        leftovers: None,
     });
 }
 

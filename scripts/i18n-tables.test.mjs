@@ -132,13 +132,41 @@ test('the uninstall refusals written in Rust are translated in every language', 
 test('the leftover scan refusals written in Rust are translated in every language', async () => {
   const { backendText } = await load('backend-copy');
   const rust = fs.readFileSync(new URL('../src-tauri/src/residue.rs', import.meta.url), 'utf8');
-  for (const name of ['NOT_REMOVED', 'SCAN_GONE', 'MANUAL_EMPTY', 'MANUAL_NAME', 'MANUAL_SHAPE', 'MANUAL_GONE', 'MANUAL_PROTECTED', 'MANUAL_OTHER', 'MANUAL_LINKED']) {
+  for (const name of ['NOT_REMOVED', 'SCAN_GONE', 'MANUAL_EMPTY', 'MANUAL_NAME', 'MANUAL_SHAPE', 'MANUAL_GONE', 'MANUAL_PROTECTED', 'MANUAL_OTHER', 'MANUAL_LINKED', 'PLAN_CHANGED', 'TOO_MANY']) {
     const literal = rust.match(new RegExp(`const ${name}: &str =\\s*"((?:[^"\\\\]|\\\\[\\s\\S])*)"`));
     assert.ok(literal, `${name} not found in residue.rs`);
     const message = literal[1].replace(/\\\r?\n\s*/g, '');
     for (const l of LANGS.slice(1)) {
       i18n.setLocale(l);
       assert.notEqual(backendText(message), message, `${name} is not translated in ${l}`);
+    }
+  }
+  i18n.setLocale('en');
+});
+// The cleanup and Undo of items of all users, and their ledger line.
+test('the leftover cleanup and undo messages written in Rust are translated in every language', async () => {
+  const { backendText } = await load('backend-copy');
+  const read = (file) => fs.readFileSync(new URL(`../src-tauri/src/${file}`, import.meta.url), 'utf8');
+  const rust = read('residue_elevated.rs');
+  const constant = (name) => {
+    const literal = rust.match(new RegExp(`const ${name}: &str =\\s*"((?:[^"\\\\]|\\\\[\\s\\S])*)"`));
+    assert.ok(literal, `${name} not found in residue_elevated.rs`);
+    return literal[1].replace(/\\\r?\n\s*/g, '');
+  };
+  const messages = ['STORE_UNTRUSTED', 'CHILD_CHANGED', 'UNDO_GONE', 'BACKUP_DAMAGED', 'REPORT_UNREADABLE'].map(constant);
+  // Exactly as `elevated()` formats it, with the reason kept.
+  assert.match(rust, /format!\("\{ADMIN_NOT_RUN\} \(\{e\}\)\."\)/);
+  messages.push(`${constant('ADMIN_NOT_RUN')} (the operation was canceled by the user).`);
+  // Exactly as the ledger writes it.
+  assert.match(read('ledger.rs'), /format!\("Leftovers cleaned: \{total\}\."\)/);
+  messages.push('Leftovers cleaned: 3.');
+  for (const message of messages) {
+    for (const l of LANGS.slice(1)) {
+      i18n.setLocale(l);
+      const line = backendText(message);
+      assert.notEqual(line, message, `"${message}" is not translated in ${l}`);
+      if (message.includes('canceled')) assert.ok(line.includes('(the operation was canceled by the user)'), `${l}: ${line}`);
+      if (message.startsWith('Leftovers')) assert.ok(line.includes('3'), `${l}: ${line}`);
     }
   }
   i18n.setLocale('en');

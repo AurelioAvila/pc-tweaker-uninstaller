@@ -152,6 +152,7 @@ fn record_receipt(source: &str, report: &UninstallReport, entry: &RawEntry) {
             install_location: entry.install_location.clone(),
             uninstall_string: entry.uninstall_string.clone(),
         }),
+        leftovers: None,
     });
 }
 

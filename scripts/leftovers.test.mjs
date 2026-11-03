@@ -20,7 +20,7 @@ test('only Safe items are pre-selected, and only for a scan that read the regist
   const items = [
     item('dir', 'install-dir', { tier: 'safe', evidence: 'path' }),
     item('data', 'app-data'),
-    item('key', 'registry-user', { restore: 'regFile' }),
+    item('key', 'registry-user', { restore: 'backup' }),
     item('kept', 'install-dir', { tier: 'keep', deletable: false, blocker: 'otherProgram' }),
   ];
   assert.deepEqual(L.defaultSelection(report('registry', items), true), ['dir']);
@@ -104,4 +104,23 @@ test('the summary counts what can be cleaned and what still starts with Windows'
   ];
   assert.deepEqual(L.summarize(items), { count: 3, sizeKb: 1025, startup: 2 });
   assert.deepEqual(L.summarize([]), { count: 0, sizeKb: 0, startup: 0 });
+});
+
+test('an undo is summed up as put back, left as it is, or not put back', () => {
+  const report = {
+    refused: null,
+    outcomes: ['restored', 'restored', 'conflict', 'missing', 'refused', 'failed'].map((outcome, i) => ({
+      id: String(i),
+      outcome,
+    })),
+  };
+  assert.deepEqual(L.undoSummary(report), { restored: 2, kept: 1, failed: 3 });
+  assert.deepEqual(L.undoSummary({ refused: 'x', outcomes: [] }), { restored: 0, kept: 0, failed: 0 });
+});
+
+test('items of all users can be ticked like any other: folders free, keys with Pro', () => {
+  const machine = { scope: 'machine' };
+  assert.equal(L.isSelectable(item('pd', 'app-data', machine), false), true);
+  assert.equal(L.isSelectable(item('hklm', 'registry-machine', { ...machine, restore: 'backup' }), false), false);
+  assert.equal(L.isSelectable(item('hklm', 'registry-machine', { ...machine, restore: 'backup' }), true), true);
 });

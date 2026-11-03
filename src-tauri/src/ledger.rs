@@ -47,6 +47,22 @@ pub struct RemovalReceipt {
     /// be recreated by hand. Absent for ordinary uninstalls.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub removed_entry: Option<RemovedEntry>,
+    /// For a leftover cleanup: its backup, which Undo takes.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub leftovers: Option<LeftoverReceipt>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct LeftoverReceipt {
+    pub stamp: String,
+    pub user_items: usize,
+    pub machine_items: usize,
+    #[serde(default)]
+    pub undone: bool,
+    /// The backup is still kept (the newest 10 are). Worked out on listing.
+    #[serde(default)]
+    pub available: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
@@ -81,6 +97,11 @@ pub fn trim_to_cap(mut entries: Vec<RemovalReceipt>, cap: usize) -> Vec<RemovalR
 }
 
 pub fn append(receipt: &RemovalReceipt) -> Result<(), String> {
+    rewrite(|entries| entries.push(receipt.clone()))
+}
+
+/// Changes the ledger under its lock, oldest entries trimmed past the cap.
+fn rewrite(change: impl FnOnce(&mut Vec<RemovalReceipt>)) -> Result<(), String> {
     let _guard = LEDGER_WRITE.lock().map_err(|e| e.to_string())?;
     let path = ledger_path()?;
     if let Some(dir) = path.parent() {
@@ -88,7 +109,7 @@ pub fn append(receipt: &RemovalReceipt) -> Result<(), String> {
     }
     let body = std::fs::read_to_string(&path).unwrap_or_default();
     let mut entries = parse_ledger(&body);
-    entries.push(receipt.clone());
+    change(&mut entries);
     let entries = trim_to_cap(entries, MAX_ENTRIES);
 
     let mut out = Vec::new();
@@ -103,6 +124,64 @@ pub fn append(receipt: &RemovalReceipt) -> Result<(), String> {
         .map_err(|e| e.to_string())?;
     std::fs::rename(&tmp, &path).map_err(|e| e.to_string())?;
     Ok(())
+}
+
+/// What a leftover cleanup did, for its receipt.
+pub struct LeftoversDone<'a> {
+    pub program: &'a str,
+    pub stamp: &'a str,
+    pub user_items: usize,
+    pub machine_items: usize,
+    pub freed_kb: u64,
+    pub restore_point: Option<crate::restore_point::RestorePointOutcome>,
+}
+
+pub fn record_leftovers(done: LeftoversDone) {
+    let total = done.user_items + done.machine_items;
+    let _ = append(&RemovalReceipt {
+        ts: std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_or(0, |d| d.as_secs()),
+        program_name: done.program.to_string(),
+        source: "leftovers".to_string(),
+        method: "leftovers".to_string(),
+        success: true,
+        exit_code: None,
+        reboot_required: false,
+        restore_point: done.restore_point.as_ref().map_or_else(
+            || "not requested: only this user's items changed".to_string(),
+            |p| p.ledger_line(),
+        ),
+        restore_point_outcome: done.restore_point,
+        estimated_size_kb: None,
+        verified_freed_kb: Some(done.freed_kb),
+        message: format!("Leftovers cleaned: {total}."),
+        removed_entry: None,
+        leftovers: Some(LeftoverReceipt {
+            stamp: done.stamp.to_string(),
+            user_items: done.user_items,
+            machine_items: done.machine_items,
+            undone: false,
+            available: false,
+        }),
+    });
+}
+
+pub fn mark_leftovers_undone(stamp: &str) {
+    let _ = rewrite(|entries| {
+        for leftovers in entries.iter_mut().filter_map(|e| e.leftovers.as_mut()) {
+            if leftovers.stamp == stamp {
+                leftovers.undone = true;
+            }
+        }
+    });
+}
+
+/// Marks which leftover receipts can still be undone.
+fn mark_available(entries: &mut [RemovalReceipt], kept: &[String]) {
+    for leftovers in entries.iter_mut().filter_map(|e| e.leftovers.as_mut()) {
+        leftovers.available = !leftovers.undone && kept.contains(&leftovers.stamp);
+    }
 }
 
 fn clear_at(path: &Path) -> Result<(), String> {
@@ -126,6 +205,13 @@ pub fn list_removal_ledger() -> Result<Vec<RemovalReceipt>, String> {
     let body = std::fs::read_to_string(ledger_path()?).unwrap_or_default();
     let mut entries = parse_ledger(&body);
     entries.reverse();
+    if entries.iter().any(|e| e.leftovers.is_some()) {
+        let mut kept = crate::residue_backup::STORE.stamps();
+        if let Ok(dir) = crate::residue_backup::user_dir() {
+            kept.extend(crate::residue_backup::user_stamps(&dir));
+        }
+        mark_available(&mut entries, &kept);
+    }
     Ok(entries)
 }
 
@@ -182,6 +268,7 @@ mod tests {
             verified_freed_kb: None,
             message: "Uninstalled successfully.".into(),
             removed_entry: None,
+            leftovers: None,
         }
     }
 
@@ -214,6 +301,35 @@ mod tests {
         assert_eq!(trimmed.len(), 3);
         assert_eq!(trimmed[0].ts, 7);
         assert_eq!(trimmed[2].ts, 9);
+    }
+
+    #[test]
+    fn a_leftover_receipt_can_be_undone_while_its_backup_is_kept() {
+        let mut entries = vec![receipt("Old", 1), receipt("New", 2), receipt("Done", 3)];
+        for (entry, stamp) in
+            entries
+                .iter_mut()
+                .zip(["1000000000001", "1000000000002", "1000000000003"])
+        {
+            entry.leftovers = Some(LeftoverReceipt {
+                stamp: stamp.into(),
+                user_items: 1,
+                machine_items: 0,
+                undone: stamp.ends_with('3'),
+                available: true,
+            });
+        }
+        let line = serde_json::to_string(&entries[0]).unwrap();
+        assert_eq!(parse_ledger(&line)[0].leftovers, entries[0].leftovers);
+        mark_available(
+            &mut entries,
+            &["1000000000002".to_string(), "1000000000003".to_string()],
+        );
+        let available: Vec<bool> = entries
+            .iter()
+            .map(|e| e.leftovers.as_ref().unwrap().available)
+            .collect();
+        assert_eq!(available, vec![false, true, false]);
     }
 
     #[test]

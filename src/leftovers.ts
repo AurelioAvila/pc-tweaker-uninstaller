@@ -22,7 +22,7 @@ export type Blocker =
   | "notRestorable"
   | "wellKnownKey";
 export type ScanMode = "registry" | "manual" | "sweep";
-export type RestoreKind = "recycle" | "regFile" | "none";
+export type RestoreKind = "recycle" | "backup" | "none";
 
 /** Mirror of `ResidueItem` (src-tauri/src/residue.rs). */
 export interface LeftoverItem {
@@ -53,14 +53,55 @@ export interface CleanOutcome {
   failed: string[];
   locked: string[];
   freedKb: number;
+  /** The backup id Undo takes; null when nothing was cleaned. */
+  stamp: string | null;
+  /** A `RestorePointOutcome`, requested before items of all users changed. */
+  restorePoint: { kind: string } | null;
+  /** Why the items of all users were not cleaned (English, backend-copy). */
+  adminRefused: string | null;
 }
 
 export interface PlanStep {
   id: string;
-  step: "recycle" | "regFile";
+  /** "backup": backed up byte for byte, then deleted. */
+  step: "recycle" | "backup";
   proOnly: boolean;
   locked: boolean;
   refused: boolean;
+  /** An item of all users, cleaned in the one administrator step. */
+  admin: boolean;
+}
+
+/** Mirror of `CleanPlan`: the dry run, and the fingerprint the cleanup
+ *  must come back with. */
+export interface CleanPlan {
+  steps: PlanStep[];
+  fingerprint: string;
+  needsAdmin: boolean;
+  restorePoint: { kind: "off" } | { kind: "reuse"; at: number } | { kind: "new" } | null;
+}
+
+export type UndoOutcome = "restored" | "conflict" | "refused" | "missing" | "failed";
+
+/** Mirror of `UndoReport` (src-tauri/src/residue_elevated.rs). */
+export interface UndoReport {
+  outcomes: { id: string; outcome: UndoOutcome }[];
+  refused: string | null;
+}
+
+/** Put back, left alone because something is there again, and the rest. */
+export function undoSummary(report: UndoReport): {
+  restored: number;
+  kept: number;
+  failed: number;
+} {
+  const count = (pick: (o: UndoOutcome) => boolean) =>
+    report.outcomes.filter((o) => pick(o.outcome)).length;
+  return {
+    restored: count((o) => o === "restored"),
+    kept: count((o) => o === "conflict"),
+    failed: count((o) => o !== "restored" && o !== "conflict"),
+  };
 }
 
 /** Mirror of `RemovedView` (src-tauri/src/removed_programs.rs). */
