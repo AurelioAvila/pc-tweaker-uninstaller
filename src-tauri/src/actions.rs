@@ -185,15 +185,24 @@ mod tests {
         assert!(!is_stripe_page(
             "https://example.com/?https://checkout.stripe.com/"
         ));
+        assert!(is_stripe_page(
+            "https://pctweaker.app/checkout/confirm/#t=signed.link.value"
+        ));
+        assert!(!is_stripe_page("https://pctweaker.app/account/"));
+        assert!(!is_stripe_page(
+            "https://pctweaker.app.example/checkout/confirm/"
+        ));
     }
 }
 
 /// Stripe's hosted pages this app may open: Checkout, and the billing portal
-/// behind "Manage subscription" (our backend's /api/portal). The trailing
-/// slash pins the host, so `checkout.stripe.com.example` never passes.
+/// behind "Manage subscription" (our backend's /api/portal), plus our Terms
+/// box page that comes before Checkout (3 November 2026). The trailing slash
+/// pins the host, so `checkout.stripe.com.example` never passes.
 fn is_stripe_page(url: &str) -> bool {
     url.starts_with("https://checkout.stripe.com/")
         || url.starts_with("https://billing.stripe.com/")
+        || url.starts_with("https://pctweaker.app/checkout/confirm/")
 }
 
 /// Opens a Stripe Checkout or billing-portal URL in the system browser. The

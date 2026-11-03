@@ -488,11 +488,13 @@ export async function startUninstallerCheckout(startTrial?: boolean): Promise<st
         ...(await deviceHeader()),
       },
       // start_trial only when a trial is on offer (trial button or "Subscribe
-      // now"); the server still decides whether one applies.
+      // now"); the server still decides whether one applies. consent_page:
+      // this version can open the Terms box page on pctweaker.app, which the
+      // server returns instead of Stripe once the box is required.
       body: JSON.stringify(
         startTrial === undefined
-          ? { product: "uninstaller", plan: "annual" }
-          : { product: "uninstaller", plan: "annual", start_trial: startTrial },
+          ? { product: "uninstaller", plan: "annual", consent_page: true }
+          : { product: "uninstaller", plan: "annual", start_trial: startTrial, consent_page: true },
       ),
     }),
   );
