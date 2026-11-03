@@ -58,8 +58,8 @@ Its SHA-256 is `65c8efbd661bec137141fc2cbe90432434b734fecbaf2d0b4dd14281a84c118f
 This check applies to that specific setup EXE, not every asset or future build.
 Historical version 0.8.2 remains unsigned; use current official downloads.
 
-**WinGet status (November 1, 2026):** the latest stable release is 0.14.0. The [new-package submission](https://github.com/microsoft/winget-pkgs/pull/434135),
-now carrying 0.14.0, is awaiting manual review. Passing automated checks is not catalog approval.
+**WinGet status (November 3, 2026):** the latest stable release is 0.14.0. The [new-package submission](https://github.com/microsoft/winget-pkgs/pull/434135),
+now carrying 0.14.0 and updated to manifest schema 1.28.0 on November 3, is awaiting moderator review. Passing automated checks is not catalog approval.
 Use the GitHub release download until the package is accepted.
 
 Signing identifies the publisher and protects file integrity; neither code signing
