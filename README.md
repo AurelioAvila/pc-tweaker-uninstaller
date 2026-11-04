@@ -2,7 +2,7 @@
 
 For Windows users reviewing installed software and its removal risk. Inspect the registered uninstall command and permissions, then keep a local removal receipt; review leftovers separately.
 
-[Product](https://pctweaker.app/uninstaller/) · [Official downloads](https://github.com/AurelioAvila/pc-tweaker-uninstaller/releases/latest) · [Verify the publisher signature](https://github.com/AurelioAvila/.github/blob/master/CODE_SIGNING.md)
+[Product](https://pctweaker.app/uninstaller/) · [Official downloads](https://github.com/AurelioAvila/pc-tweaker-uninstaller/releases/latest) · [Chocolatey](https://community.chocolatey.org/packages/pc-tweaker-uninstaller) · [Verify the publisher signature](https://github.com/AurelioAvila/.github/blob/master/CODE_SIGNING.md)
 
 <p align="center">
   <img src="docs/icon.png" width="112" alt="PC Tweaker Uninstaller logo">
@@ -60,13 +60,26 @@ Historical version 0.8.2 remains unsigned; use current official downloads.
 
 **WinGet status (November 3, 2026):** the latest stable release is 0.14.0. The [new-package submission](https://github.com/microsoft/winget-pkgs/pull/434135),
 now carrying 0.14.0 and updated to manifest schema 1.28.0 on November 3, is awaiting moderator review. Passing automated checks is not catalog approval.
-Use the GitHub release download until the package is accepted.
+Use the GitHub release or Chocolatey while WinGet review is pending.
 
 Signing identifies the publisher and protects file integrity; neither code signing
 nor WinGet guarantees the absence of SmartScreen warnings.
 
 See the [signing inventory and verification guide](https://github.com/AurelioAvila/.github/blob/master/CODE_SIGNING.md).
 Use official downloads and investigate security warnings before proceeding.
+
+## Install with Chocolatey
+
+Version **0.14.0** was approved in the [Chocolatey Community Repository](https://community.chocolatey.org/packages/pc-tweaker-uninstaller/0.14.0) on November 4, 2026. The package downloads the official publisher-signed setup and checks its fixed SHA-256.
+
+Inspect the package details, then install if appropriate:
+
+```powershell
+choco info pc-tweaker-uninstaller
+choco install pc-tweaker-uninstaller
+```
+
+This installs Uninstaller; it does not request the removal of any other application. Repository package approval is separate from the pending WinGet submission above.
 
 ## What it does
 
