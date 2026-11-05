@@ -51,15 +51,15 @@ activated on first sign-in to Uninstaller with the same account. This is a
 separate, time-limited entitlement, not a perpetual Uninstaller license.
 
 **[Download latest signed version](../../releases/latest)** for Windows 10/11 x64.
-The [0.14.0 setup EXE](../../releases/tag/v0.14.0) was checked on November 1, 2026,
+The [0.15.0 setup EXE](../../releases/tag/v0.15.0) was checked on November 5, 2026,
 after downloading it again from the published release: its Authenticode signature
 identifies **Aurelio Avila** and includes a trusted DigiCert timestamp.
-Its SHA-256 is `65c8efbd661bec137141fc2cbe90432434b734fecbaf2d0b4dd14281a84c118f`.
+Its SHA-256 is `9196d02409587fce4c0eda83190f166fd122d11c5279fb4ad311575dc63cfff1`.
 This check applies to that specific setup EXE, not every asset or future build.
 Historical version 0.8.2 remains unsigned; use current official downloads.
 
-**WinGet status (November 3, 2026):** the latest stable release is 0.14.0. The [new-package submission](https://github.com/microsoft/winget-pkgs/pull/434135),
-now carrying 0.14.0 and updated to manifest schema 1.28.0 on November 3, is awaiting moderator review. Passing automated checks is not catalog approval.
+**WinGet status (November 5, 2026):** the latest stable release is 0.15.0. The [new-package submission](https://github.com/microsoft/winget-pkgs/pull/434135),
+now carrying 0.15.0 and updated to manifest schema 1.28.0 on November 3, is awaiting moderator review. Passing automated checks is not catalog approval.
 Use the GitHub release or Chocolatey while WinGet review is pending.
 
 Signing identifies the publisher and protects file integrity; neither code signing
