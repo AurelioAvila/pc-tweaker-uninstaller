@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.15.0
 
-Leftovers from programs you removed earlier, and a new Free and Pro split for cleaning them.
+PC Tweaker Uninstaller 0.15.0 finds the leftovers of programs you removed earlier, cleans leftover files for free, and lets you undo any cleanup.
 
 - Programs removed earlier: the app remembers which programs have disappeared from your installed list, whether this app removed them or something else did, such as Windows Settings, the program's own uninstaller or a command-line tool. The new Removed programs list keeps the last 50 and offers to scan any of them for leftovers. An upgrade that only replaces a program with a newer version is not counted as a removal. The list stays on this PC.
 - Scan a removed program: type a program's name, its old folder, or both. The folder is checked first: protected and shared folders, folders another installed program lives in, links and network paths are refused. Nothing found this way is selected for you.
@@ -16,6 +16,10 @@ Leftovers from programs you removed earlier, and a new Free and Pro split for cl
 - Registry keys and startup entries are now backed up byte for byte before they are deleted. Backups of items of all users are kept where only administrators can change them, with a copy you can read next to this account's backups. Nothing is deleted unless its backup was saved first.
 - More shared locations are never offered: common registry keys such as Python, JavaSoft, ODBC and the keys of graphics drivers, and shared folders such as Common Files, Package Cache, Microsoft and Windows.
 - Scrollbars now match the theme everywhere, like PC Tweaker's: a thin rounded bar without arrow buttons that lights up in the accent colour when you point at it. A long version number now ends in "…" and shows in full when you point at it.
+- Pro on a PC whose clock runs ahead: the licence is now judged on the account service's clock, so a PC up to a day ahead keeps Pro until the very end of the plan, the 3-day trial included.
+- Checkout: when the account service asks for it, the app opens the Terms box page on pctweaker.app before Stripe.
+- German now uses the informal "du" throughout.
+- Terms and privacy: refunds worded as in PC Tweaker's terms, Link named as merchant of record, and the purchase and usage records described.
 
 ## 0.14.0
 
