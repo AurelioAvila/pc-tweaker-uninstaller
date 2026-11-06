@@ -20,25 +20,36 @@ For Windows users reviewing installed software and its removal risk. Inspect the
   <a href="https://github.com/AurelioAvila/pc-tweaker-uninstaller/releases/latest"><img src="https://img.shields.io/github/v/release/AurelioAvila/pc-tweaker-uninstaller?display_name=tag&style=for-the-badge&color=7C3AED" alt="Latest release"></a>
 </p>
 
-<p align="center"><img src="docs/screenshots/uninstaller-0.14.0-inventory-sample-data.jpg" width="100%" alt="Uninstaller 0.14.0 installed-program inventory with clearly labelled fictional sample data."></p>
+<p align="center"><img src="docs/screenshots/uninstaller-0.15.0-leftover-review-sample-data.jpg" width="100%" alt="Uninstaller 0.15.0 leftover review: files and folders can be cleaned on Free, while registry cleanup needs Pro. Fictional sample data; no cleanup performed."></p>
 
-*Current 0.14.0 frontend, captured November 3, 2026. All program names, sizes and receipts are fictional sample data. No software was removed.* [Capture details and hashes](docs/SCREENSHOTS.md).
+*Actual 0.15.0 frontend, captured November 6, 2026. Every image permanently marks fictional sample data. No software was scanned or removed, and no cleanup was performed.* [Capture details and hashes](docs/SCREENSHOTS.md).
 
-## Before you uninstall, see the plan
+## Already uninstalled? Find what was left behind
 
-Inspect the exact command, requested permissions and recovery limits before
-confirming a removal. Confidence labels explain the available evidence; they do
-not guarantee that an application or its data can be recovered.
+Review programs removed earlier, including removals made outside this app. Scan
+one of those entries, or enter a program's name or former folder. File and folder
+cleanup to the Recycle Bin is free in 0.15.0; registry and startup cleanup require
+Pro. Review each candidate before cleaning. Cleanup Undo does not reinstall an
+application or replace an independent backup.
 
-![Uninstaller 0.14.0 removal brief showing an example command and administrator requirement; sample data, no command executed.](docs/screenshots/uninstaller-0.14.0-removal-brief-sample-data.jpg)
+![Uninstaller 0.15.0 Programs removed earlier and manual scan form. Fictional entries; no native scan or software removal.](docs/screenshots/uninstaller-0.15.0-removed-programs-sample-data.jpg)
 
-## Afterward, read what actually happened
+## Before another removal, see the command
 
-The local Removal Ledger separates reported size from verified recovered space
-and records the restore-point outcome. This fictional example explicitly shows
-an unverified restore point and no measured reclaimed space.
+Inspect the registered uninstall command, requested permissions and recovery
+limits before confirming. The example's reported size is not measured recovered
+space. Confidence labels and restore-point requests are not guarantees that an
+application or its data can be recovered.
 
-![Uninstaller 0.14.0 Removal Ledger with a fictional receipt and an explicitly unverified restore point; sample data only.](docs/screenshots/uninstaller-0.14.0-removal-ledger-sample-data.jpg)
+![Uninstaller 0.15.0 removal brief showing a fictional command and permission requirement. No command executed.](docs/screenshots/uninstaller-0.15.0-removal-brief-sample-data.jpg)
+
+## Start with an inspectable inventory
+
+Review installed programs and their reported sizes, versions and removal
+guidance in the Windows desktop workspace. This illustration uses six fictional
+programs; it is not an inventory collected from a real PC.
+
+![Uninstaller 0.15.0 installed-program inventory with a permanent fictional-sample-data label.](docs/screenshots/uninstaller-0.15.0-inventory-sample-data.jpg)
 
 ## Download
 
